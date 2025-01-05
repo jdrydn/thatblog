@@ -1,0 +1,20 @@
+{
+  "name": "@thatblog/repo",
+  "description": "Serverless blog platform monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "workspaces": [
+    "backend/",
+    "frontend-admin/",
+    "frontend-blog/",
+    "infrastructure/"
+  ],
+  "repository": "https://github.com/jdrydn/thatblog",
+  "bugs": "https://github.com/jdrydn/thatblog/issues",
+  "homepage": "https://github.com/jdrydn/thatblog#readme",
+  "author": "jdrydn <james@jdrydn.com> (https://jdrydn.com)",
+  "license": "MIT"
+}
