@@ -16,5 +16,9 @@
   "bugs": "https://github.com/jdrydn/thatblog/issues",
   "homepage": "https://github.com/jdrydn/thatblog#readme",
   "author": "jdrydn <james@jdrydn.com> (https://jdrydn.com)",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
 }
