@@ -1,0 +1,21 @@
+name: PR Validate
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: pr-validate-${{ github.event.number }}
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello, world!"
