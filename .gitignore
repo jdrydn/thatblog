@@ -2,6 +2,7 @@
 .vscode/*
 !.vscode/extensions.json
 
+cdk.out/
 dist/
 dist-ssr/
 node_modules/
@@ -10,3 +11,4 @@ node_modules/
 *.DS_Store
 *.log*
 *.log
+.envrc
