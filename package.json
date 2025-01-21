@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "build": "npm --workspaces run build --if-present",
+    "deploy": "./scripts/deploy.sh --",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "workspaces": [
