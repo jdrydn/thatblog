@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 DIR="$( cd -- "$(dirname "$0")/../" >/dev/null 2>&1 ; pwd -P )"
 
-ARG_STACKNAME=""
+ARG_STACKNAME="thatblog"
 ARG_DESTROY=false
 ARG_RENEW=false
 
@@ -33,8 +33,11 @@ throw_err "$?" "Failed to authenticate with AWS"
 
 BUCKET_QUERY="Stacks[?StackName=='$ARG_STACKNAME'][].Outputs[?OutputKey=='BucketName'].OutputValue"
 
-if [ "$ARG_TF_DESTROY" = "true" ]; then
+if [ "$ARG_DESTROY" = "true" ]; then
   BUCKET_NAME=$(aws cloudformation describe-stacks --query "$BUCKET_QUERY" --output text)
+  throw_err "$?" "Failed to get S3 bucket name"
+  throw_err "$([ -z "$BUCKET_NAME" ] && echo 1 || echo 0)" "Failed to get S3 bucket name"
+
   echo "[TASK] Clearing bucket: $BUCKET_NAME"
   aws s3 rm "s3://$BUCKET_NAME" --recursive
   throw_err "$?" "Failed to empty S3 bucket"
@@ -54,5 +57,12 @@ fi
 cd $DIR/infrastructure
 npx cdk deploy -c stackName="$ARG_STACKNAME"
 throw_err "$?" "Failed: cdk deploy"
+
+BUCKET_NAME=$(aws cloudformation describe-stacks --query "$BUCKET_QUERY" --output text)
+throw_err "$?" "Failed to get S3 bucket name"
+throw_err "$([ -z "$BUCKET_NAME" ] && echo 1 || echo 0)" "Failed to get S3 bucket name"
+
+aws s3 sync ./dist s3://$BUCKET_NAME/dist --delete
+throw_err "$?" "Failed sync files to S3"
 
 cd $DIR
