@@ -62,7 +62,7 @@ BUCKET_NAME=$(aws cloudformation describe-stacks --query "$BUCKET_QUERY" --outpu
 throw_err "$?" "Failed to get S3 bucket name"
 throw_err "$([ -z "$BUCKET_NAME" ] && echo 1 || echo 0)" "Failed to get S3 bucket name"
 
-aws s3 sync ./dist s3://$BUCKET_NAME/dist --delete
+aws s3 sync ./dist/ s3://$BUCKET_NAME/ --delete
 throw_err "$?" "Failed sync files to S3"
 
 cd $DIR
