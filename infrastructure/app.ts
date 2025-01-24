@@ -4,4 +4,5 @@ import * as cdk from 'aws-cdk-lib';
 import createStack from './stack';
 
 const app = new cdk.App();
-createStack(app, 'thatblog');
+const stackName = app.node.tryGetContext('stackName');
+createStack(app, stackName);

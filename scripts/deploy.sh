@@ -23,8 +23,6 @@ throw_err() {
   fi
 }
 
-echo $DIR
-
 aws --version >/dev/null
 throw_err "$?" "Missing CLI: aws"
 
