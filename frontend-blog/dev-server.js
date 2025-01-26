@@ -1,57 +1,37 @@
 import fs from 'fs'
 import express from 'express'
+import morgan from 'morgan'
+import { createServer } from 'vite'
 
-// Constants
-const isProduction = process.env.NODE_ENV === 'production'
 const port = process.env.PORT || 3000
 const base = process.env.BASE || '/'
-
-// Cached production assets
-const templateHtml = isProduction
-  ? fs.readFileSync('./dist/client/index.html', 'utf-8')
-  : ''
 
 // Create http server
 const app = express()
 
 // Add Vite or respective production middlewares
 /** @type {import('vite').ViteDevServer | undefined} */
-let vite
-if (!isProduction) {
-  const { createServer } = await import('vite')
-  vite = await createServer({
-    server: { middlewareMode: true },
-    appType: 'custom',
-    base,
-  })
-  app.use(vite.middlewares)
-} else {
-  app.use(express.static('./dist/client', {
-    dotfiles: 'ignore',
-    etag: false,
-    extensions: [],
-    index: false,
-  }))
-}
+const vite = await createServer({
+  server: { middlewareMode: true },
+  appType: 'custom',
+  base,
+})
+
+app.use(vite.middlewares)
+
+app.use(morgan('tiny'))
 
 // Serve HTML
 app.use('*all', async (req, res) => {
   try {
     const url = req.originalUrl.replace(base, '')
 
-    /** @type {string} */
-    let template
+    // Always read fresh template in development
+    let template = fs.readFileSync('./index.html', 'utf-8')
+    template = await vite.transformIndexHtml(url, template)
+
     /** @type {import('./src/entry-server.ts').render} */
-    let render
-    if (!isProduction) {
-      // Always read fresh template in development
-      template = fs.readFileSync('./index.html', 'utf-8')
-      template = await vite.transformIndexHtml(url, template)
-      render = (await vite.ssrLoadModule('/src/entry-server.tsx')).render
-    } else {
-      template = templateHtml
-      render = (await import('./dist/server/entry-server.js')).render
-    }
+    const { render } = (await vite.ssrLoadModule('/src/entry-server.tsx'))
 
     const rendered = await render(url)
 

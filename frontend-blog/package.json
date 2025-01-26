@@ -9,7 +9,7 @@
     "build:clean": "rimraf ./dist",
     "build:client": "vite build --outDir ./dist/client",
     "build:server": "vite build --ssr ./src/entry-server.tsx --outDir ./dist/server",
-    "build:lambda": "esbuild prod-lambda.ts --outfile=./dist/lambda.js --bundle --minify --platform=node --target=node20",
+    "build:lambda": "esbuild prod-lambda.ts --outfile=./dist/lambda.js --bundle --format=cjs --minify --platform=node --sourcemap=inline --target=node20",
     "preview": "cross-env NODE_ENV=production node dev-server.js"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "express": "^5.0.1",
+    "morgan": "^1.10.0",
     "typescript": "~5.7.2",
     "vite": "^6.0.1"
   }
