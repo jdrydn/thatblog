@@ -1,4 +1,4 @@
-import fs from 'node:fs/promises'
+import fs from 'fs'
 import express from 'express'
 
 // Constants
@@ -8,7 +8,7 @@ const base = process.env.BASE || '/'
 
 // Cached production assets
 const templateHtml = isProduction
-  ? await fs.readFile('./dist/client/index.html', 'utf-8')
+  ? fs.readFileSync('./dist/client/index.html', 'utf-8')
   : ''
 
 // Create http server
@@ -45,7 +45,7 @@ app.use('*all', async (req, res) => {
     let render
     if (!isProduction) {
       // Always read fresh template in development
-      template = await fs.readFile('./index.html', 'utf-8')
+      template = fs.readFileSync('./index.html', 'utf-8')
       template = await vite.transformIndexHtml(url, template)
       render = (await vite.ssrLoadModule('/src/entry-server.tsx')).render
     } else {

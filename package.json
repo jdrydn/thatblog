@@ -27,6 +27,7 @@
     "http-assert-plus": "^2.0.1"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.147",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
     "esbuild": "^0.24.2",
