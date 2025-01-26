@@ -1,3 +1,4 @@
+import assert from 'assert';
 import path from 'path';
 import * as cdk from 'aws-cdk-lib';
 
@@ -21,14 +22,26 @@ export default function createStack(app: cdk.App, stackName: string) {
     websiteIndexDocument: 'index.html',
   });
 
+  const bucketIntegration = new cdk.aws_apigatewayv2_integrations.HttpUrlIntegration(
+    'FilesIntegration',
+    bucket.bucketWebsiteUrl,
+    {
+      parameterMapping: cdk.aws_apigatewayv2.ParameterMapping.fromObject({
+        'overwrite:path': cdk.aws_apigatewayv2.MappingValue.requestPath(),
+      }),
+      timeout: cdk.Duration.seconds(10),
+    },
+  );
+
   api.addRoutes({
     path: '/static/{proxy+}',
     methods: [cdk.aws_apigatewayv2.HttpMethod.GET],
-    integration: new cdk.aws_apigatewayv2_integrations.HttpUrlIntegration('S3Integration', bucket.bucketWebsiteUrl, {
-      parameterMapping: cdk.aws_apigatewayv2.ParameterMapping.fromObject({
-        'overwrite:path': cdk.aws_apigatewayv2.MappingValue.requestPathParam('proxy'),
-      }),
-    }),
+    integration: bucketIntegration,
+  });
+  api.addRoutes({
+    path: '/themes/{proxy+}',
+    methods: [cdk.aws_apigatewayv2.HttpMethod.GET],
+    integration: bucketIntegration,
   });
 
   const siteLambda = new cdk.aws_lambda.Function(stack, 'SiteLambda', {

@@ -2,6 +2,7 @@
 DIR="$( cd -- "$(dirname "$0")/../" >/dev/null 2>&1 ; pwd -P )"
 
 ARG_STACKNAME="thatblog"
+ARG_REBUILD=false
 ARG_DESTROY=false
 ARG_RENEW=false
 
@@ -10,6 +11,7 @@ while [ $# -gt 0 ]; do
     "--stack-name") ARG_STACKNAME="$2"; shift ;;
     "--aws-profile") export AWS_PROFILE="$2"; shift ;;
     "--aws-region") export AWS_REGION="$2"; shift ;;
+    "--rebuild") ARG_REBUILD=true ;;
     "--destroy") ARG_DESTROY=true ;;
     "--renew") ARG_DESTROY=true; ARG_RENEW=true ;;
   esac
@@ -22,6 +24,10 @@ throw_err() {
     exit "$1"
   fi
 }
+
+if [ "$ARG_REBUILD" = "true" ]; then
+  npm run build
+fi
 
 aws --version >/dev/null
 throw_err "$?" "Missing CLI: aws"
@@ -60,7 +66,8 @@ BUCKET_NAME=$(aws cloudformation describe-stacks --query "$BUCKET_QUERY" --outpu
 throw_err "$?" "Failed to get S3 bucket name"
 throw_err "$([ -z "$BUCKET_NAME" ] && echo 1 || echo 0)" "Failed to get S3 bucket name"
 
-aws s3 sync ./dist/ s3://$BUCKET_NAME/ --delete
-throw_err "$?" "Failed sync files to S3"
+aws s3 sync $DIR/frontend-blog/dist/client/ s3://$BUCKET_NAME/frontend-blog/ --delete
+throw_err "$?" "Failed sync frontend-blog to S3"
+echo "Files uploaded to S3"
 
 cd $DIR
