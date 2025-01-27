@@ -6,8 +6,9 @@ cdk.out/
 dist/
 dist-ssr/
 node_modules/
-*.local
 
+*.env.user
+*.local
 *.DS_Store
 *.log*
 *.log

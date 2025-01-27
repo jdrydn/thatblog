@@ -1,0 +1,14 @@
+{
+  "name": "@thatblog/liquid-s3fs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon dev-server.js"
+  },
+  "devDependencies": {
+    "liquidjs": "^10.20.2"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.735.0"
+  }
+}

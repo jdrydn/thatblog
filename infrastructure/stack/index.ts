@@ -27,19 +27,20 @@ export default function createStack(app: cdk.App, stackName: string) {
     bucket.bucketWebsiteUrl,
     {
       parameterMapping: cdk.aws_apigatewayv2.ParameterMapping.fromObject({
-        'overwrite:path': cdk.aws_apigatewayv2.MappingValue.custom('/frontend-blog/$request.path'),
+        // 'overwrite:path': cdk.aws_apigatewayv2.MappingValue.custom('/frontend-blog/$request.path'),
+        'overwrite:path': cdk.aws_apigatewayv2.MappingValue.requestPath(),
       }),
       timeout: cdk.Duration.seconds(10),
     },
   );
 
+  // api.addRoutes({
+  //   path: '/assets/{proxy+}',
+  //   methods: [cdk.aws_apigatewayv2.HttpMethod.GET],
+  //   integration: siteIntegration,
+  // });
   api.addRoutes({
-    path: '/assets/{proxy+}',
-    methods: [cdk.aws_apigatewayv2.HttpMethod.GET],
-    integration: siteIntegration,
-  });
-  api.addRoutes({
-    path: '/static/{proxy+}',
+    path: '/themes/{proxy+}',
     methods: [cdk.aws_apigatewayv2.HttpMethod.GET],
     integration: siteIntegration,
   });
@@ -47,7 +48,7 @@ export default function createStack(app: cdk.App, stackName: string) {
   const siteLambda = new cdk.aws_lambda.Function(stack, 'SiteLambda', {
     functionName: `${stackName}-site`,
     runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
-    handler: 'lambda.handler',
+    handler: 'blog.handler',
     code: cdk.aws_lambda.Code.fromAsset(path.join(__dirname, '../../frontend-blog/dist')),
     environment: {
       S3_BUCKET: bucket.bucketName,

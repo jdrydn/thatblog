@@ -68,8 +68,11 @@ BUCKET_NAME=$(aws cloudformation describe-stacks --query "$BUCKET_QUERY" --outpu
 throw_err "$?" "Failed to get S3 bucket name"
 throw_err "$([ -z "$BUCKET_NAME" ] && echo 1 || echo 0)" "Failed to get S3 bucket name"
 
-aws s3 sync $DIR/frontend-blog/dist/client/ s3://$BUCKET_NAME/frontend-blog/ --delete
-throw_err "$?" "Failed sync frontend-blog assets to S3"
+# aws s3 sync $DIR/frontend-blog/dist/client/ s3://$BUCKET_NAME/frontend-blog/ --delete
+# throw_err "$?" "Failed sync frontend-blog assets to S3"
+
+aws s3 sync $DIR/themes/ s3://$BUCKET_NAME/themes/ --delete
+throw_err "$?" "Failed sync themes assets to S3"
 
 echo "Assets uploaded to S3"
 
