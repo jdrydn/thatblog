@@ -13,7 +13,7 @@ export const fs: FS = {
       assert(S3_BUCKET, 'Missing { S3_BUCKET } env');
 
       await s3.send(
-        new GetObjectCommand({
+        new HeadObjectCommand({
           Bucket: S3_BUCKET,
           Key: file,
         }),

@@ -1,9 +1,9 @@
 {
-  "name": "@thatblog/liquid-s3fs",
+  "name": "@thatblog/hyde",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon dev-server.js"
+
   },
   "devDependencies": {
     "liquidjs": "^10.20.2"
