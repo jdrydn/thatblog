@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en-gb">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <title>Hello, world</title>
+    <meta name="description" content="A brief guide to setup KaTeX" />
+
+    <link rel="stylesheet" href="{{ '/assets/style.css' | theme_url }}" />
+  </head>
+
+  <body class="h-full bg-zinc-50">
+    <div class="flex flex-col mx-auto w-full max-w-3xl pt-8 px-3 lg:px-8 gap-y-8">
+      {% render "./partials/header" %}
+
+      <article class="flex flex-col gap-y-4">
+        <h2 class="text-xl tracking-tight text-zinc-600 transition hover:text-zinc-700 sm:text-2xl">
+          Some example post title
+        </h2>
+        <time class="text-sm text-zinc-400" datetime="2022-09-02">
+          September 2, 2022
+        </time>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus tristique lorem odio, ac mattis massa gravida eget. Pellentesque in enim ac quam auctor volutpat. Praesent vitae pellentesque turpis. In sed sollicitudin nisi. Nunc molestie dapibus lectus, vel dapibus orci suscipit vel. Morbi libero erat, lacinia ac vestibulum euismod, tincidunt eu tortor. Interdum et malesuada fames ac ante ipsum primis in faucibus.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus tristique lorem odio, ac mattis massa gravida eget. Pellentesque in enim ac quam auctor volutpat. Praesent vitae pellentesque turpis. In sed sollicitudin nisi. Nunc molestie dapibus lectus, vel dapibus orci suscipit vel. Morbi libero erat, lacinia ac vestibulum euismod, tincidunt eu tortor. Interdum et malesuada fames ac ante ipsum primis in faucibus.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus tristique lorem odio, ac mattis massa gravida eget. Pellentesque in enim ac quam auctor volutpat. Praesent vitae pellentesque turpis. In sed sollicitudin nisi. Nunc molestie dapibus lectus, vel dapibus orci suscipit vel. Morbi libero erat, lacinia ac vestibulum euismod, tincidunt eu tortor. Interdum et malesuada fames ac ante ipsum primis in faucibus.</p>
+      </article>
+
+      {% render "./partials/footer" %}
+    </div>
+
+    <div class="fixed inset-0 flex justify-center sm:px-8 -z-10">
+      <div class="flex w-full max-w-7xl lg:px-8">
+        <div class="w-full bg-white ring-1 ring-zinc-100"></div>
+      </div>
+    </div>
+  </body>
+</html>

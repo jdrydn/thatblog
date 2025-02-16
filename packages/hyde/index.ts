@@ -1,13 +1,15 @@
 import { Liquid } from 'liquidjs';
 import { posix } from 'path';
 
-import { fs } from './fs';
+import { createS3FS } from './fs';
 import * as filters from './filters';
 
 const engine = new Liquid({
   root: './themes',
   extname: '.liquid',
-  fs,
+  fs: createS3FS({
+    bucket: process.env.S3_BUCKET!,
+  }),
   strictFilters: true,
   strictVariables: true,
   lenientIf: true,

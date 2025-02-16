@@ -21,6 +21,6 @@
       "js": "node",
       "ts": "tsx"
     },
-    "watch": [ "src/" ]
+    "watch": [ "src/**/*" ]
   }
 }

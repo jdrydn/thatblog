@@ -1,6 +1,11 @@
 import path from 'path';
 import { config as loadEnvironment } from 'dotenv';
 
+Object.assign(process.env, {
+  NODE_ENV: 'development',
+  THATBLOG_URL_ORIGIN: 'http://localhost:3000',
+});
+
 loadEnvironment({
   path: [
     // .env.user
