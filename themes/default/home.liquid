@@ -19,18 +19,52 @@
 
       <hr class="border-t border-zinc-200" />
 
+      {% for post in posts %}
+        <article class="flex flex-col gap-y-4">
+          {% if post.title %}
+            <h2 class="text-xl tracking-tight text-zinc-600 transition hover:text-zinc-700 sm:text-2xl">
+              <a href="/posts/{{ post.slug }}">
+                Some example post title
+              </a>
+            </h2>
+          {% endif %}
+
+          {% if post.contents %}
+            {% for content in post.contents %}
+              <p>{{ content.value }}</p>
+            {% endfor %}
+          {% endif %}
+
+          {% if post.readMore %}
+            <a class="text-sm text-zinc-400" href="/posts/{{ post.slug }}">
+              Read more
+            </a>
+          {% endif %}
+          <time class="text-sm text-zinc-400" datetime="2022-09-02">
+            <a href="/posts/{{ post.slug }}">
+              {{ post.publishedAt | date_format: "MMMM do, yyyy" }}
+            </a>
+          </time>
+        </article>
+
+        <hr class="border-t border-zinc-200" />
+      {% endfor %}
+
+      <hr class="border-t border-zinc-200" />
+      <hr class="border-t border-zinc-200" />
+
       <article class="flex flex-col gap-y-4">
         <h2 class="text-xl tracking-tight text-zinc-600 transition hover:text-zinc-700 sm:text-2xl">
-          <a href="/example-post">
+          <a href="#">
             Some example post title
           </a>
         </h2>
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus tristique lorem odio, ac mattis massa gravida eget. Pellentesque in enim ac quam auctor volutpat. Praesent vitae pellentesque turpis. In sed sollicitudin nisi. Nunc molestie dapibus lectus, vel dapibus orci suscipit vel. Morbi libero erat, lacinia ac vestibulum euismod, tincidunt eu tortor. Interdum et malesuada fames ac ante ipsum primis in faucibus.</p>
-        <a class="text-sm text-zinc-400" href="/example-post">
+        <a class="text-sm text-zinc-400" href="#">
           Read more
         </a>
         <time class="text-sm text-zinc-400" datetime="2022-09-02">
-          <a href="/example-post">
+          <a href="#">
             September 2, 2022
           </a>
         </time>

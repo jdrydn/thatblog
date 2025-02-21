@@ -1,7 +1,7 @@
-import _kebabCase from 'lodash/kebabCase';
 import express, { type Request, type Response, type NextFunction } from 'express';
 import path from 'path';
 import { exists, render } from '@thatblog/hyde';
+import { createSlug, parseSlug } from '@thatblog/utils';
 
 import * as data from '@/backend/src/data';
 
@@ -46,10 +46,7 @@ app.get('/', async (_req, res, next) => {
       variables: {
         posts: Object.entries(data.posts).map(([postId, post]) => ({
           id: postId,
-          slug: ((a) => a.filter((b) => typeof b === 'string').join('-'))([
-            post.title ? _kebabCase(`${post.title} ${postId}`) : undefined,
-            postId.replace(/-/g, ''),
-          ]),
+          slug: createSlug(postId, post.title),
           ...post,
         })),
       },
@@ -62,16 +59,28 @@ app.get('/', async (_req, res, next) => {
   }
 });
 
-app.get('/post/:postTitle([^-]+(?:-[^-]+)*)-:postId([A-Za-z0-9]+)', async (req, res, next) => {
+app.get('/post/:postSlug([^-]+(?:-[^-]+)*)-:postId([A-Za-z0-9]+)', async (req, res, next) => {
   try {
-    console.log(req.params.postTitle, req.params.postId);
+    const postId = req.params.postId ? parseSlug(req.params.postId) : undefined;
+    if (!postId) {
+      return next();
+    }
+
+    const post = data.posts[postId] ?? undefined;
+    if (!post) {
+      return next();
+    }
 
     const html = await render('default', 'post', {
       globals: {
         ...res.locals,
       },
       variables: {
-        // site,
+        post: {
+          id: postId,
+          slug: createSlug(postId, post.title),
+          ...post,
+        },
       },
     });
 
@@ -85,23 +94,31 @@ app.get('/post/:postTitle([^-]+(?:-[^-]+)*)-:postId([A-Za-z0-9]+)', async (req, 
 app.use(async (_req, res, next) => {
   try {
     if (await exists('default', 'error')) {
-      const html = await render('default', 'post', {
+      const html = await render('default', 'error', {
         globals: {
           ...res.locals,
         },
         variables: {
-          // site,
+          error: {
+            code: 'ERR_NOT_FOUND',
+            message: 'Page not found',
+            statusCode: 404,
+          },
         },
       });
 
       res.status(200).set('Content-Type', 'text/html').send(html);
     } else if (await exists('default', 'index')) {
-      const html = await render('default', 'post', {
+      const html = await render('default', 'index', {
         globals: {
           ...res.locals,
         },
         variables: {
-          // site,
+          error: {
+            code: 'ERR_NOT_FOUND',
+            message: 'Page not found',
+            statusCode: 404,
+          },
         },
       });
 

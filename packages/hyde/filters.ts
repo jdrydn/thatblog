@@ -23,7 +23,7 @@ export function theme_url(this: FilterThis, suffix: string): string {
   return theme_prefix + suffix;
 }
 
-export function date_to_string(date: string, format: string = 'dd MMM yyyy'): string {
+export function date_format(date: string, format: string = 'dd MMM yyyy'): string {
   const parsed = new Date(date);
   return isNaN(parsed.getTime()) ? '' : formatDate(new Date(date), format);
 }

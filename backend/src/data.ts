@@ -51,6 +51,8 @@ export interface Post {
   id: string;
   title?: string;
   contents?: Array<Content>;
+  readMore?: boolean;
+  publishedAt: Date;
 }
 
 export type Content =
@@ -66,6 +68,7 @@ export const posts: Record<Post['id'], Omit<Post, 'id'>> = {
         value: 'Hello, world!',
       },
     ],
+    publishedAt: new Date('2025-01-17T09:00:00.000Z'),
   },
   '0194a9c2-1b85-7161-b481-5eccae332d63': {
     title: 'Hello world',
@@ -75,6 +78,7 @@ export const posts: Record<Post['id'], Omit<Post, 'id'>> = {
         value: 'Hello, world!',
       },
     ],
+    publishedAt: new Date('2025-01-17T09:00:00.000Z'),
   },
   '0194a9c2-3f35-774f-bdb4-3670c2a16e52': {
     title: 'Hello world',
@@ -92,5 +96,7 @@ export const posts: Record<Post['id'], Omit<Post, 'id'>> = {
         value: 'Hello world 3',
       },
     ],
+    readMore: true,
+    publishedAt: new Date('2025-01-17T09:00:00.000Z'),
   },
 };
