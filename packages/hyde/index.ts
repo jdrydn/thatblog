@@ -4,12 +4,14 @@ import { posix } from 'path';
 import { createS3FS } from './fs';
 import * as filters from './filters';
 
+const fs = createS3FS({
+  bucket: process.env.S3_BUCKET!,
+});
+
 const engine = new Liquid({
   root: './themes',
   extname: '.liquid',
-  fs: createS3FS({
-    bucket: process.env.S3_BUCKET!,
-  }),
+  fs,
   strictFilters: true,
   strictVariables: true,
   lenientIf: true,
@@ -17,6 +19,10 @@ const engine = new Liquid({
 
 for (const [key, filter] of Object.entries(filters)) {
   engine.registerFilter(key, filter as never);
+}
+
+export function exists(theme: string, file: string) {
+  return fs.exists(posix.join(theme, file));
 }
 
 export function render(

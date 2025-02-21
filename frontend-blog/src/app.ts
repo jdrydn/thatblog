@@ -1,8 +1,9 @@
-import express, { type ErrorRequestHandler } from 'express';
+import _kebabCase from 'lodash/kebabCase';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import path from 'path';
-import { render } from '@thatblog/hyde';
+import { exists, render } from '@thatblog/hyde';
 
-import { site } from '@/backend/src/data';
+import * as data from '@/backend/src/data';
 
 export const app = express();
 
@@ -24,10 +25,10 @@ if (process.env.NODE_ENV === 'development') {
 app.use((_req, res, next) => {
   res.locals = {
     site: {
-      ...site,
+      ...data.site,
       config: {
-        ...site.config,
-        origin: process.env.THATBLOG_URL_ORIGIN ?? site.config?.origin,
+        ...data.site.config,
+        origin: process.env.THATBLOG_URL_ORIGIN ?? data.site.config?.origin,
       },
     },
     rendered_at: new Date(),
@@ -43,7 +44,14 @@ app.get('/', async (_req, res, next) => {
         ...res.locals,
       },
       variables: {
-        site,
+        posts: Object.entries(data.posts).map(([postId, post]) => ({
+          id: postId,
+          slug: ((a) => a.filter((b) => typeof b === 'string').join('-'))([
+            post.title ? _kebabCase(`${post.title} ${postId}`) : undefined,
+            postId.replace(/-/g, ''),
+          ]),
+          ...post,
+        })),
       },
     });
 
@@ -54,14 +62,16 @@ app.get('/', async (_req, res, next) => {
   }
 });
 
-app.get('/example-post', async (_req, res, next) => {
+app.get('/post/:postTitle([^-]+(?:-[^-]+)*)-:postId([A-Za-z0-9]+)', async (req, res, next) => {
   try {
+    console.log(req.params.postTitle, req.params.postId);
+
     const html = await render('default', 'post', {
       globals: {
         ...res.locals,
       },
       variables: {
-        site,
+        // site,
       },
     });
 
@@ -72,9 +82,40 @@ app.get('/example-post', async (_req, res, next) => {
   }
 });
 
-app.use(([err, _req, res, _next]: Parameters<ErrorRequestHandler>) => {
-  res
-    .status(500)
-    .set('Content-Type', 'text/plain')
-    .send((err as Error).stack);
+app.use(async (_req, res, next) => {
+  try {
+    if (await exists('default', 'error')) {
+      const html = await render('default', 'post', {
+        globals: {
+          ...res.locals,
+        },
+        variables: {
+          // site,
+        },
+      });
+
+      res.status(200).set('Content-Type', 'text/html').send(html);
+    } else if (await exists('default', 'index')) {
+      const html = await render('default', 'post', {
+        globals: {
+          ...res.locals,
+        },
+        variables: {
+          // site,
+        },
+      });
+
+      res.status(200).set('Content-Type', 'text/html').send(html);
+    } else {
+      res.status(200).set('Content-Type', 'text/plain').send('Route not found');
+    }
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.log(err);
+  res.status(500).set('Content-Type', 'text/plain').send(err.stack);
 });

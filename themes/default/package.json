@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "npx @tailwindcss/cli -i ./style.css -o ./assets/style.css",
+    "build": "npx @tailwindcss/cli -i ./style.css -o ./assets/style.css --minify",
     "dev": "npx @tailwindcss/cli -i ./style.css -o ./assets/style.css --watch"
   },
   "dependencies": {},

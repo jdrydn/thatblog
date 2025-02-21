@@ -53,55 +53,44 @@ export interface Post {
   contents?: Array<Content>;
 }
 
-export const postStatus: Post = {
-  id: '0194a9c1-f8f6-75cc-ac40-1a4a9821480d',
-  contents: [
-    {
-      type: 'PLAIN_TEXT',
-      value: 'Hello, world!',
-    },
-  ],
-};
-
-export const postShort: Post = {
-  id: '0194a9c2-1b85-7161-b481-5eccae332d63',
-  title: 'Hello world',
-  contents: [
-    {
-      type: 'PLAIN_TEXT',
-      value: 'Hello, world!',
-    },
-  ],
-};
-
-export const postLong: Post = {
-  id: '0194a9c2-3f35-774f-bdb4-3670c2a16e52',
-  title: 'Hello world',
-  contents: [
-    {
-      type: 'PLAIN_TEXT',
-      value: 'Hello world 1',
-    },
-    {
-      type: 'PLAIN_TEXT',
-      value: 'Hello world 2',
-    },
-    {
-      type: 'PLAIN_TEXT',
-      value: 'Hello world 3',
-    },
-  ],
-};
-
-export interface PostList {
-  data: Array<Post>;
-}
-
-export const posts: PostList = {
-  data: [postStatus, postShort, postLong],
-};
-
 export type Content =
   | { type: 'PLAIN_TEXT'; value: string }
   | { type: 'MARKDOWN'; value: string }
   | { type: 'RICH_TEXT'; value: string };
+
+export const posts: Record<Post['id'], Omit<Post, 'id'>> = {
+  '0194a9c1-f8f6-75cc-ac40-1a4a9821480d': {
+    contents: [
+      {
+        type: 'PLAIN_TEXT',
+        value: 'Hello, world!',
+      },
+    ],
+  },
+  '0194a9c2-1b85-7161-b481-5eccae332d63': {
+    title: 'Hello world',
+    contents: [
+      {
+        type: 'PLAIN_TEXT',
+        value: 'Hello, world!',
+      },
+    ],
+  },
+  '0194a9c2-3f35-774f-bdb4-3670c2a16e52': {
+    title: 'Hello world',
+    contents: [
+      {
+        type: 'PLAIN_TEXT',
+        value: 'Hello world 1',
+      },
+      {
+        type: 'PLAIN_TEXT',
+        value: 'Hello world 2',
+      },
+      {
+        type: 'PLAIN_TEXT',
+        value: 'Hello world 3',
+      },
+    ],
+  },
+};
