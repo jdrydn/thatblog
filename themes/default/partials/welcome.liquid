@@ -1,7 +1,7 @@
-<section class="flex flex-col" id="welcome">
-  <p class="text-lg text-zinc-600">
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus tristique lorem odio, ac mattis massa gravida eget. Pellentesque in enim ac quam auctor volutpat. Praesent vitae pellentesque turpis.
-  </p>
+<section class="flex flex-col">
+  {% if site.description %}
+    <p class="text-lg text-zinc-600">{{ site.description }}</p>
+  {% endif %}
   <div class="mt-6 flex flex-row gap-6">
     <a class="group -m-1 p-1" aria-label="Follow on GitHub" href="#">
       <svg viewBox="0 0 24 24" aria-hidden="true" class="h-6 w-6 fill-zinc-500 transition group-hover:fill-zinc-600">

@@ -10,7 +10,7 @@ const fs = createS3FS({
 });
 
 const engine = new Liquid({
-  root: './themes',
+  root: 'themes',
   extname: '.liquid',
   fs,
   strictFilters: true,
@@ -23,7 +23,7 @@ for (const [key, filter] of Object.entries(filters)) {
 }
 
 export function exists(theme: string, file: string) {
-  return fs.exists(posix.join(theme, file));
+  return fs.exists(posix.join('themes', theme, `${file}.liquid`));
 }
 
 export async function render(

@@ -9,8 +9,6 @@ export function createS3FS({ bucket }: { bucket: string }): FS {
   return {
     async exists(file) {
       try {
-        console.log('exists', { bucket, file });
-
         await s3.send(
           new HeadObjectCommand({
             Bucket: bucket,
@@ -18,9 +16,11 @@ export function createS3FS({ bucket }: { bucket: string }): FS {
           }),
         );
 
+        // console.log('exists', { bucket, file });
         return true;
       } catch (err) {
         if ((err as any).$metadata.httpStatusCode === 404) {
+          // console.log('not exists', { bucket, file });
           return false;
         } else {
           throw err;

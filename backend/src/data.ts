@@ -1,3 +1,9 @@
+import fs from 'fs';
+import path from 'path';
+import yaml from 'yaml';
+
+const data = yaml.parse(fs.readFileSync(path.join(__dirname, '../data.yml'), 'utf8'));
+
 export interface Site {
   id: string;
   config?: {
@@ -8,27 +14,7 @@ export interface Site {
   meta?: Record<string, string | undefined>;
 }
 
-export const site: Site = {
-  id: '0194a9bd-36b6-711b-8c1c-43171e0360ea',
-  config: {
-    origin: 'https://6kfms45oc8.execute-api.eu-west-2.amazonaws.com',
-    basePath: '',
-  },
-  title: 'jdrydn',
-  meta: {
-    title: 'jdrydn',
-  },
-};
-
-export interface Err {
-  message: string;
-  code?: string;
-}
-
-export const err: Err = {
-  message: 'Page not found',
-  code: 'NOT_FOUND',
-};
+export const site = data.site as Site;
 
 export interface Page {
   id: string;
@@ -36,67 +22,20 @@ export interface Page {
   contents?: Array<Content>;
 }
 
-export const page = {
-  id: '0194a9c1-d7e1-753a-8e5e-5515b6d46384',
-  title: 'About me',
-  contents: [
-    {
-      type: 'PLAIN_TEXT',
-      value: 'Hello, world!',
-    },
-  ],
-};
+export const pages = data.pages as Array<Page>;
 
 export interface Post {
   id: string;
   title?: string;
   contents?: Array<Content>;
+  contentExcerptTo?: Content['id'] | undefined;
   readMore?: boolean;
   publishedAt: Date;
 }
 
 export type Content =
-  | { type: 'PLAIN_TEXT'; value: string }
-  | { type: 'MARKDOWN'; value: string }
-  | { type: 'RICH_TEXT'; value: string };
+  | { id: string; type: 'PLAIN_TEXT'; value: string }
+  | { id: string; type: 'MARKDOWN'; value: string }
+  | { id: string; type: 'RICH_TEXT'; value: string };
 
-export const posts: Record<Post['id'], Omit<Post, 'id'>> = {
-  '0194a9c1-f8f6-75cc-ac40-1a4a9821480d': {
-    contents: [
-      {
-        type: 'PLAIN_TEXT',
-        value: 'Hello, world!',
-      },
-    ],
-    publishedAt: new Date('2025-01-17T09:00:00.000Z'),
-  },
-  '0194a9c2-1b85-7161-b481-5eccae332d63': {
-    title: 'Hello world',
-    contents: [
-      {
-        type: 'PLAIN_TEXT',
-        value: 'Hello, world!',
-      },
-    ],
-    publishedAt: new Date('2025-01-17T09:00:00.000Z'),
-  },
-  '0194a9c2-3f35-774f-bdb4-3670c2a16e52': {
-    title: 'Hello world',
-    contents: [
-      {
-        type: 'PLAIN_TEXT',
-        value: 'Hello world 1',
-      },
-      {
-        type: 'PLAIN_TEXT',
-        value: 'Hello world 2',
-      },
-      {
-        type: 'PLAIN_TEXT',
-        value: 'Hello world 3',
-      },
-    ],
-    readMore: true,
-    publishedAt: new Date('2025-01-17T09:00:00.000Z'),
-  },
-};
+export const posts = data.posts as Array<Post>;

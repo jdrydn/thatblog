@@ -40,19 +40,46 @@ app.use((_req, res, next) => {
 
 app.get('/', async (_req, res, next) => {
   try {
-    const html = await render('default', 'home', {
-      globals: {
-        ...res.locals,
-      },
-      variables: {
-        posts: Object.entries(data.posts).map(([postId, post]) => ({
-          id: postId,
-          slug: createSlug(postId, post.title),
+    const variables = {
+      posts: data.posts.map((post) => {
+        let contentExcerpt: Array<data.Content> | undefined;
+        if (Array.isArray(post.contents) && post.contentExcerptTo) {
+          const i = post.contents.findIndex((c) => c.id === post.contentExcerptTo);
+          if (i >= 0) {
+            contentExcerpt = post.contents.slice(0, i + 1);
+          }
+        }
+
+        return {
           ...post,
-        })),
-      },
-      minify: true,
-    });
+          slug: createSlug(post.id, post.title),
+          contents: contentExcerpt ?? post.contents,
+        };
+      }),
+    };
+
+    let html: string;
+
+    if (await exists('default', 'home')) {
+      html = await render('default', 'home', {
+        globals: { ...res.locals },
+        variables,
+        minify: true,
+      });
+    } else if (await exists('default', 'index')) {
+      html = await render('default', 'index', {
+        globals: {
+          ...res.locals,
+        },
+        variables: {
+          layout: 'HOME',
+          ...variables,
+        },
+        minify: true,
+      });
+    } else {
+      throw new Error('Missing theme file for home');
+    }
 
     res.status(200).set('Content-Type', 'text/html').send(html);
   } catch (err) {
@@ -61,83 +88,187 @@ app.get('/', async (_req, res, next) => {
   }
 });
 
-app.get(
-  ['/posts/:postId([A-Za-z0-9]+)', '/posts/:postSlug([^-]+(?:-[^-]+)*)-:postId([A-Za-z0-9]+)'],
-  async (req, res, next) => {
-    try {
-      const postId = req.params.postId ? parseSlug(req.params.postId) : undefined;
-      if (!postId) {
-        return next();
-      }
-
-      const post = data.posts[postId] ?? undefined;
-      if (!post) {
-        return next();
-      }
-
-      const html = await render('default', 'post', {
-        globals: {
-          ...res.locals,
-        },
-        variables: {
-          post: {
-            id: postId,
-            slug: createSlug(postId, post.title),
-            ...post,
-          },
-        },
-      });
-
-      res.status(200).set('Content-Type', 'text/html').send(html);
-    } catch (err) {
-      console.error(err);
-      next(err);
-    }
-  },
-);
-
-app.use(async (_req, res, next) => {
+app.get(['/pages/:id([A-Za-z0-9]+)', '/pages/:slug([^-]+(?:-[^-]+)*)-:id([A-Za-z0-9]+)'], async (req, res, next) => {
   try {
-    if (await exists('default', 'error')) {
-      const html = await render('default', 'error', {
-        globals: {
-          ...res.locals,
-        },
-        variables: {
-          error: {
-            code: 'ERR_NOT_FOUND',
-            message: 'Page not found',
-            statusCode: 404,
-          },
-        },
-      });
-
-      res.status(200).set('Content-Type', 'text/html').send(html);
-    } else if (await exists('default', 'index')) {
-      const html = await render('default', 'index', {
-        globals: {
-          ...res.locals,
-        },
-        variables: {
-          error: {
-            code: 'ERR_NOT_FOUND',
-            message: 'Page not found',
-            statusCode: 404,
-          },
-        },
-      });
-
-      res.status(200).set('Content-Type', 'text/html').send(html);
-    } else {
-      res.status(200).set('Content-Type', 'text/plain').send('Route not found');
+    const pageId = req.params.id ? parseSlug(req.params.id) : undefined;
+    if (!pageId) {
+      return next();
     }
+
+    const page = data.pages.find(({ id }) => pageId === id);
+    if (!page) {
+      return next();
+    }
+
+    const variables = {
+      page: {
+        slug: createSlug(page.id, page.title),
+        ...page,
+      },
+    };
+
+    let html: string;
+
+    if (await exists('default', 'post')) {
+      html = await render('default', 'post', {
+        globals: { ...res.locals },
+        variables,
+        minify: true,
+      });
+    } else if (await exists('default', 'index')) {
+      html = await render('default', 'index', {
+        globals: {
+          ...res.locals,
+        },
+        variables: {
+          layout: 'PAGE',
+          ...variables,
+        },
+        minify: true,
+      });
+    } else {
+      throw new Error('Missing theme file for post');
+    }
+
+    res.status(200).set('Content-Type', 'text/html').send(html);
   } catch (err) {
     console.error(err);
     next(err);
   }
 });
 
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.log(err);
-  res.status(500).set('Content-Type', 'text/plain').send(err.stack);
+app.get(['/posts/:id([A-Za-z0-9]+)', '/posts/:slug([^-]+(?:-[^-]+)*)-:id([A-Za-z0-9]+)'], async (req, res, next) => {
+  try {
+    const postId = req.params.id ? parseSlug(req.params.id) : undefined;
+    if (!postId) {
+      return next();
+    }
+
+    const post = data.posts.find(({ id }) => postId === id);
+    if (!post) {
+      return next();
+    }
+
+    const variables = {
+      post: {
+        slug: createSlug(post.id, post.title),
+        ...post,
+      },
+    };
+
+    let html: string;
+
+    if (await exists('default', 'post')) {
+      html = await render('default', 'post', {
+        globals: { ...res.locals },
+        variables,
+        minify: true,
+      });
+    } else if (await exists('default', 'index')) {
+      html = await render('default', 'index', {
+        globals: {
+          ...res.locals,
+        },
+        variables: {
+          layout: 'POST',
+          ...variables,
+        },
+        minify: true,
+      });
+    } else {
+      throw new Error('Missing theme file for post');
+    }
+
+    res.status(200).set('Content-Type', 'text/html').send(html);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+app.use(async (_req, res, next) => {
+  try {
+    const variables = {
+      error: {
+        code: 'ERR_NOT_FOUND',
+        message: 'Page not found',
+        statusCode: 404,
+      },
+    };
+
+    let html: string;
+
+    if (await exists('default', 'error')) {
+      html = await render('default', 'error', {
+        globals: { ...res.locals },
+        variables,
+        minify: true,
+      });
+    } else if (await exists('default', 'index')) {
+      html = await render('default', 'index', {
+        globals: {
+          ...res.locals,
+        },
+        variables: {
+          layout: 'ERROR',
+          ...variables,
+        },
+        minify: true,
+      });
+    } else {
+      throw new Error('Route not found');
+    }
+
+    res.status(200).set('Content-Type', 'text/html').send(html);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+app.use(async (err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  try {
+    console.error(err);
+
+    const { title, description, code, statusCode } = err as unknown as Record<string, unknown>;
+    const variables = {
+      error: {
+        title,
+        description: description ?? err.message,
+        code,
+        statusCode,
+      },
+    };
+
+    let html: string;
+
+    if (await exists('default', 'error')) {
+      html = await render('default', 'error', {
+        globals: { ...res.locals },
+        variables,
+        minify: true,
+      });
+    } else if (await exists('default', 'index')) {
+      html = await render('default', 'index', {
+        globals: {
+          ...res.locals,
+        },
+        variables: {
+          layout: 'ERROR',
+          ...variables,
+        },
+        minify: true,
+      });
+    } else {
+      throw new Error('Missing theme file for error page');
+    }
+
+    res.status(200).set('Content-Type', 'text/html').send(html);
+  } catch (err2) {
+    console.error(err2);
+    res
+      .status(500)
+      .set('Content-Type', 'text/plain')
+      .send(err.stack + '\n\n' + (err2 as Error).stack);
+  }
 });
