@@ -10,7 +10,7 @@ const fs = createS3FS({
 });
 
 const engine = new Liquid({
-  root: 'themes',
+  root: './themes',
   extname: '.liquid',
   fs,
   strictFilters: true,
