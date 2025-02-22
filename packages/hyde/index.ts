@@ -1,5 +1,6 @@
 import { Liquid } from 'liquidjs';
 import { posix } from 'path';
+import { minify } from 'html-minifier-terser';
 
 import { createS3FS } from './fs';
 import * as filters from './filters';
@@ -25,19 +26,29 @@ export function exists(theme: string, file: string) {
   return fs.exists(posix.join(theme, file));
 }
 
-export function render(
+export async function render(
   theme: string,
   file: string,
   opts?: {
-    globals: Record<string, unknown>;
-    variables: Record<string, unknown>;
+    globals?: Record<string, unknown>;
+    variables?: Record<string, unknown>;
+    minify?: boolean;
   },
 ): Promise<string> {
-  return engine.renderFile(posix.join(theme, file), opts?.variables, {
+  const html = await engine.renderFile(posix.join(theme, file), opts?.variables, {
     globals: {
       theme_prefix: '/themes/' + theme,
       ...opts?.globals,
     },
     sync: false,
   });
+
+  if (opts?.minify) {
+    return minify(html.toString(), {
+      collapseWhitespace: true,
+      conservativeCollapse: true,
+    });
+  } else {
+    return html;
+  }
 }

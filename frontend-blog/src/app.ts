@@ -1,5 +1,6 @@
 import express, { type Request, type Response, type NextFunction } from 'express';
 import path from 'path';
+
 import { exists, render } from '@thatblog/hyde';
 import { createSlug, parseSlug } from '@thatblog/utils';
 
@@ -50,6 +51,7 @@ app.get('/', async (_req, res, next) => {
           ...post,
         })),
       },
+      minify: true,
     });
 
     res.status(200).set('Content-Type', 'text/html').send(html);
@@ -59,37 +61,40 @@ app.get('/', async (_req, res, next) => {
   }
 });
 
-app.get('/post/:postSlug([^-]+(?:-[^-]+)*)-:postId([A-Za-z0-9]+)', async (req, res, next) => {
-  try {
-    const postId = req.params.postId ? parseSlug(req.params.postId) : undefined;
-    if (!postId) {
-      return next();
-    }
+app.get(
+  ['/posts/:postId([A-Za-z0-9]+)', '/posts/:postSlug([^-]+(?:-[^-]+)*)-:postId([A-Za-z0-9]+)'],
+  async (req, res, next) => {
+    try {
+      const postId = req.params.postId ? parseSlug(req.params.postId) : undefined;
+      if (!postId) {
+        return next();
+      }
 
-    const post = data.posts[postId] ?? undefined;
-    if (!post) {
-      return next();
-    }
+      const post = data.posts[postId] ?? undefined;
+      if (!post) {
+        return next();
+      }
 
-    const html = await render('default', 'post', {
-      globals: {
-        ...res.locals,
-      },
-      variables: {
-        post: {
-          id: postId,
-          slug: createSlug(postId, post.title),
-          ...post,
+      const html = await render('default', 'post', {
+        globals: {
+          ...res.locals,
         },
-      },
-    });
+        variables: {
+          post: {
+            id: postId,
+            slug: createSlug(postId, post.title),
+            ...post,
+          },
+        },
+      });
 
-    res.status(200).set('Content-Type', 'text/html').send(html);
-  } catch (err) {
-    console.error(err);
-    next(err);
-  }
-});
+      res.status(200).set('Content-Type', 'text/html').send(html);
+    } catch (err) {
+      console.error(err);
+      next(err);
+    }
+  },
+);
 
 app.use(async (_req, res, next) => {
   try {

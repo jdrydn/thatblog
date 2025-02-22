@@ -9,11 +9,13 @@
   "dependencies": {
     "@thatblog/hyde": "^0.1.0",
     "express": "^4.21.2",
+    "html-minifier-terser": "^7.2.0",
     "liquidjs": "^10.20.2",
     "serverless-http": "^3.2.0"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21"
+    "@types/express": "^4.17.21",
+    "@types/html-minifier-terser": "^7.0.2"
   },
   "nodemonConfig": {
     "ext": "js, ts",
@@ -21,6 +23,8 @@
       "js": "node",
       "ts": "tsx"
     },
-    "watch": [ "src/**/*" ]
+    "watch": [
+      "src/**/*"
+    ]
   }
 }
