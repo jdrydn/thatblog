@@ -1,8 +1,14 @@
 {% case content.type %}
   {% when "PLAIN_TEXT" %}
-    <p>{{ content.value }}</p>
+    <div class="content-plain-text">
+      <p>{{ content.value }}</p>
+    </div>
   {% when "MARKDOWN" %}
-    {{ content.value | markdownify }}
+    <div class="content-markdown flex flex-col gap-y-4">
+      {{ content.value | markdownify }}
+    </div>
   {% when "RICH_TEXT" %}
-    {{ content.value }}
+    <div class="content-rich-text flex flex-col gap-y-4">
+      {{ content.value }}
+    </div>
 {% endcase %}

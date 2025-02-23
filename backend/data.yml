@@ -122,3 +122,42 @@ posts:
           ac vestibulum euismod, tincidunt eu tortor. Interdum et malesuada fames ac ante ipsum primis in faucibus.
     contentExcerptTo: second
     publishedAt: 2025-01-17T09:00:00.000Z
+
+  - id: 0194a9c1-f8f6-75cc-ac40-1a4a98214005
+    title: Kitchen sink
+    contents:
+      - id: plain-text-example
+        type: PLAIN_TEXT
+        value: >
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus tristique lorem odio, ac mattis massa
+          gravida eget. Pellentesque in enim ac quam auctor volutpat. Praesent vitae pellentesque turpis. In sed
+          sollicitudin nisi. Nunc molestie dapibus lectus, vel dapibus orci suscipit vel. Morbi libero erat, lacinia
+          ac vestibulum euismod, tincidunt eu tortor. Interdum et malesuada fames ac ante ipsum primis in faucibus.
+      - id: markdown-example
+        type: MARKDOWN
+        value: |
+          What's that? You packed everything **EXCEPT** the kitchen sink?
+
+          How is _that_ supposed to help anybody?
+
+          ![Fallout hacking](https://media0.giphy.com/media/lptIayuGHV9Utu3iTv/giphy.gif)
+      - id: rich-text-example
+        type: RICH_TEXT
+        value: >
+          <p>Hello, world!</p>
+          <p>Anything could come through here</p>
+          <p><strong>Not quite</strong> - we'll run <code>sanatize-html</code> before saving any rich text
+            content.</p>
+      - id: third
+        type: PLAIN_TEXT
+        value: >
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus tristique lorem odio, ac mattis massa
+          gravida eget. Pellentesque in enim ac quam auctor volutpat. Praesent vitae pellentesque turpis. In sed
+          sollicitudin nisi. Nunc molestie dapibus lectus, vel dapibus orci suscipit vel. Morbi libero erat, lacinia
+          ac vestibulum euismod, tincidunt eu tortor. Interdum et malesuada fames ac ante ipsum primis in faucibus.
+
+      - id: rich-text-example
+        type: RICH_TEXT
+        value: <hr/><h2>Bad examples</h2>
+    contentExcerptTo: plain-text-example
+    publishedAt: 2025-01-17T09:00:00.000Z
