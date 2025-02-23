@@ -62,6 +62,10 @@ app.get('/', async (_req, res, next) => {
           readMore: typeof post.contentExcerptTo === 'string',
         };
       }),
+      pagination: {
+        hasPrevious: true,
+        hasNext: true,
+      },
     };
 
     let html: string;
