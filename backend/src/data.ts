@@ -39,7 +39,14 @@ export interface Post {
 export type Content =
   | { id: string; type: 'PLAIN_TEXT'; value: string }
   | { id: string; type: 'MARKDOWN'; value: string }
+  | { id: string; type: 'HTML'; value: string }
   | { id: string; type: 'RICH_TEXT'; value: string }
+  | {
+      id: string;
+      type: 'MEDIA';
+      layout?: 'grid-2' | 'grid-3';
+      values: Array<{ type: 'IMAGE'; src: string } | { type: 'VIDEO'; src: string } | { type: 'EMBED'; src: string }>;
+    }
   | { id: string; type: 'CODE'; value: string; title?: string; before?: string; after?: string; lang?: string };
 
 export const posts = data.posts as Array<Post>;

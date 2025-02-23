@@ -1,10 +1,25 @@
 @import "tailwindcss";
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
+.content-rich-text img,
 .content-markdown img,
-.content-markdown img,
-.content-code > div img {
+.content-code img,
+.content-link img,
+.content-media img {
+  max-height: 80vh;
   max-width: 100%;
   height: auto;
   display: block;
+  border-radius: 0.25rem;
+}
+
+.content-media iframe {
+  max-height: 80vh;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border: none;
+  border-radius: 0.25rem;
+  aspect-ratio: 16 / 9;
 }
