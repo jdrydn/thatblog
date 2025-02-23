@@ -3,12 +3,33 @@
     <div class="content-plain-text">
       <p>{{ content.value }}</p>
     </div>
+
   {% when "MARKDOWN" %}
     <div class="content-markdown flex flex-col gap-y-4">
       {{ content.value | markdownify }}
     </div>
+
   {% when "RICH_TEXT" %}
     <div class="content-rich-text flex flex-col gap-y-4">
       {{ content.value }}
     </div>
+
+  {% when "CODE" %}
+    <div class="content-code rounded border-0 rounded ring-1 ring-inset ring-gray-100 shadow-sm overflow-hidden text-sm text-zinc-400">
+      {% if content.before %}
+        <div class="border-b border-gray-100 px-4 py-3">
+          {{ content.before | markdownify }}
+        </div>
+      {% endif %}
+<pre class="overflow-x-auto font-mono"><code class="language-typescript">{{ content.value }}</code></pre>
+      <script type="text/javascript">
+        hljs.highlightAll();
+      </script>
+      {% if content.after %}
+        <div class="border-t border-gray-100 px-4 py-3">
+          {{ content.after | markdownify }}
+        </div>
+      {% endif %}
+    </div>
+
 {% endcase %}

@@ -148,16 +148,30 @@ posts:
           <p>Anything could come through here</p>
           <p><strong>Not quite</strong> - we'll run <code>sanatize-html</code> before saving any rich text
             content.</p>
-      - id: third
-        type: PLAIN_TEXT
-        value: >
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus tristique lorem odio, ac mattis massa
-          gravida eget. Pellentesque in enim ac quam auctor volutpat. Praesent vitae pellentesque turpis. In sed
-          sollicitudin nisi. Nunc molestie dapibus lectus, vel dapibus orci suscipit vel. Morbi libero erat, lacinia
-          ac vestibulum euismod, tincidunt eu tortor. Interdum et malesuada fames ac ante ipsum primis in faucibus.
+      - id: code-example
+        type: CODE
+        value: |
+          const a = "hello, world";
+        lang: ts
+      - id: code-full-example
+        type: CODE
+        before: |
+          **`hello-world.ts`**
+        value: |
+          const a = "hello, world";
+        after: |
+          This is what a caption could be like
+        lang: ts
 
       - id: rich-text-example
         type: RICH_TEXT
-        value: <hr/><h2>Bad examples</h2>
+        value: |
+          <hr class="border-t border-zinc-200"/>
+          <h2 class="text-xl text-zinc-600">Bad examples</h2>
+
+      - id: markdown-image-example
+        type: MARKDOWN
+        value: |
+          ![Windows XP](/themes/default/static/bp-windows-xp.png)
     contentExcerptTo: plain-text-example
     publishedAt: 2025-01-17T09:00:00.000Z

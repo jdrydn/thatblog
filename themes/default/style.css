@@ -1,2 +1,10 @@
 @import "tailwindcss";
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+.content-markdown img,
+.content-markdown img,
+.content-code > div img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}

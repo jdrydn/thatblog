@@ -39,6 +39,7 @@ export interface Post {
 export type Content =
   | { id: string; type: 'PLAIN_TEXT'; value: string }
   | { id: string; type: 'MARKDOWN'; value: string }
-  | { id: string; type: 'RICH_TEXT'; value: string };
+  | { id: string; type: 'RICH_TEXT'; value: string }
+  | { id: string; type: 'CODE'; value: string; title?: string; before?: string; after?: string; lang?: string };
 
 export const posts = data.posts as Array<Post>;
