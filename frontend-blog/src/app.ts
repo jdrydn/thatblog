@@ -40,6 +40,11 @@ app.use((_req, res, next) => {
 
 app.get('/', async (_req, res, next) => {
   try {
+    const globals = {
+      ...res.locals,
+      pageType: 'HOME',
+    };
+
     const variables = {
       posts: data.posts.map((post) => {
         let contentExcerpt: Array<data.Content> | undefined;
@@ -54,6 +59,7 @@ app.get('/', async (_req, res, next) => {
           ...post,
           slug: createSlug(post.id, post.title),
           contents: contentExcerpt ?? post.contents,
+          readMore: typeof post.contentExcerptTo === 'string',
         };
       }),
     };
@@ -62,19 +68,14 @@ app.get('/', async (_req, res, next) => {
 
     if (await exists('default', 'home')) {
       html = await render('default', 'home', {
-        globals: { ...res.locals },
+        globals,
         variables,
         minify: true,
       });
     } else if (await exists('default', 'index')) {
       html = await render('default', 'index', {
-        globals: {
-          ...res.locals,
-        },
-        variables: {
-          layout: 'HOME',
-          ...variables,
-        },
+        globals,
+        variables,
         minify: true,
       });
     } else {
@@ -100,6 +101,11 @@ app.get(['/pages/:id([A-Za-z0-9]+)', '/pages/:slug([^-]+(?:-[^-]+)*)-:id([A-Za-z
       return next();
     }
 
+    const globals = {
+      ...res.locals,
+      pageType: 'PAGE',
+    };
+
     const variables = {
       page: {
         slug: createSlug(page.id, page.title),
@@ -111,19 +117,14 @@ app.get(['/pages/:id([A-Za-z0-9]+)', '/pages/:slug([^-]+(?:-[^-]+)*)-:id([A-Za-z
 
     if (await exists('default', 'post')) {
       html = await render('default', 'post', {
-        globals: { ...res.locals },
+        globals,
         variables,
         minify: true,
       });
     } else if (await exists('default', 'index')) {
       html = await render('default', 'index', {
-        globals: {
-          ...res.locals,
-        },
-        variables: {
-          layout: 'PAGE',
-          ...variables,
-        },
+        globals,
+        variables,
         minify: true,
       });
     } else {
@@ -149,6 +150,11 @@ app.get(['/posts/:id([A-Za-z0-9]+)', '/posts/:slug([^-]+(?:-[^-]+)*)-:id([A-Za-z
       return next();
     }
 
+    const globals = {
+      ...res.locals,
+      pageType: 'POST',
+    };
+
     const variables = {
       post: {
         slug: createSlug(post.id, post.title),
@@ -160,19 +166,14 @@ app.get(['/posts/:id([A-Za-z0-9]+)', '/posts/:slug([^-]+(?:-[^-]+)*)-:id([A-Za-z
 
     if (await exists('default', 'post')) {
       html = await render('default', 'post', {
-        globals: { ...res.locals },
+        globals,
         variables,
         minify: true,
       });
     } else if (await exists('default', 'index')) {
       html = await render('default', 'index', {
-        globals: {
-          ...res.locals,
-        },
-        variables: {
-          layout: 'POST',
-          ...variables,
-        },
+        globals,
+        variables,
         minify: true,
       });
     } else {
@@ -188,6 +189,10 @@ app.get(['/posts/:id([A-Za-z0-9]+)', '/posts/:slug([^-]+(?:-[^-]+)*)-:id([A-Za-z
 
 app.use(async (_req, res, next) => {
   try {
+    const globals = {
+      ...res.locals,
+      pageType: 'ERROR',
+    };
     const variables = {
       error: {
         code: 'ERR_NOT_FOUND',
@@ -200,19 +205,14 @@ app.use(async (_req, res, next) => {
 
     if (await exists('default', 'error')) {
       html = await render('default', 'error', {
-        globals: { ...res.locals },
+        globals,
         variables,
         minify: true,
       });
     } else if (await exists('default', 'index')) {
       html = await render('default', 'index', {
-        globals: {
-          ...res.locals,
-        },
-        variables: {
-          layout: 'ERROR',
-          ...variables,
-        },
+        globals,
+        variables,
         minify: true,
       });
     } else {

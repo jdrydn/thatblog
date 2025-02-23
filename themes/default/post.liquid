@@ -3,7 +3,7 @@
 <article class="flex flex-col gap-y-4 min-h-80">
   {% if post.title %}
     <h2 class="text-xl tracking-tight text-zinc-600 transition hover:text-zinc-700 sm:text-2xl">
-      Some example post title
+      {{ post.title }}
     </h2>
   {% endif %}
   <time class="text-sm text-zinc-400" datetime="2022-09-02">
@@ -11,8 +11,6 @@
   </time>
 
   {% if post.contents %}
-    {% for content in post.contents %}
-      <p>{{ content.value }}</p>
-    {% endfor %}
+    {% render './partials/content' for post.contents as content %}
   {% endif %}
 </article>

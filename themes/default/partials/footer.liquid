@@ -4,6 +4,6 @@
       <a class="transition hover:text-zinc-600" href="/">Home</a>
       <a class="transition hover:text-zinc-600" href="/">Archive</a>
     </div>
-    <p class="text-sm text-zinc-400 dark:text-zinc-500">© {{ rendered_at | date_to_string: "yyyy" }} thatblog</p>
+    <p class="text-sm text-zinc-400 dark:text-zinc-500">© {{ rendered_at | date_format: "yyyy" }} thatblog</p>
   </div>
 </footer>

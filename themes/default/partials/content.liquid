@@ -1,0 +1,8 @@
+{% case content.type %}
+  {% when "PLAIN_TEXT" %}
+    <p>{{ content.value }}</p>
+  {% when "MARKDOWN" %}
+    {{ content.value | markdownify }}
+  {% when "RICH_TEXT" %}
+    {{ content.value }}
+{% endcase %}

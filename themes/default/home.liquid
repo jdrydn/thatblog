@@ -9,15 +9,13 @@
     {% if post.title %}
       <h2 class="text-xl tracking-tight text-zinc-600 transition hover:text-zinc-700 sm:text-2xl">
         <a href="/posts/{{ post.slug }}">
-          Some example post title
+          {{ post.title }}
         </a>
       </h2>
     {% endif %}
 
     {% if post.contents %}
-      {% for content in post.contents %}
-        <p>{{ content.value }}</p>
-      {% endfor %}
+      {% render './partials/content' for post.contents as content %}
     {% endif %}
 
     {% if post.readMore %}

@@ -12,6 +12,10 @@ export interface Site {
   };
   title?: string;
   meta?: Record<string, string | undefined>;
+  links: Array<{
+    icon: string;
+    href: string;
+  }>;
 }
 
 export const site = data.site as Site;
@@ -29,7 +33,6 @@ export interface Post {
   title?: string;
   contents?: Array<Content>;
   contentExcerptTo?: Content['id'] | undefined;
-  readMore?: boolean;
   publishedAt: Date;
 }
 

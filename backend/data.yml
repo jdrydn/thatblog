@@ -8,6 +8,11 @@ site:
     gravida eget. Pellentesque in enim ac quam auctor volutpat. Praesent vitae pellentesque turpis.
   meta:
     title: jdrydn
+  links:
+    - icon: GITHUB
+      href: https://github.com/jdrydn
+    - icon: LINKEDIN
+      href: https://linkedin.com/in/jdrydn
 
 pages:
 
@@ -89,7 +94,6 @@ posts:
           sollicitudin nisi. Nunc molestie dapibus lectus, vel dapibus orci suscipit vel. Morbi libero erat, lacinia
           ac vestibulum euismod, tincidunt eu tortor. Interdum et malesuada fames ac ante ipsum primis in faucibus.
     contentExcerptTo: second
-    readMore: true
     publishedAt: 2025-01-17T09:00:00.000Z
 
   - id: 0194a9c1-f8f6-75cc-ac40-1a4a98214004
@@ -117,5 +121,4 @@ posts:
           sollicitudin nisi. Nunc molestie dapibus lectus, vel dapibus orci suscipit vel. Morbi libero erat, lacinia
           ac vestibulum euismod, tincidunt eu tortor. Interdum et malesuada fames ac ante ipsum primis in faucibus.
     contentExcerptTo: second
-    readMore: true
     publishedAt: 2025-01-17T09:00:00.000Z
