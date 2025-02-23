@@ -89,6 +89,60 @@ app.get('/', async (_req, res, next) => {
   }
 });
 
+app.get('/archive', async (_req, res, next) => {
+  try {
+    const globals = {
+      ...res.locals,
+      pageType: 'ARCHIVE',
+    };
+
+    const variables = {
+      posts: data.posts.map((post) => {
+        const [first] = post.contents ?? [];
+
+        const excerpt = ((): string | undefined => {
+          switch (first.type) {
+            case 'PLAIN_TEXT':
+              return first.value;
+            default:
+              return undefined;
+          }
+        })();
+
+        return {
+          ...post,
+          slug: createSlug(post.id, post.title),
+          excerpt,
+          contents: undefined,
+        };
+      }),
+    };
+
+    let html: string;
+
+    if (await exists('default', 'archive')) {
+      html = await render('default', 'archive', {
+        globals,
+        variables,
+        minify: true,
+      });
+    } else if (await exists('default', 'index')) {
+      html = await render('default', 'index', {
+        globals,
+        variables,
+        minify: true,
+      });
+    } else {
+      throw new Error('Missing theme file for home');
+    }
+
+    res.status(200).set('Content-Type', 'text/html').send(html);
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
 app.get(['/pages/:id([A-Za-z0-9]+)', '/pages/:slug([^-]+(?:-[^-]+)*)-:id([A-Za-z0-9]+)'], async (req, res, next) => {
   try {
     const pageId = req.params.id ? parseSlug(req.params.id) : undefined;
@@ -187,8 +241,10 @@ app.get(['/posts/:id([A-Za-z0-9]+)', '/posts/:slug([^-]+(?:-[^-]+)*)-:id([A-Za-z
   }
 });
 
-app.use(async (_req, res, next) => {
+app.use(async (req, res, next) => {
   try {
+    console.log('Route not found:', req.method, req.url);
+
     const globals = {
       ...res.locals,
       pageType: 'ERROR',
