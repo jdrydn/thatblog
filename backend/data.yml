@@ -198,6 +198,11 @@ posts:
         values:
           - type: IMAGE
             src: /themes/default/static/bp-windows-xp.png
+      - id: media-single-gif
+        type: MEDIA
+        values:
+          - type: IMAGE
+            src: https://media0.giphy.com/media/lptIayuGHV9Utu3iTv/giphy.gif
       - id: media-two-image-col
         type: MEDIA
         values:
