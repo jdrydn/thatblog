@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
 
-const data = yaml.parse(fs.readFileSync(path.join(__dirname, '../data.yml'), 'utf8'));
+const data = yaml.parse(fs.readFileSync(path.join(__dirname, './data.yml'), 'utf8'));
 
 export interface Site {
   id: string;

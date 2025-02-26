@@ -13,6 +13,15 @@ export default function createStack(app: cdk.App, stackName: string) {
 
   const suffix = cdk.Fn.select(4, cdk.Fn.split('-', cdk.Fn.select(2, cdk.Fn.split('/', cdk.Fn.ref('AWS::StackId')))));
 
+  // const apiGatewayRole = new cdk.aws_iam.Role(stack, 'ApiGatewayRole', {
+  //   assumedBy: new cdk.aws_iam.ServicePrincipal('apigateway.amazonaws.com'),
+  // });
+
+  const lambdaRole = new cdk.aws_iam.Role(stack, 'LambdaRole', {
+    assumedBy: new cdk.aws_iam.ServicePrincipal('lambda.amazonaws.com'),
+    managedPolicies: [cdk.aws_iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')],
+  });
+
   const bucket = new cdk.aws_s3.Bucket(stack, 'Files', {
     bucketName: cdk.Fn.join('-', [stackName, suffix]),
     encryption: cdk.aws_s3.BucketEncryption.S3_MANAGED,
@@ -21,6 +30,8 @@ export default function createStack(app: cdk.App, stackName: string) {
     removalPolicy: cdk.RemovalPolicy.DESTROY,
     websiteIndexDocument: 'index.html',
   });
+
+  bucket.grantRead(lambdaRole);
 
   const siteIntegration = new cdk.aws_apigatewayv2_integrations.HttpUrlIntegration(
     'SiteIntegration',
@@ -50,15 +61,27 @@ export default function createStack(app: cdk.App, stackName: string) {
     runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
     handler: 'blog.handler',
     code: cdk.aws_lambda.Code.fromAsset(path.join(__dirname, '../../frontend-blog/dist')),
+    role: lambdaRole,
     environment: {
+      NODE_ENV: 'production',
       S3_BUCKET: bucket.bucketName,
+      THATBLOG_URL_ORIGIN: api.url!,
     },
+    timeout: cdk.Duration.seconds(29),
+  });
+
+  siteLambda.addPermission('ApiGatewayInvokePermission', {
+    principal: new cdk.aws_iam.ServicePrincipal('apigateway.amazonaws.com'),
+    action: 'lambda:InvokeFunction',
+    sourceArn: `arn:aws:execute-api:${stack.region}:${stack.account}:*`, // Adjust as needed
   });
 
   api.addRoutes({
     path: '/{proxy+}',
     methods: [cdk.aws_apigatewayv2.HttpMethod.ANY],
-    integration: new cdk.aws_apigatewayv2_integrations.HttpLambdaIntegration('SiteIntegration', siteLambda),
+    integration: new cdk.aws_apigatewayv2_integrations.HttpLambdaIntegration('SiteIntegration', siteLambda, {
+      payloadFormatVersion: cdk.aws_apigatewayv2.PayloadFormatVersion.VERSION_2_0,
+    }),
   });
 
   new cdk.CfnOutput(stack, 'Url', {

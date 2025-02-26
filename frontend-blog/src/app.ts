@@ -23,6 +23,10 @@ if (process.env.NODE_ENV === 'development') {
   );
 }
 
+app.get('/test.json', (_req, res) => {
+  res.status(200).json({ foo: 'bar' });
+});
+
 app.use((_req, res, next) => {
   res.locals = {
     site: {
@@ -34,6 +38,8 @@ app.use((_req, res, next) => {
     },
     rendered_at: new Date(),
   };
+
+  console.log('locals', res.locals);
 
   next();
 });
@@ -68,6 +74,11 @@ app.get('/', async (_req, res, next) => {
       },
     };
 
+    console.log({
+      globals,
+      variables,
+    });
+
     let html: string;
 
     if (await exists('default', 'home')) {
@@ -85,6 +96,8 @@ app.get('/', async (_req, res, next) => {
     } else {
       throw new Error('Missing theme file for home');
     }
+
+    console.log(html);
 
     res.status(200).set('Content-Type', 'text/html').send(html);
   } catch (err) {
@@ -226,13 +239,13 @@ app.get(['/posts/:id([A-Za-z0-9]+)', '/posts/:slug([^-]+(?:-[^-]+)*)-:id([A-Za-z
       html = await render('default', 'post', {
         globals,
         variables,
-        minify: true,
+        minify: false,
       });
     } else if (await exists('default', 'index')) {
       html = await render('default', 'index', {
         globals,
         variables,
-        minify: true,
+        minify: false,
       });
     } else {
       throw new Error('Missing theme file for post');
