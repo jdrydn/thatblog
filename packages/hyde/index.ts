@@ -5,9 +5,7 @@ import { minify } from 'html-minifier-terser';
 import { createS3FS } from './fs';
 import * as filters from './filters';
 
-const fs = createS3FS({
-  bucket: process.env.S3_BUCKET!,
-});
+const fs = createS3FS();
 
 const engine = new Liquid({
   root: './themes',

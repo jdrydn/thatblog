@@ -3,6 +3,7 @@ import path from 'path';
 
 import { exists, render } from '@thatblog/hyde';
 import { createSlug, parseSlug } from '@thatblog/utils';
+import { logger } from '@/backend/src/lib/logger';
 
 import * as data from '@/backend/src/data';
 
@@ -22,10 +23,6 @@ if (process.env.NODE_ENV === 'development') {
     }),
   );
 }
-
-app.get('/test.json', (_req, res) => {
-  res.status(200).json({ foo: 'bar' });
-});
 
 app.use((_req, res, next) => {
   res.locals = {
@@ -301,7 +298,7 @@ app.use(async (req, res, next) => {
 
 app.use(async (err: Error, _req: Request, res: Response, _next: NextFunction) => {
   try {
-    console.error(err);
+    logger.error({ err });
 
     const { title, description, code, statusCode } = err as unknown as Record<string, unknown>;
     const variables = {
@@ -338,7 +335,7 @@ app.use(async (err: Error, _req: Request, res: Response, _next: NextFunction) =>
 
     res.status(200).set('Content-Type', 'text/html').send(html);
   } catch (err2) {
-    console.error(err2);
+    logger.error({ err: err2 });
     res
       .status(500)
       .set('Content-Type', 'text/plain')

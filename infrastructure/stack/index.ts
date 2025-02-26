@@ -62,6 +62,8 @@ export default function createStack(app: cdk.App, stackName: string) {
     handler: 'blog.handler',
     code: cdk.aws_lambda.Code.fromAsset(path.join(__dirname, '../../frontend-blog/dist')),
     role: lambdaRole,
+    architecture: cdk.aws_lambda.Architecture.ARM_64,
+    memorySize: 1024,
     environment: {
       NODE_ENV: 'production',
       S3_BUCKET: bucket.bucketName,
