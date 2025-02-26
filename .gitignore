@@ -1,0 +1,16 @@
+.idea/
+.tmp/
+.vscode/*
+!.vscode/extensions.json
+
+cdk.out/
+dist/
+dist-ssr/
+node_modules/
+
+*.env.user
+*.local
+*.DS_Store
+*.log*
+*.log
+.envrc

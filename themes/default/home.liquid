@@ -1,0 +1,71 @@
+{% layout "./layout" %}
+
+{% render "./partials/welcome" %}
+
+{% for post in posts %}
+  <hr class="border-t border-zinc-200" />
+
+  <article class="flex flex-col gap-y-4">
+    {% if post.title %}
+      <h2 class="text-xl tracking-tight text-zinc-600 transition hover:text-zinc-700 sm:text-2xl">
+        <a href="/posts/{{ post.slug }}">
+          {{ post.title }}
+        </a>
+      </h2>
+    {% endif %}
+
+    {% if post.contents %}
+      {% render './partials/content' for post.contents as content %}
+    {% endif %}
+
+    {% if post.readMore %}
+      <a class="text-sm text-zinc-400" href="/posts/{{ post.slug }}">
+        Read more
+      </a>
+    {% endif %}
+    <time class="text-sm text-zinc-400" datetime="2022-09-02">
+      <a href="/posts/{{ post.slug }}">
+        {{ post.publishedAt | date_format: "MMMM do, yyyy" }}
+      </a>
+    </time>
+  </article>
+{% endfor %}
+
+<nav class="flex items-center justify-between mt-2 px-4 sm:px-0">
+  <div class="flex w-0 flex-1">
+    {% if pagination.hasPrevious %}
+      <a href="#" class="inline-flex items-center pr-1 pt-4 text-sm font-medium text-zinc-400 transition hover:text-zinc-600">
+        <svg
+          class="mr-3 size-5 text-gray-400"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+          data-slot="icon">
+          <path
+            fill-rule="evenodd"
+            d="M18 10a.75.75 0 0 1-.75.75H4.66l2.1 1.95a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 1 1 1.02 1.1l-2.1 1.95h12.59A.75.75 0 0 1 18 10Z"
+            clip-rule="evenodd" />
+        </svg>
+        Previous
+      </a>
+    {% endif %}
+  </div>
+  <div class="flex w-0 flex-1 justify-end">
+    {% if pagination.hasNext %}
+      <a href="#" class="inline-flex items-center pl-1 pt-4 text-sm font-medium text-zinc-400 transition hover:text-zinc-600">
+        Next
+        <svg
+          class="ml-3 size-5 text-gray-400"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+          data-slot="icon">
+          <path
+            fill-rule="evenodd"
+            d="M2 10a.75.75 0 0 1 .75-.75h12.59l-2.1-1.95a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.1-1.95H2.75A.75.75 0 0 1 2 10Z"
+            clip-rule="evenodd" />
+        </svg>
+      </a>
+    {% endif %}
+  </div>
+</nav>

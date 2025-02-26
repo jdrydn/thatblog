@@ -1,0 +1,15 @@
+{
+  "name": "@thatblog/theme-kit",
+  "version": "0.1.0",
+  "bin": "./dist/bin.cjs",
+  "scripts": {
+    "build": "esbuild ./bin.ts --bundle --format=cjs --minify --outfile=./dist/bin.cjs --platform=node --target=node20",
+    "dev": "tsx ./bin.ts"
+  },
+  "dependencies": {
+    "@thatblog/hyde": "^0.1.0"
+  },
+  "devDependencies": {
+    "yargs": "^17.7.2"
+  }
+}

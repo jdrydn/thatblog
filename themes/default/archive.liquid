@@ -1,0 +1,20 @@
+{% layout "./layout" %}
+
+<hr class="border-t border-zinc-200" />
+
+<section class="flex flex-col gap-y-4 min-h-80">
+  <h2 class="text-xl tracking-tight text-zinc-600 transition hover:text-zinc-700 sm:text-2xl">
+    Archive
+  </h2>
+
+  <ul class="flex flex-col space-y-6">
+    {% for post in posts %}
+      <li class="truncate">
+        <a class="" href="/posts/{{ post.slug }}">
+          <time class="text-sm text-zinc-400" datetime="2022-09-02">{{ post.publishedAt | date_format: "MMMM do, yyyy" }}</time>&nbsp;&mdash;&nbsp;{% if post.title %}
+            <strong>{{ post.title }}</strong>&nbsp;&mdash;&nbsp;{% endif %}
+          {{ post.excerpt | truncate: 100 }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+</section>

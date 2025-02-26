@@ -1,0 +1,94 @@
+{% case content.type %}
+  {% when "PLAIN_TEXT" %}
+    <div class="content-plain-text">
+      <p>{{ content.value }}</p>
+    </div>
+
+  {% when "MARKDOWN" %}
+    <div class="content-markdown flex flex-col gap-y-4">
+      {{ content.value | markdownify }}
+    </div>
+
+  {% when "HTML" %}
+    <div class="content-html">
+      {{ content.value }}
+    </div>
+
+  {% when "RICH_TEXT" %}
+    <div class="content-rich-text flex flex-col gap-y-4">
+      {{ content.value }}
+    </div>
+
+  {% when "LINK" %}
+    <div class="content-link border-0 rounded ring-1 ring-inset ring-gray-100 shadow-sm overflow-hidden">
+      {% if content.enriched %}
+        <a href="{{ content.value }}" target="_blank">
+          <div class="block sm:flex sm:flex-row sm:items-start gap-3 sm:gap-6 rounded shadow-sm">
+            <div class="sm:order-2 h-full sm:w-72 object-cover flex-shrink-0">
+              <img class="w-full h-full object-cover sm:rounded-l-none" src="{{ content.enriched.image.src }}" />
+            </div>
+            <div class="flex flex-col justify-between sm:min-w-0 p-3">
+              <div class="gap-3 mb-5">
+                <span class="block text-base font-semibold text-zinc-600 mb-2 truncate">
+                  {{ content.enriched.title }}
+                </span>
+                <p class="text-zinc-500 text-base line-clamp-2">
+                  {{ content.enriched.description }}
+                </p>
+              </div>
+
+              <div class="flex flex-row items-center gap-2 text-xs">
+                <div class="w-3 h-3 flex-shrink-0">
+                  <img src="{{ content.enriched.icon }}" />
+                </div>
+                <span class="block text-zinc-400 font-medium truncate">
+                  {{ content.enriched.url }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </a>
+      {% else %}
+        <a
+          class="p-3 block sm:flex sm:flex-row font-medium text-sm text-zinc-600 truncate w-full"
+          href="{{ content.value }}"
+          target="_blank">
+          {{ content.value }}
+        </a>
+      {% endif %}
+    </div>
+
+  {% when "MEDIA" %}
+    {% case content.layout %}
+      {% when "grid-2" %}
+        <div class="content-media grid grid-cols-2 gap-4">
+          {% render './media' for content.values as media %}
+        </div>
+      {% when "grid-3" %}
+        <div class="content-media grid grid-cols-3 gap-4">
+          {% render './media' for content.values as media %}
+        </div>
+      {% else %}
+        <div class="content-media flex flex-col gap-y-4">
+          {% render './media' for content.values as media %}
+        </div>
+    {% endcase %}
+
+  {% when "CODE" %}
+    <div class="content-code border-0 rounded ring-1 ring-inset ring-gray-100 shadow-sm overflow-hidden text-sm text-zinc-400">
+      {% if content.before %}
+        <div class="border-b border-gray-100 px-4 py-3">
+          {{ content.before | markdownify }}
+        </div>
+      {% endif %}
+<pre class="overflow-x-auto font-mono"><code class="language-typescript">{{ content.value }}</code></pre>
+      <script type="text/javascript">
+                  hljs.highlightAll();
+      </script>
+      {% if content.after %}
+        <div class="border-t border-gray-100 px-4 py-3">
+          {{ content.after | markdownify }}
+        </div>
+      {% endif %}
+    </div>
+{% endcase %}
