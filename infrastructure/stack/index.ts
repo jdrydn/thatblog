@@ -68,6 +68,7 @@ export default function createStack(app: cdk.App, stackName: string) {
       NODE_ENV: 'production',
       S3_BUCKET: bucket.bucketName,
       THATBLOG_URL_ORIGIN: api.url!,
+      HYDE_TEMPLATE_CACHE_DIR: '/tmp',
     },
     timeout: cdk.Duration.seconds(29),
   });
