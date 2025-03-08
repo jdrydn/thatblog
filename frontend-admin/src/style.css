@@ -37,7 +37,6 @@
 }
 
 :root {
-  font-family: 'Monaspace Neon', monospace;
   line-height: 1.5;
   font-weight: 400;
 
@@ -78,6 +77,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  --font-mono: 'Monaspace Neon', ui-monospace, monospace;
 }
 
 .dark {

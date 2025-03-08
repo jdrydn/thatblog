@@ -13,7 +13,7 @@ export default function MainLayout() {
   return (
     <>
       <header className="flex flex-row justify-between border-b border-zinc-200 mb-3 p-3">
-        <span className="font-bold">thatblog</span>
+        <span className="font-mono font-bold">thatblog</span>
         <DropdownMenu>
           <DropdownMenuTrigger className="hover:cursor-pointer" asChild>
             <Menu />
@@ -21,10 +21,7 @@ export default function MainLayout() {
           <DropdownMenuContent side="bottom">
             <DropdownMenuLabel className="font-bold">James</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Billing</DropdownMenuItem>
-            <DropdownMenuItem>Team</DropdownMenuItem>
-            <DropdownMenuItem>Subscription</DropdownMenuItem>
+            <DropdownMenuItem className="hover:cursor-pointer">Sign out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </header>

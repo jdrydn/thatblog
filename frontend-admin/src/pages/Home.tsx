@@ -27,13 +27,82 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex flex-col space-y-2 px-10">
-      {posts.map((post) => (
-        <div className="flex flex-col border-b py-4 px-1 lg:px-4">
-          <div>{post.title}</div>
-          <div>{post.title}</div>
-        </div>
-      ))}
+    <div className="flex flex-col md:flex-row gap-2 px-3 md:px-10">
+      <div className="flex flex-col shrink-0 py-4 px-1 md:w-64">
+        <ul className="text-sm space-y-2">
+          <li>
+            <a className="text-blue-700 hover:underline" href="#">
+              Create post
+            </a>
+          </li>
+          <li>
+            <hr />
+          </li>
+          <li>
+            <a className="text-blue-700 hover:underline" href="#">
+              Published posts
+            </a>
+          </li>
+          <li>
+            <a className="text-blue-700 hover:underline" href="#">
+              Draft posts
+            </a>
+          </li>
+          <li>
+            <a className="text-blue-700 hover:underline" href="#">
+              Archived posts
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div className="flex flex-col px-1">
+        {posts.map((post) => (
+          <div className="flex flex-col md:flex-row gap-4 border-b py-4 px-1 lg:px-4">
+            <div className="flex flex-col space-y-4">
+              <h2 className="text-xl">{post.title}</h2>
+              <div className="text-sm">
+                <p className="line-clamp-5">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. In pretium, sem ut ultrices auctor, augue ex
+                  ornare ante, et pellentesque urna sapien vitae ex. Proin pharetra urna nunc, in faucibus neque
+                  porttitor quis. Praesent id iaculis ex. Aenean ut consequat nulla. Aliquam id pellentesque risus.
+                  Donec venenatis blandit nisl, ut malesuada sem sodales et. Duis scelerisque orci nec sodales eleifend.
+                  Etiam in dignissim magna. Nulla eget mi metus. Aliquam efficitur mattis feugiat. In molestie feugiat
+                  nulla non vestibulum. Sed convallis lacinia urna sit amet porta. Donec euismod egestas nunc eget
+                  dapibus. Duis rhoncus urna eget eros posuere malesuada.
+                </p>
+              </div>
+              <div className="hidden md:block">
+                <a className="text-blue-700 hover:underline" href="#">
+                  Edit
+                </a>
+              </div>
+            </div>
+            <div className="flex flex-col shrink-0 text-sm space-y-4">
+              <dl className="divide-y divide-gray-100">
+                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-2 sm:px-0">
+                  <dt className="text-sm/6 font-medium text-gray-900">Status</dt>
+                  <dd className="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0">
+                    <strong>Published</strong>
+                  </dd>
+                </div>
+                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                  <dt className="text-sm/6 font-medium text-gray-900">Published At</dt>
+                  <dd className="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0">2025-01-01 09:00</dd>
+                </div>
+                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                  <dt className="text-sm/6 font-medium text-gray-900">Created At</dt>
+                  <dd className="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0">2025-01-01 09:00</dd>
+                </div>
+              </dl>
+            </div>
+            <div className="block mb-4 md:hidden md:mb-0">
+              <a className="text-blue-700 hover:underline" href="#">
+                Edit
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
