@@ -6,7 +6,7 @@ export default function LoginPage() {
     <div className="flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">thatblog</h2>
+          <h2 className="text-3xl font-mono font-bold text-gray-900">thatblog</h2>
           <p className="mt-2 text-sm text-gray-600">Sign in to continue</p>
         </div>
 
