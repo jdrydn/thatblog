@@ -163,3 +163,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+.thatblog-code-editor .cm-focused {
+  outline: 0px solid transparent;
+}

@@ -80,10 +80,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex flex-row gap-x-4 px-1">
-            <a className="text-blue-700 hover:underline" href="#">
-              Edit
-            </a>
-            <a className="text-blue-700 hover:underline" href="#">
+            <a className="text-blue-700 hover:underline" href="/admin/editor">
               Edit
             </a>
           </div>
@@ -126,9 +123,9 @@ export default function Home() {
             </div>
             <div className="flex flex-row gap-x-4 px-1">
               <a className="text-blue-700 hover:underline" href="#">
-                Edit
+                View
               </a>
-              <a className="text-blue-700 hover:underline" href="#">
+              <a className="text-blue-700 hover:underline" href="/admin/editor">
                 Edit
               </a>
             </div>
