@@ -167,3 +167,35 @@
 .thatblog-code-editor .cm-focused {
   outline: 0px solid transparent;
 }
+
+.thatblog-rich-editor .rich-content a {
+  @apply text-primary underline underline-offset-2;
+}
+
+.thatblog-rich-editor .rich-content h2 {
+  @apply text-xl font-bold text-gray-900;
+}
+
+.thatblog-rich-editor .rich-content h3 {
+  @apply text-lg font-bold text-gray-900;
+}
+
+.thatblog-rich-editor .rich-content blockquote {
+  @apply text-lg border-l border-gray-500 px-3;
+}
+
+.thatblog-rich-editor .rich-content ol {
+  @apply list-decimal py-1 pl-5;
+}
+
+.thatblog-rich-editor .rich-content ol li {
+  @apply py-1;
+}
+
+.thatblog-rich-editor .rich-content ul {
+  @apply list-disc py-1 pl-5;
+}
+
+.thatblog-rich-editor .rich-content ul li {
+  @apply py-1;
+}

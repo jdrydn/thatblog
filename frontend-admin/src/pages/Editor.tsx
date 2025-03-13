@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import CreateContentMenu from '@/components/content/create';
 import TitleInput from '@/components/inputs/textarea';
-import { PlainTextBlock, MarkdownBlock, HtmlBlock, CodeBlock } from '@/components/blocks';
+import { PlainTextBlock, MarkdownBlock, HtmlBlock, CodeBlock, RichTextBlock } from '@/components/blocks';
 
 import type { blockType } from '@/types';
 
@@ -33,7 +33,7 @@ export default function Home() {
           <TitleInput
             id="title"
             name="title"
-            className="block w-full bg-white py-2 text-base text-gray-900 border-b border-gray-200 focus:outline-none focus:border-blue-500 placeholder:text-gray-400 text-xl resize-none"
+            className="block w-full bg-white p-3 text-2xl text-gray-900 border-b border-input focus:outline-none focus:border-blue-500 placeholder:text-gray-400 resize-none"
             placeholder="Title"
             defaultValue={''}
             onKeyDown={(e) => {
@@ -59,7 +59,7 @@ export default function Home() {
                   return <MarkdownBlock />;
                 }
                 case 'RICH_TEXT': {
-                  return <span>Rich text</span>;
+                  return <RichTextBlock />;
                 }
                 case 'HTML': {
                   return <HtmlBlock />;
