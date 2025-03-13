@@ -237,44 +237,38 @@ posts:
           - type: IMAGE
             src: /themes/default/static/bp-windows-xp.png
       - id: media-single-youtube-embed
-        type: MEDIA
-        values:
-          - type: EMBED
-            url: https://www.youtube.com/watch?v=DNEjx6XUbfQ
-            html: |
-              <iframe width="560" height="315"
-                src="https://www.youtube.com/embed/DNEjx6XUbfQ?si=0f4dUSK64q-0gTn7"
-                title="YouTube video player" frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; web-share"
-                referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-      - id: media-mixed-grid-2
-        type: MEDIA
-        layout: grid-2
-        values:
-          - type: IMAGE
-            src: /themes/default/static/bp-windows-xp.png
-          - type: EMBED
-            url: https://www.youtube.com/watch?v=DNEjx6XUbfQ
-            html: |
-              <iframe width="560" height="315"
-                src="https://www.youtube.com/embed/DNEjx6XUbfQ?si=0f4dUSK64q-0gTn7"
-                title="YouTube video player" frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; web-share"
-                referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        type: EMBED
+        url: https://www.youtube.com/watch?v=DNEjx6XUbfQ
+        html: |
+          <iframe width="560" height="315"
+            src="https://www.youtube.com/embed/DNEjx6XUbfQ?si=0f4dUSK64q-0gTn7"
+            title="YouTube video player" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; web-share"
+            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
       # - id: media-single-tiktok-embed
-      #   type: MEDIA
-      #   values:
-      #     - type: EMBED
-      #       url: https://www.tiktok.com/@doctorwho/video/7374019101183855905
-      #       html: |
-      #         <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@doctorwho/video/7374019101183855905" data-video-id="7374019101183855905" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@doctorwho" href="https://www.tiktok.com/@doctorwho?refer=embed">@doctorwho</a> ok but where do I get my own flatpack tardis!!! 💳💥💳💥💳💥 <a title="doctorwho" target="_blank" href="https://www.tiktok.com/tag/doctorwho?refer=embed">#doctorwho</a> <a title="73yards" target="_blank" href="https://www.tiktok.com/tag/73yards?refer=embed">#73yards</a> <a title="bts" target="_blank" href="https://www.tiktok.com/tag/bts?refer=embed">#bts</a> <a target="_blank" title="♬ original sound - Doctor Who" href="https://www.tiktok.com/music/original-sound-7374019165550840608?refer=embed">♬ original sound - Doctor Who</a> </section> </blockquote> <script async src="https://www.tiktok.com/embed.js"></script>
+      #   type: EMBED
+      #   url: https://www.tiktok.com/@doctorwho/video/7374019101183855905
+      #   html: |
+      #     <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@doctorwho/video/7374019101183855905"
+      #       data-video-id="7374019101183855905" style="max-width: 605px;min-width: 325px;" > <section> <a
+      #       target="_blank" title="@doctorwho" href="https://www.tiktok.com/@doctorwho?refer=embed">@doctorwho</a> ok
+      #       but where do I get my own flatpack tardis!!! 💳💥💳💥💳💥 <a title="doctorwho" target="_blank"
+      #       href="https://www.tiktok.com/tag/doctorwho?refer=embed">#doctorwho</a> <a title="73yards" target="_blank"
+      #       href="https://www.tiktok.com/tag/73yards?refer=embed">#73yards</a> <a title="bts" target="_blank"
+      #       href="https://www.tiktok.com/tag/bts?refer=embed">#bts</a> <a target="_blank" title="♬ original sound -
+      #       Doctor Who" href="https://www.tiktok.com/music/original-sound-7374019165550840608?refer=embed">♬ original
+      #       sound - Doctor Who</a> </section> </blockquote>
+      #       <script async src="https://www.tiktok.com/embed.js"></script>
       # - id: media-single-x-embed
-      #   type: MEDIA
-      #   values:
-      #     - type: EMBED
-      #       url: https://x.com/xkcdComic/status/1582167169294442496
-      #       html: |
-      #         <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Space Adventure <a href="https://t.co/PbqVrszow7">https://t.co/PbqVrszow7</a> <a href="https://t.co/YXJLaj5DAY">https://t.co/YXJLaj5DAY</a> <a href="https://t.co/G9EDoGmgkC">pic.twitter.com/G9EDoGmgkC</a></p>&mdash; XKCD Comic (@xkcdComic) <a href="https://twitter.com/xkcdComic/status/1582167169294442496?ref_src=twsrc%5Etfw">October 18, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+      #   type: EMBED
+      #   url: https://x.com/xkcdComic/status/1582167169294442496
+      #   html: |
+      #     <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Space Adventure <a href="https://t.co/PbqVrszow7">
+      #       https://t.co/PbqVrszow7</a> <a href="https://t.co/YXJLaj5DAY">https://t.co/YXJLaj5DAY</a>
+      #       <a href="https://t.co/G9EDoGmgkC">pic.twitter.com/G9EDoGmgkC</a></p>&mdash; XKCD Comic (@xkcdComic)
+      #       <a href="https://twitter.com/xkcdComic/status/1582167169294442496?ref_src=twsrc%5Etfw">October 18, 2022</a>
+      #     </blockquote>
+      #     <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
       - id: divider-code
         type: HTML
