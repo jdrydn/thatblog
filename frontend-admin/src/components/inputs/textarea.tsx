@@ -27,5 +27,13 @@ export default function AutoResizeTextarea(props?: TextareaHTMLAttributes<HTMLTe
     props?.onChange?.(e);
   };
 
-  return <textarea rows={1} {...props} ref={textareaRef} onChange={handleInput} />;
+  return (
+    <textarea
+      rows={1}
+      {...props}
+      ref={textareaRef}
+      onChange={handleInput}
+      className={`textarea-autoresize ${props?.className ?? ''}`.trim()}
+    />
+  );
 }

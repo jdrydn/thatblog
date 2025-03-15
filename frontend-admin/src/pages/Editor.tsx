@@ -2,7 +2,15 @@ import { useState } from 'react';
 
 import CreateContentMenu from '@/components/content/create';
 import TitleInput from '@/components/inputs/textarea';
-import { PlainTextBlock, MarkdownBlock, HtmlBlock, CodeBlock, RichTextBlock } from '@/components/blocks';
+import {
+  PlainTextBlock,
+  MarkdownBlock,
+  HtmlBlock,
+  CodeBlock,
+  RichTextBlock,
+  LinkBlock,
+  MediaBlock,
+} from '@/components/blocks';
 
 import type { blockType } from '@/types';
 
@@ -29,7 +37,7 @@ export default function Home() {
         </ul>
       </div>
       <div className="flex flex-col gap-4 px-1">
-        <div className="flex flex-row gap-x-4 px-1">
+        <div className="flex flex-col mb-5 px-1">
           <TitleInput
             id="title"
             name="title"
@@ -68,10 +76,10 @@ export default function Home() {
                   return <CodeBlock lang="ts" />;
                 }
                 case 'LINK': {
-                  return <span>Link</span>;
+                  return <LinkBlock />;
                 }
                 case 'MEDIA': {
-                  return <span>Media</span>;
+                  return <MediaBlock />;
                 }
               }
             })()}

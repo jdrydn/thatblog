@@ -164,6 +164,11 @@
   }
 }
 
+.textarea-autoresize {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
 .thatblog-code-editor .cm-focused {
   outline: 0px solid transparent;
 }

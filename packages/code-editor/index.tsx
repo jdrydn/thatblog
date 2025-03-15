@@ -48,11 +48,13 @@ export default function Editor({
   dark,
   lang,
   options,
+  placeholder,
   value,
 }: {
   dark?: boolean;
   lang: EditorLang;
   options?: Partial<BasicSetupOptions>;
+  placeholder?: string;
   value?: string;
 }) {
   const highlight = useMemo(() => {
@@ -82,7 +84,7 @@ export default function Editor({
       // onChange={(value) => props.onValueUpdated(value)}
       autoFocus={false}
       extensions={highlight ? [highlight] : []}
-      // placeholder={props.placeholder}
+      placeholder={placeholder}
       basicSetup={{ ...defaultOptions, ...options }}
       lang={lang}
     />
