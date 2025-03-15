@@ -10,11 +10,11 @@ type MediaItem = {
   file: File;
 };
 
-type GridLayout = '2x2' | '3x3';
+type GridLayout = '1x1' | '2x2' | '3x3';
 
 export function MediaBlock() {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
-  const [layout, setLayout] = useState<GridLayout>('2x2');
+  const [layout, setLayout] = useState<GridLayout>('1x1');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -58,23 +58,6 @@ export function MediaBlock() {
   return (
     <div className="flex flex-col w-full">
       <div className="w-full p-3 border border-input rounded-md text-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <label htmlFor="layout-select" className="block text-sm font-medium text-gray-700 mb-1">
-              Layout
-            </label>
-            <select
-              id="layout-select"
-              value={layout}
-              onChange={handleLayoutChange}
-              className="block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="2x2">2×2 Grid</option>
-              <option value="3x3">3×3 Grid</option>
-            </select>
-          </div>
-        </div>
-
         {mediaItems.length > 0 ? (
           <div className={`grid ${gridClass} gap-4`}>
             {mediaItems.map((item) => (
@@ -135,6 +118,20 @@ export function MediaBlock() {
         )}
       </div>
       <div className="flex flex-row justify-end items-center w-full text-sm text-gray-900 space-x-2">
+        <div className="flex flex-col grow">
+          <div className="flex flex-row">
+            <select
+              id="layout-select"
+              value={layout}
+              onChange={handleLayoutChange}
+              className="rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 focus:outline-none text-xs"
+            >
+              <option value="1x1">1×1 Grid</option>
+              <option value="2x2">2×2 Grid</option>
+              <option value="3x3">3×3 Grid</option>
+            </select>
+          </div>
+        </div>
         <span>10%</span>
         <button type="button" className="cursor-pointer px-1">
           <Ellipsis />

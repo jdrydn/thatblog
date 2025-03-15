@@ -36,7 +36,7 @@ export default function Home() {
           </li>
         </ul>
       </div>
-      <div className="flex flex-col gap-4 px-1">
+      <div className="flex flex-col gap-6 mb-10 px-1">
         <div className="flex flex-col mb-5 px-1">
           <TitleInput
             id="title"
@@ -85,7 +85,7 @@ export default function Home() {
             })()}
           </div>
         ))}
-        <div className="flex flex-col border-b border-gray-200 px-1 pb-4">
+        <div className="flex flex-col border-b border-gray-200 my-5 px-1 pb-4">
           <CreateContentMenu onClick={(type) => setBlocks(blocks.concat([type]))} />
         </div>
         <div className="flex flex-row gap-x-4 px-1">Date options etc</div>
