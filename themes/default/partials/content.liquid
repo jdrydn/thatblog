@@ -19,6 +19,24 @@
       {{ content.value }}
     </div>
 
+  {% when "CODE" %}
+    <div class="content-code border-0 rounded ring-1 ring-inset ring-gray-100 shadow-sm overflow-hidden text-sm text-zinc-400">
+      {% if content.before %}
+        <div class="border-b border-gray-100 px-4 py-3">
+          {{ content.before | markdownify }}
+        </div>
+      {% endif %}
+<pre class="overflow-x-auto font-mono"><code class="language-typescript">{{ content.value }}</code></pre>
+      <script type="text/javascript">
+                  hljs.highlightAll();
+      </script>
+      {% if content.after %}
+        <div class="border-t border-gray-100 px-4 py-3">
+          {{ content.after | markdownify }}
+        </div>
+      {% endif %}
+    </div>
+
   {% when "LINK" %}
     <div class="content-link border-0 rounded ring-1 ring-inset ring-gray-100 shadow-sm overflow-hidden">
       {% if content.enriched %}
@@ -74,21 +92,8 @@
         </div>
     {% endcase %}
 
-  {% when "CODE" %}
-    <div class="content-code border-0 rounded ring-1 ring-inset ring-gray-100 shadow-sm overflow-hidden text-sm text-zinc-400">
-      {% if content.before %}
-        <div class="border-b border-gray-100 px-4 py-3">
-          {{ content.before | markdownify }}
-        </div>
-      {% endif %}
-<pre class="overflow-x-auto font-mono"><code class="language-typescript">{{ content.value }}</code></pre>
-      <script type="text/javascript">
-                  hljs.highlightAll();
-      </script>
-      {% if content.after %}
-        <div class="border-t border-gray-100 px-4 py-3">
-          {{ content.after | markdownify }}
-        </div>
-      {% endif %}
+  {% when "EMBED" %}
+    <div class="content-embed">
+      {{ content.html }}
     </div>
 {% endcase %}

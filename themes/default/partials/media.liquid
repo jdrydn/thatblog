@@ -4,10 +4,5 @@
       <div class="content-media-image">
         <img class="mx-auto" src="{{ media.src }}" />
       </div>
-
-    {% when "EMBED" %}
-      <div class="content-media-embed">
-        {{ media.html }}
-      </div>
   {% endcase %}
 </div>
