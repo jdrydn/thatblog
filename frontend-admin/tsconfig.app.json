@@ -22,6 +22,10 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "paths": {
+      "@/backend-api/src/*": ["./backend-api/src/*"],
+      "@/frontend-admin/src/*": ["./frontend-admin/src/*"],
+      "@/frontend-admin/test/*": ["./frontend-admin/test/*"],
+      "@/frontend-blog/src/*": ["./frontend-blog/src/*"],
       "@/*": ["./src/*"]
     }
   },
