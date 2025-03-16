@@ -53,6 +53,25 @@ export default function Home() {
               Archived posts
             </a>
           </li>
+          <li>
+            <hr />
+          </li>
+          <li>
+            <a className="text-blue-700 hover:underline" href="#">
+              Settings
+            </a>
+          </li>
+          <li>
+            <hr />
+          </li>
+          <li>
+            <strong>Hi James!</strong>
+          </li>
+          <li>
+            <a className="text-blue-700 hover:underline" href="/admin/auth/logout">
+              Sign out
+            </a>
+          </li>
         </ul>
       </div>
       <div className="flex flex-col px-1">
