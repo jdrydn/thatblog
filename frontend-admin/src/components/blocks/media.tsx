@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, type ChangeEvent } from 'react';
-import { X, Upload, ImageIcon, Film, Ellipsis } from 'lucide-react';
+import { X, ImageIcon, Film, Ellipsis } from 'lucide-react';
 
 type MediaItem = {
   id: string;
@@ -93,26 +93,27 @@ export function MediaBlock() {
             ))}
           </div>
         ) : (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-            <div className="flex flex-col items-center justify-center">
-              <Upload className="w-12 h-12 text-gray-400 mb-4" />
-              <p className="text-gray-500 mb-2">No media uploaded yet</p>
-              <p className="text-gray-400 text-sm mb-4">Upload images or videos to display here</p>
-              <label
-                htmlFor="media-upload"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
-              >
-                Upload Media
-              </label>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*,video/*"
-                multiple
-                className="hidden"
-                id="media-upload"
-              />
+          <div className="flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
+            <div className="text-center">
+              <div className="flex justify-center mt-4 text-sm/6 text-gray-600">
+                <label
+                  htmlFor="file-upload"
+                  className="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500"
+                >
+                  <span>Choose file(s)</span>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*,video/*"
+                    multiple
+                    className="sr-only hidden"
+                    name="file-upload"
+                    id="file-upload"
+                  />
+                </label>
+              </div>
+              <p className="text-xs/5 text-gray-600">JPG, GIF, PNG up to 5MB each</p>
             </div>
           </div>
         )}
