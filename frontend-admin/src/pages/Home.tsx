@@ -57,7 +57,7 @@ export default function Home() {
             <hr />
           </li>
           <li>
-            <a className="text-blue-700 hover:underline" href="#">
+            <a className="text-blue-700 hover:underline" href="/admin/settings">
               Settings
             </a>
           </li>

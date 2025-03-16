@@ -7,6 +7,7 @@ const AuthLogin = lazy(() => import('./pages/auth/Login'));
 const AuthLogout = lazy(() => import('./pages/auth/Logout'));
 const Home = lazy(() => import('./pages/Home'));
 const Editor = lazy(() => import('./pages/Editor'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 // TODO: Add <Suspense /> components around routes
 
@@ -20,6 +21,7 @@ export default function App() {
         <Route element={<MainLayout />}>
           <Route path="" element={<Home />} />
           <Route path="editor" element={<Editor />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Route>
     </Routes>
