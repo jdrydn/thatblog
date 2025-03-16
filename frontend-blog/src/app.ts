@@ -3,9 +3,9 @@ import path from 'path';
 
 import { exists, render } from '@thatblog/hyde';
 import { createSlug, parseSlug } from '@thatblog/utils';
-import { logger } from '@/backend/src/lib/logger';
+import { logger } from '@/backend-api/src/lib/logger';
 
-import * as data from '@/backend/src/data';
+import * as data from '@/backend-api/src/data';
 
 export const app = express();
 
