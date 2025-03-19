@@ -1,0 +1,19 @@
+{
+  "name": "@thatblog/backend-api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {},
+  "dependencies": {
+    "@trpc/server": "^10.45.2"
+  },
+  "nodemonConfig": {
+    "ext": "js, ts",
+    "execMap": {
+      "js": "node",
+      "ts": "tsx"
+    },
+    "watch": [
+      "src/**/*"
+    ]
+  }
+}
