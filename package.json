@@ -31,7 +31,8 @@
     "http-assert-plus": "^2.0.1",
     "lodash": "^4.17.21",
     "pino": "^9.6.0",
-    "uuid": "^11.0.5"
+    "uuid": "^11.0.5",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.0.6",
