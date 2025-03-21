@@ -7,8 +7,7 @@
     "@aws-sdk/client-dynamodb": "^3.767.0",
     "@aws-sdk/lib-dynamodb": "^3.767.0",
     "@aws-sdk/util-dynamodb": "^3.767.0",
-    "@trpc/server": "^10.45.2",
-    "electrodb": "^3.4.1"
+    "@trpc/server": "^10.45.2"
   },
   "nodemonConfig": {
     "ext": "js, ts",
