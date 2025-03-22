@@ -31,7 +31,7 @@ export async function getItem(
   client: DynamoDBDocumentClient,
   tableName: string,
   { pk, sk }: { pk: string; sk: string },
-  opts?: { consistentRead?: true; projection?: string | undefined } | undefined,
+  opts?: { consistentRead?: boolean; projection?: string | undefined } | undefined,
 ): Promise<Record<string, unknown> | undefined> {
   const params: GetCommandInput = {
     TableName: tableName,
@@ -56,7 +56,7 @@ export async function getBatchItems(
   client: DynamoDBDocumentClient,
   tableName: string,
   keys: { pk: string; sk: string }[],
-  opts?: { consistentRead?: true },
+  opts?: { consistentRead?: boolean },
 ): Promise<Record<string, unknown>[]> {
   // eslint-disable-next-line wrap-iife
   return (async function step(i: number, params: BatchGetCommandInput): Promise<Record<string, any>[]> {
@@ -95,7 +95,7 @@ export async function queryItems(
     attributeNames?: Record<string, string> | undefined;
     attributeValues?: Record<string, any> | undefined;
     filterExpression?: string | undefined;
-    projection?: string | undefined;
+    projection?: string[] | undefined;
     consistentRead?: true;
     scanIndexForward?: boolean | undefined;
     indexName?: string | undefined;
@@ -105,17 +105,14 @@ export async function queryItems(
   const params: QueryCommandInput = {
     TableName: tableName,
     KeyConditionExpression: query,
-    ...(typeof opts?.filterExpression === 'string' && {
-      FilterExpression: opts.filterExpression,
-    }),
-    ...(typeof opts?.projection === 'string' && {
-      ProjectionExpression: opts.projection,
-    }),
     ...(typeof opts?.attributeNames === 'object' && {
-      ExpressionAttributeNames: { ...opts.attributeNames },
+      ExpressionAttributeNames: { ...opts.attributeValues },
     }),
     ...(typeof opts?.attributeValues === 'object' && {
       ExpressionAttributeValues: { ...opts.attributeValues },
+    }),
+    ...(typeof opts?.filterExpression === 'string' && {
+      FilterExpression: opts.filterExpression,
     }),
     ...(typeof opts?.consistentRead === 'boolean' && {
       ConsistentRead: opts.consistentRead,
@@ -131,12 +128,88 @@ export async function queryItems(
     }),
   };
 
+  if (Array.isArray(opts?.projection) && opts.projection.length) {
+    const [expression, names] = formatProjectionExpression(opts.projection);
+    Object.assign(params, {
+      ProjectionExpression: expression,
+      ...(names && {
+        ExpressionAttributeNames: {
+          ...params.ExpressionAttributeNames,
+          ...names,
+        },
+      }),
+    });
+  }
+
   // logger.debug({ params }, 'dynamodb.read.queryItems');
 
   const res = await client.send(new QueryCommand(params));
   // logger.debug({ res }, 'dynamodb.read.queryItems');
 
   return Array.isArray(res.Items) ? res.Items : [];
+}
+
+/**
+ * Query one item in DynamoDB.
+ */
+export async function queryOneItem(
+  client: DynamoDBDocumentClient,
+  tableName: string,
+  query: string,
+  opts?: {
+    attributeNames?: Record<string, string> | undefined;
+    attributeValues?: Record<string, any> | undefined;
+    filterExpression?: string | undefined;
+    projection?: string[] | undefined;
+    consistentRead?: true;
+    scanIndexForward?: boolean | undefined;
+    indexName?: string | undefined;
+  },
+): Promise<Record<string, unknown> | undefined> {
+  const params: QueryCommandInput = {
+    TableName: tableName,
+    KeyConditionExpression: query,
+    ...(typeof opts?.attributeNames === 'object' && {
+      ExpressionAttributeNames: { ...opts.attributeNames },
+    }),
+    ...(typeof opts?.attributeValues === 'object' && {
+      ExpressionAttributeValues: { ...opts.attributeValues },
+    }),
+    ...(typeof opts?.filterExpression === 'string' && {
+      FilterExpression: opts.filterExpression,
+    }),
+    ...(typeof opts?.consistentRead === 'boolean' && {
+      ConsistentRead: opts.consistentRead,
+    }),
+    ...(typeof opts?.scanIndexForward === 'boolean' && {
+      ScanIndexForward: opts.scanIndexForward,
+    }),
+    ...(typeof opts?.indexName === 'string' && {
+      IndexName: opts.indexName,
+    }),
+    Limit: 1,
+  };
+
+  if (Array.isArray(opts?.projection) && opts.projection.length) {
+    const [expression, names] = formatProjectionExpression(opts.projection);
+    Object.assign(params, {
+      ProjectionExpression: expression,
+      ...(names && {
+        ExpressionAttributeNames: {
+          ...params.ExpressionAttributeNames,
+          ...names,
+        },
+      }),
+    });
+  }
+
+  // logger.debug({ params }, 'dynamodb.read.queryItems');
+
+  const res = await client.send(new QueryCommand(params));
+  // logger.debug({ res }, 'dynamodb.read.queryItems');
+
+  const [item] = Array.isArray(res.Items) ? res.Items : [];
+  return item || undefined;
 }
 
 /**
@@ -343,4 +416,14 @@ export function formatPrimaryKeyPairs(keys: object[]): Array<NonNullable<ReturnT
     const parsed = formatPrimaryKeyPair(key);
     return list.concat(parsed ? [parsed] : []);
   }, []);
+}
+
+export function formatProjectionExpression(fields: string[]): [string, Record<string, string> | undefined] {
+  const names: Record<string, string> = {};
+  const cleaned = fields.map((field, i) => {
+    names[`#pf${i + 1}`] = field;
+    return `#pf${i + 1}`;
+  });
+
+  return [cleaned.join(', '), Object.keys(names).length ? names : undefined];
 }

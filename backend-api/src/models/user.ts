@@ -1,7 +1,7 @@
 import { v7 as uuid } from 'uuid';
 import { z } from 'zod';
 
-import { dcdb, tableName, createItem } from '@/backend-api/src/lib/dynamodb';
+import { dcdb, tableName, getItem, getBatchItems, queryOneItem, createItem } from '@/backend-api/src/lib/dynamodb';
 
 export interface User {
   // pk: 'USER:$USER-ID',
@@ -55,7 +55,7 @@ const formatOnReadSchema = userSchema
     pk: z
       .string()
       .startsWith('USER:')
-      .transform((v) => z.string().uuid().parse(v.substring('CREATED:'.length))),
+      .transform((v) => z.string().uuid().parse(v.substring('USER:'.length))),
     sk: z.literal('USER'),
     ls1sk: z
       .string()
@@ -69,13 +69,13 @@ const formatOnReadSchema = userSchema
       .string()
       .optional()
       .transform((v) => {
-        if (v?.startsWith('COMPLETED:')) {
-          return z.string().datetime().parse(v.substring('COMPLETED:'.length));
+        if (v?.startsWith('DELETED:')) {
+          return z.string().datetime().parse(v.substring('DELETED:'.length));
         } else {
           return undefined;
         }
       }),
-    gs1pk: z.literal('USERNAMES:ALL'),
+    gs1pk: z.literal('USERS:USERNAMES:ALL'),
     gs1sk: z.string(),
   })
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -88,9 +88,50 @@ const formatOnReadSchema = userSchema
     ...entry,
   }));
 
+export async function getUserById(
+  userId: string,
+  { consistentRead }: { consistentRead?: boolean | undefined } = {},
+): Promise<User | undefined> {
+  const item = await getItem(dcdb, tableName, { pk: `USER:${userId}`, sk: 'USER' }, { consistentRead });
+  return item ? formatOnReadSchema.parse(item) : undefined;
+}
+
+export async function getUsersById(
+  userIds: string[],
+  { consistentRead }: { consistentRead?: boolean | undefined } = {},
+): Promise<User[]> {
+  const keys = userIds.map((userId) => ({ pk: `USER:${userId}`, sk: 'USER' }));
+  const items = await getBatchItems(dcdb, tableName, keys, { consistentRead });
+  return items.map((item) => formatOnReadSchema.parse(item));
+}
+
+export async function getUserByUsername(
+  username: string,
+  { consistentRead }: { consistentRead?: boolean | undefined } = {},
+): Promise<User | undefined> {
+  // Find the request ID by ls4sk
+  const key = await queryOneItem(dcdb, tableName, '#pk = :pk AND #sk = :sk', {
+    indexName: 'gs1',
+    projection: ['pk', 'sk'],
+    attributeNames: {
+      '#pk': 'gs1pk',
+      '#sk': 'gs1sk',
+    },
+    attributeValues: {
+      ':pk': 'USERS:USERNAMES:ALL',
+      ':sk': username,
+    },
+  });
+
+  const item = key ? await getItem(dcdb, tableName, key as never, { consistentRead }) : undefined;
+  return item ? formatOnReadSchema.parse(item) : undefined;
+}
+
 export async function createUser(create: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>): Promise<User> {
   const userId = uuid();
   const now = new Date();
+
+  // TODO: Check the username has not been set yet?
 
   const validated = userSchema
     .omit({
