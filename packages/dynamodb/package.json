@@ -1,0 +1,11 @@
+{
+  "name": "@thatblog/dynamodb",
+  "version": "latest",
+  "private": true,
+  "scripts": {},
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.767.0",
+    "@aws-sdk/lib-dynamodb": "^3.767.0",
+    "@aws-sdk/util-dynamodb": "^3.767.0"
+  }
+}

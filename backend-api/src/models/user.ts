@@ -1,7 +1,8 @@
 import { v7 as uuid } from 'uuid';
 import { z } from 'zod';
 
-import { dcdb, tableName, getItem, getBatchItems, queryOneItem, createItem } from '@/backend-api/src/lib/dynamodb';
+import { dcdb, getItem, getManyItems, queryItem, createItem } from '@thatblog/dynamodb';
+import { DYNAMODB_TABLENAME } from '@/backend-api/src/config';
 
 export interface User {
   // pk: 'USER:$USER-ID',
@@ -92,7 +93,7 @@ export async function getUserById(
   userId: string,
   { consistentRead }: { consistentRead?: boolean | undefined } = {},
 ): Promise<User | undefined> {
-  const item = await getItem(dcdb, tableName, { pk: `USER:${userId}`, sk: 'USER' }, { consistentRead });
+  const item = await getItem(dcdb, DYNAMODB_TABLENAME, { pk: `USER:${userId}`, sk: 'USER' }, { consistentRead });
   return item ? formatOnReadSchema.parse(item) : undefined;
 }
 
@@ -101,7 +102,7 @@ export async function getUsersById(
   { consistentRead }: { consistentRead?: boolean | undefined } = {},
 ): Promise<User[]> {
   const keys = userIds.map((userId) => ({ pk: `USER:${userId}`, sk: 'USER' }));
-  const items = await getBatchItems(dcdb, tableName, keys, { consistentRead });
+  const items = await getManyItems(dcdb, DYNAMODB_TABLENAME, keys, { consistentRead });
   return items.map((item) => formatOnReadSchema.parse(item));
 }
 
@@ -109,8 +110,7 @@ export async function getUserByUsername(
   username: string,
   { consistentRead }: { consistentRead?: boolean | undefined } = {},
 ): Promise<User | undefined> {
-  // Find the request ID by ls4sk
-  const key = await queryOneItem(dcdb, tableName, '#pk = :pk AND #sk = :sk', {
+  const key = await queryItem(dcdb, DYNAMODB_TABLENAME, '#pk = :pk AND #sk = :sk', {
     indexName: 'gs1',
     projection: ['pk', 'sk'],
     attributeNames: {
@@ -123,7 +123,7 @@ export async function getUserByUsername(
     },
   });
 
-  const item = key ? await getItem(dcdb, tableName, key as never, { consistentRead }) : undefined;
+  const item = key ? await getItem(dcdb, DYNAMODB_TABLENAME, key as never, { consistentRead }) : undefined;
   return item ? formatOnReadSchema.parse(item) : undefined;
 }
 
@@ -147,6 +147,6 @@ export async function createUser(create: Omit<User, 'id' | 'createdAt' | 'update
     }))
     .parse(create);
 
-  const res = await createItem(dcdb, tableName, { pk: `USER:${userId}`, sk: 'USER' }, validated);
+  const res = await createItem(dcdb, DYNAMODB_TABLENAME, { pk: `USER:${userId}`, sk: 'USER' }, validated);
   return formatOnReadSchema.parse(res);
 }
