@@ -2,3 +2,6 @@ import assert from 'http-assert-plus';
 
 assert(process.env.THATBLOG_DYNAMODB_TABLENAME, 'Missing { THATBLOG_DYNAMODB_TABLENAME } from env');
 export const DYNAMODB_TABLENAME = process.env.THATBLOG_DYNAMODB_TABLENAME;
+
+assert(process.env.THATBLOG_S3_BUCKET, 'Missing { THATBLOG_S3_BUCKET } from env');
+export const S3_BUCKET = process.env.THATBLOG_S3_BUCKET;
