@@ -1,6 +1,6 @@
 import { initTRPC, type TRPCError } from '@trpc/server';
 
-import type { Context } from './context';
+import type { Context } from '../context';
 
 export function errorFormatter({
   path,
