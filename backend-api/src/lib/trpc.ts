@@ -1,3 +1,4 @@
+import assert from 'http-assert-plus';
 import { initTRPC, type TRPCError } from '@trpc/server';
 
 import type { Context } from '../context';
@@ -99,4 +100,29 @@ export const createCallerFactory = t.createCallerFactory;
 export const middleware = t.middleware;
 export const router = t.router;
 
-export const procedure = t.procedure;
+export const publicProcedure = t.procedure.use(async ({ ctx, type, path, next }) => {
+  const start = Date.now();
+
+  const result = await next();
+
+  ctx.log.debug({
+    trpc: { type, path },
+    durationMs: Date.now() - start,
+  });
+
+  return result;
+});
+
+export const protectedProcedure = publicProcedure.use(async ({ ctx, next }) => {
+  const { userId } = ctx;
+  assert(userId, 401, 'Missing { userId } from ctx', {
+    title: 'You must be authenticated to do that',
+    description: 'Please sign-in or check your request & try again',
+  });
+
+  return next({
+    ctx: {
+      userId,
+    },
+  });
+});

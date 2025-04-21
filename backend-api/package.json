@@ -12,7 +12,8 @@
     "@trpc/server": "^10.45.2",
     "bcryptjs": "^3.0.2",
     "dataloader": "^2.2.3",
-    "electrodb": "^3.4.1"
+    "electrodb": "^3.4.1",
+    "ulid": "^3.0.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.149"

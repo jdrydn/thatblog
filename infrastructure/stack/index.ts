@@ -58,7 +58,10 @@ export default function createStack(app: cdk.App, stackName: string) {
     memorySize: 1024,
     environment: {
       NODE_ENV: 'production',
-      S3_BUCKET: bucket.bucketName,
+      THATBLOG_DYNAMODB_TABLENAME: 'thatblog-example',
+      THATBLOG_S3_BUCKET: bucket.bucketName,
+      THATBLOG_USER_AUTH_SECRET: 'hello-world',
+      LOG_LEVEL: 'debug',
     },
     timeout: cdk.Duration.seconds(29),
   });
@@ -81,7 +84,8 @@ export default function createStack(app: cdk.App, stackName: string) {
     memorySize: 1024,
     environment: {
       NODE_ENV: 'production',
-      S3_BUCKET: bucket.bucketName,
+      THATBLOG_S3_BUCKET: bucket.bucketName,
+      THATBLOG_USER_AUTH_SECRET: 'hello-world',
       HYDE_TEMPLATE_CACHE_DIR: '/tmp',
     },
     timeout: cdk.Duration.seconds(29),

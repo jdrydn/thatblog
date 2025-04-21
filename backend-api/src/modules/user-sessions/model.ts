@@ -40,9 +40,7 @@ export const userSessions = new Entity(
     indexes: {
       /**
        * pk: 'USERS#${userId}',
-       * sk: 'USER#PROFILE',
-       * gs1pk: 'USERS#EMAIL',
-       * gs1sk: '${email}'
+       * sk: 'SESSION#${sessionId}',
        */
       byId: {
         pk: {
@@ -53,23 +51,8 @@ export const userSessions = new Entity(
         },
         sk: {
           field: 'sk',
-          composite: ['userId'],
-          template: 'USER#PROFILE',
-          casing: 'none',
-        },
-      },
-      byEmail: {
-        index: 'gs1',
-        pk: {
-          field: 'gs1pk',
-          composite: ['email'],
-          template: 'USERS#EMAIL',
-          casing: 'none',
-        },
-        sk: {
-          field: 'gs1sk',
-          composite: ['email'],
-          template: '${email}',
+          composite: ['sessionId'],
+          template: 'SESSION#${sessionId}',
           casing: 'none',
         },
       },

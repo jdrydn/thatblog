@@ -1,11 +1,11 @@
 import assert from 'http-assert-plus';
 import { z } from 'zod';
 
-import { procedure } from '@/backend-api/src/lib/trpc';
+import { publicProcedure } from '@/backend-api/src/lib/trpc';
 import { comparePassword } from '@/backend-api/src/modules/authentication/passwords';
 import { userProfiles, userSessions } from '@/backend-api/src/modules/models';
 
-export const loginUserMutation = procedure
+export const loginUserMutation = publicProcedure
   .input(
     z.object({
       email: z.string(),

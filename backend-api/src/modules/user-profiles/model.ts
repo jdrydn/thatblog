@@ -57,7 +57,7 @@ export const userProfiles = new Entity(
         },
         sk: {
           field: 'sk',
-          composite: ['userId'],
+          composite: [],
           template: 'USER#PROFILE',
           casing: 'none',
         },
@@ -66,7 +66,7 @@ export const userProfiles = new Entity(
         index: 'gs1',
         pk: {
           field: 'gs1pk',
-          composite: ['email'],
+          composite: [],
           template: 'USERS#EMAIL',
           casing: 'none',
         },

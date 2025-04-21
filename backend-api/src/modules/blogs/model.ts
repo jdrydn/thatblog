@@ -10,6 +10,10 @@ export const blogBranding = new Entity(
       version: '1',
     },
     attributes: {
+      blogId: {
+        type: 'string',
+        required: true,
+      },
       title: {
         type: 'string',
         required: true,
@@ -39,14 +43,71 @@ export const blogBranding = new Entity(
       byId: {
         pk: {
           field: 'pk',
-          composite: [],
-          template: 'BLOG',
+          template: 'BLOGS:${blogId}',
+          composite: ['blogId'],
           casing: 'none',
         },
         sk: {
           field: 'sk',
-          composite: [],
           template: 'BRANDING',
+          composite: [],
+          casing: 'none',
+        },
+      },
+    },
+  },
+  entityConfig,
+);
+
+export const blogDomains = new Entity(
+  {
+    model: {
+      service: 'thatblog',
+      entity: 'blog-domains',
+      version: '1',
+    },
+    attributes: {
+      blogId: {
+        type: 'string',
+        required: true,
+      },
+      domain: {
+        type: 'string',
+        required: true,
+      },
+    },
+    indexes: {
+      /**
+       * pk: 'BLOGS:DOMAINS',
+       * sk: '${domain}',
+       * ls1sk: '${blogId}',
+       */
+      byDomain: {
+        pk: {
+          field: 'pk',
+          template: 'BLOGS:DOMAINS',
+          composite: [],
+          casing: 'none',
+        },
+        sk: {
+          field: 'sk',
+          template: '${domain}',
+          composite: ['domain'],
+          casing: 'none',
+        },
+      },
+      byBlog: {
+        index: 'ls1',
+        pk: {
+          field: 'pk',
+          composite: [],
+          template: 'BLOGS:DOMAINS',
+          casing: 'none',
+        },
+        sk: {
+          field: 'ls1sk',
+          template: '${blogId}',
+          composite: ['blogId'],
           casing: 'none',
         },
       },
@@ -63,6 +124,10 @@ export const blogPreferences = new Entity(
       version: '1',
     },
     attributes: {
+      blogId: {
+        type: 'string',
+        required: true,
+      },
       timezone: {
         type: 'string',
         default: 'Etc/UTC',
@@ -92,14 +157,14 @@ export const blogPreferences = new Entity(
       byId: {
         pk: {
           field: 'pk',
-          composite: [],
-          template: 'BLOG',
+          template: 'BLOGS:${blogId}',
+          composite: ['blogId'],
           casing: 'none',
         },
         sk: {
           field: 'sk',
-          composite: [],
           template: 'PREFERENCES',
+          composite: [],
           casing: 'none',
         },
       },
