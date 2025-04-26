@@ -1,5 +1,7 @@
-import { v7 as uuid } from 'uuid';
-import { Entity, entityConfig } from '@/backend-api/src/lib/electrodb';
+import { Entity } from 'electrodb';
+import { ulid } from 'ulid';
+
+import { dcdb, tableName } from '@/backend-api/src/lib/dynamodb';
 
 export const userSessions = new Entity(
   {
@@ -16,7 +18,7 @@ export const userSessions = new Entity(
       sessionId: {
         type: 'string',
         required: true,
-        default: () => uuid(),
+        default: () => ulid(),
       },
       createdAt: {
         type: 'number',
@@ -58,5 +60,8 @@ export const userSessions = new Entity(
       },
     },
   },
-  entityConfig,
+  {
+    client: dcdb,
+    table: tableName,
+  },
 );

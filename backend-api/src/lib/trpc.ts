@@ -1,7 +1,7 @@
 import assert from 'http-assert-plus';
 import { initTRPC, type TRPCError } from '@trpc/server';
 
-import type { Context } from '../context';
+import type { Context } from '../modules/types';
 
 export function errorFormatter({
   path,
@@ -100,15 +100,20 @@ export const createCallerFactory = t.createCallerFactory;
 export const middleware = t.middleware;
 export const router = t.router;
 
-export const publicProcedure = t.procedure.use(async ({ ctx, type, path, next }) => {
+export const publicProcedure = t.procedure.use(async ({ ctx, type, path, input, next }) => {
   const start = Date.now();
+
+  ctx.log.debug({ trpc: { type, path, input } }, 'STARTED');
 
   const result = await next();
 
-  ctx.log.debug({
-    trpc: { type, path },
-    durationMs: Date.now() - start,
-  });
+  ctx.log.debug(
+    {
+      trpc: { type, path, input },
+      durationMs: Date.now() - start,
+    },
+    'FINISHED',
+  );
 
   return result;
 });

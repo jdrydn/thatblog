@@ -1,5 +1,6 @@
-import { v7 as uuid } from 'uuid';
-import { Entity, entityConfig } from '@/backend-api/src/lib/electrodb';
+import { Entity } from 'electrodb';
+
+import { dcdb, tableName } from '@/backend-api/src/lib/dynamodb';
 
 export const userProfiles = new Entity(
   {
@@ -12,7 +13,6 @@ export const userProfiles = new Entity(
       userId: {
         type: 'string',
         required: true,
-        default: () => uuid(),
       },
       name: {
         type: 'string',
@@ -79,5 +79,8 @@ export const userProfiles = new Entity(
       },
     },
   },
-  entityConfig,
+  {
+    client: dcdb,
+    table: tableName,
+  },
 );
