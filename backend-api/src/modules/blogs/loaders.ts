@@ -1,39 +1,36 @@
 import DataLoader from 'dataloader';
 
-import type * as blogModels from './model';
-import type { BlogBrandingItem, BlogDomainItem } from '../types';
+import { getAllByBatch } from '@/backend-api/src/lib/electrodb.helpers';
+
+import * as blogModels from './model';
 
 export function createLoaders(models: typeof blogModels) {
-  const BlogBrandingById = new DataLoader<string, BlogBrandingItem | undefined>(async (blogIds) => {
-    const results: (BlogBrandingItem | undefined)[] = blogIds.map(() => undefined);
+  const BlogBrandingById = new DataLoader<string, blogModels.BlogBrandingItem | undefined>(async (blogIds) => {
+    const results: (blogModels.BlogBrandingItem | undefined)[] = blogIds.map(() => undefined);
 
-    let keys = blogIds.map((blogId) => ({ blogId }));
-    do {
-      const { data, unprocessed } = await models.blogBranding.get(keys).go();
-      for (const item of data) {
-        const i = blogIds.findIndex((blogId) => item.blogId === blogId);
-        results[i] = item;
-      }
-
-      keys = unprocessed;
-    } while (keys.length > 0);
+    const items = await getAllByBatch(
+      models.blogBranding,
+      blogIds.map((blogId) => ({ blogId })),
+    );
+    for (const item of items) {
+      const i = blogIds.findIndex((blogId) => item.blogId === blogId);
+      results[i] = item;
+    }
 
     return results;
   });
 
-  const BlogDomainByDomain = new DataLoader<string, BlogDomainItem | undefined>(async (domains) => {
-    const results: (BlogDomainItem | undefined)[] = domains.map(() => undefined);
+  const BlogDomainByDomain = new DataLoader<string, blogModels.BlogDomainItem | undefined>(async (domains) => {
+    const results: (blogModels.BlogDomainItem | undefined)[] = domains.map(() => undefined);
 
-    let keys = domains.map((domain) => ({ domain }));
-    do {
-      const { data, unprocessed } = await models.blogDomains.get(keys).go();
-      for (const item of data) {
-        const i = domains.findIndex((domain) => item.domain === domain);
-        results[i] = item;
-      }
-
-      keys = unprocessed;
-    } while (keys.length > 0);
+    const items = await getAllByBatch(
+      models.blogDomains,
+      domains.map((domain) => ({ domain })),
+    );
+    for (const item of items) {
+      const i = domains.findIndex((domain) => item.domain === domain);
+      results[i] = item;
+    }
 
     return results;
   });

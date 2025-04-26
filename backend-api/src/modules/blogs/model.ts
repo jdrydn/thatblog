@@ -1,4 +1,4 @@
-import { Entity } from 'electrodb';
+import { Entity, type EntityItem } from 'electrodb';
 
 import { dcdb, tableName } from '@/backend-api/src/lib/dynamodb';
 
@@ -181,3 +181,7 @@ export const blogPreferences = new Entity(
     table: tableName,
   },
 );
+
+export type BlogBrandingItem = EntityItem<typeof blogBranding>;
+export type BlogDomainItem = EntityItem<typeof blogDomains>;
+export type BlogPreferencesItem = EntityItem<typeof blogPreferences>;
