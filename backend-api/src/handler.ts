@@ -13,20 +13,17 @@ import type { Context } from '@/backend-api/src/modules/types';
 export const handler = awsLambdaRequestHandler({
   router: apiRouter,
   async createContext({ event, context }: CreateAWSLambdaContextOptions<APIGatewayProxyEventV2>): Promise<Context> {
-    const authHeader = getHeader(event.headers, 'Authorization');
-    const authToken = authHeader ? verifyUserToken(parseAuthHeader(authHeader)) : undefined;
-
     const loaders = createLoaders(models);
 
-    // @TODO Get from DynamoDB
-    const blogId = '01JSD698Y7FIRSTEVRTHATBLOG';
-    // const blogId = await getDefaultBlogId();
+    const authHeader = getHeader(event.headers, 'Authorization');
+    const authToken = authHeader
+      ? verifyUserToken(await loaders.System.load(), parseAuthHeader(authHeader))
+      : undefined;
 
     const log = logger.child({
       // _X_AMZN_TRACE_ID is set on each Lambda invocation, so bundle it into each log on each log call
       traceId: process.env._X_AMZN_TRACE_ID,
       reqId: context.awsRequestId,
-      blogId,
       userId: authToken?.userId,
       sessionId: authToken?.sessionId,
     });
@@ -36,12 +33,11 @@ export const handler = awsLambdaRequestHandler({
     }
 
     return {
-      blogId,
       userId: authToken?.userId,
       sessionId: authToken?.sessionId,
       log,
       loaders,
-    };
+    } satisfies Context;
   },
   onError({ error, type, path, input, ctx }) {
     (ctx?.log ?? logger).error({

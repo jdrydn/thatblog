@@ -8,6 +8,3 @@ export const DYNAMODB_TABLENAME = process.env.THATBLOG_DYNAMODB_TABLENAME;
 
 assert(process.env.THATBLOG_S3_BUCKET, 'Missing { THATBLOG_S3_BUCKET } from env');
 export const S3_BUCKET = process.env.THATBLOG_S3_BUCKET;
-
-assert(process.env.THATBLOG_USER_AUTH_SECRET, 'Missing { THATBLOG_USER_AUTH_SECRET } from env');
-export const USER_AUTH_SECRET = process.env.THATBLOG_USER_AUTH_SECRET;

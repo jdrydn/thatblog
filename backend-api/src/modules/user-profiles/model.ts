@@ -1,4 +1,4 @@
-import { Entity } from 'electrodb';
+import { Entity, EntityItem } from 'electrodb';
 
 import { dcdb, tableName } from '@/backend-api/src/lib/dynamodb';
 
@@ -84,3 +84,5 @@ export const userProfiles = new Entity(
     table: tableName,
   },
 );
+
+export type UserProfileItem = EntityItem<typeof userProfiles>;

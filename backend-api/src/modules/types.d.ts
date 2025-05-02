@@ -6,7 +6,6 @@ import type { logger } from '@/backend-api/src/lib/logger';
 export type * as models from './models';
 
 export interface Context {
-  blogId?: string | undefined;
   userId?: string | undefined;
   sessionId?: string | undefined;
 

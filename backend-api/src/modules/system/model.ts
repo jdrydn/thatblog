@@ -1,24 +1,20 @@
-import { Entity, EntityItem } from 'electrodb';
-import { ulid } from 'ulid';
+import { Entity, type EntityItem } from 'electrodb';
+import { v7 as uuid } from 'uuid';
 
 import { dcdb, tableName } from '@/backend-api/src/lib/dynamodb';
 
-export const userSessions = new Entity(
+export const system = new Entity(
   {
     model: {
       service: 'thatblog',
-      entity: 'users-sessions',
+      entity: 'system',
       version: '1',
     },
     attributes: {
-      userId: {
+      jwtUserAuthSecret: {
         type: 'string',
         required: true,
-      },
-      sessionId: {
-        type: 'string',
-        required: true,
-        default: () => ulid(),
+        default: () => uuid(),
       },
       createdAt: {
         type: 'number',
@@ -34,27 +30,23 @@ export const userSessions = new Entity(
         set: () => Date.now(),
         watch: '*',
       },
-      archivedAt: {
-        type: 'number',
-        set: () => Date.now(),
-      },
     },
     indexes: {
       /**
-       * pk: 'USERS#${userId}',
-       * sk: 'SESSION#${sessionId}',
+       * pk: 'SYSTEM',
+       * sk: 'SYSTEM',
        */
-      byId: {
+      bySystem: {
         pk: {
           field: 'pk',
-          composite: ['userId'],
-          template: 'USERS#${userId}',
+          template: 'SYSTEM',
+          composite: [],
           casing: 'none',
         },
         sk: {
           field: 'sk',
-          composite: ['sessionId'],
-          template: 'SESSION#${sessionId}',
+          template: 'SYSTEM',
+          composite: [],
           casing: 'none',
         },
       },
@@ -66,4 +58,4 @@ export const userSessions = new Entity(
   },
 );
 
-export type UserSessionItem = EntityItem<typeof userSessions>;
+export type SystemItem = EntityItem<typeof system>;

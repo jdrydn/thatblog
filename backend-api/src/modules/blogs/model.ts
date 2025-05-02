@@ -22,9 +22,14 @@ export const blogBranding = new Entity(
         type: 'string',
         required: true,
       },
-      baseUrl: {
+      domain: {
+        type: 'string',
+        required: true,
+      },
+      basePath: {
         type: 'string',
         required: false,
+        default: '',
       },
       updatedAt: {
         type: 'number',
