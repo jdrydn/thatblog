@@ -1,5 +1,5 @@
 import { randomInt } from 'crypto';
-import { publicProcedure } from '@/backend-api/src/lib/trpc';
+import { procedure } from '@/backend-api/src/lib/trpc';
 
 const quotes = [
   /* eslint-disable max-len */
@@ -38,4 +38,4 @@ const quotes = [
   /* eslint-enable max-len */
 ];
 
-export const quotesQuery = publicProcedure.query(() => quotes[Math.floor(randomInt(0, quotes.length))]);
+export const quotesQuery = procedure.query(() => quotes[Math.floor(randomInt(0, quotes.length))]);

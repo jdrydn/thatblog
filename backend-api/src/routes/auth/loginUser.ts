@@ -1,7 +1,6 @@
 import assert from 'http-assert-plus';
 import { z } from 'zod';
 
-import { getAllByQuery } from '@/backend-api/src/lib/electrodb.helpers';
 import { procedure } from '@/backend-api/src/lib/trpc';
 import { comparePassword } from '@/backend-api/src/modules/authentication/passwords';
 import { mapBlogsUsers, userProfiles, userSessions } from '@/backend-api/src/modules/models';
@@ -40,7 +39,7 @@ export const loginUserMutation = procedure
 
     const { data: session } = await userSessions.create({ userId }).go();
 
-    const blogsMap = await getAllByQuery((cursor) => mapBlogsUsers.query.byUser({ userId }).go({ cursor }));
+    const { data: blogsMap } = await mapBlogsUsers.query.byUser({ userId }).go({ pages: 'all' });
 
     // @TODO Create a token
 
@@ -55,5 +54,6 @@ export const loginUserMutation = procedure
         id: session.sessionId,
         createdAt: session.createdAt,
       },
+      blogs: blogsMap.map(({ blogId, displayName }) => ({ blogId, displayName })),
     };
   });
