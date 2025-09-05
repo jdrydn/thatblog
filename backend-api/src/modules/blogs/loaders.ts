@@ -37,19 +37,6 @@ export function createLoaders(models: typeof blogModels & { application: typeof 
     return results;
   });
 
-  const BlogDomainByDomain = new DataLoader<string, blogModels.BlogDomainItem | undefined>(async (domains) => {
-    const results: (blogModels.BlogDomainItem | undefined)[] = domains.map(() => undefined);
-
-    const { data } = await models.blogDomains.get(domains.map((domain) => ({ domain }))).go()
-
-    for (const item of data) {
-      const i = domains.findIndex((domain) => item.domain === domain);
-      results[i] = item;
-    }
-
-    return results;
-  });
-
   const BlogItemById = new DataLoader<string, BlogItem | undefined>(
     async ([blogId]) => {
       const { data } = await models.application.transaction
@@ -82,7 +69,6 @@ export function createLoaders(models: typeof blogModels & { application: typeof 
   return {
     BlogItemById,
     BlogBrandingById,
-    BlogDomainByDomain,
     BlogPreferencesById,
   };
 }

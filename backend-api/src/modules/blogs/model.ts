@@ -22,14 +22,9 @@ export const blogBranding = new Entity(
         type: 'string',
         required: true,
       },
-      domain: {
-        type: 'string',
-        required: true,
-      },
-      basePath: {
+      siteUrl: {
         type: 'string',
         required: false,
-        default: '',
       },
       updatedAt: {
         type: 'number',
@@ -42,7 +37,7 @@ export const blogBranding = new Entity(
     },
     indexes: {
       /**
-       * pk: 'BLOG',
+       * pk: 'BLOGS:${blogId}',
        * sk: 'BRANDING',
        */
       byId: {
@@ -83,11 +78,16 @@ export const blogDomains = new Entity(
         type: 'string',
         required: true,
       },
+      path: {
+        type: 'string',
+        required: false,
+        default: '',
+      },
     },
     indexes: {
       /**
        * pk: 'BLOGS:DOMAINS',
-       * sk: '${domain}',
+       * sk: '${domain}${path}',
        * ls1sk: '${blogId}',
        */
       byDomain: {
@@ -99,8 +99,8 @@ export const blogDomains = new Entity(
         },
         sk: {
           field: 'sk',
-          template: '${domain}',
-          composite: ['domain'],
+          template: '${domain}${path}',
+          composite: ['domain', 'path'],
           casing: 'none',
         },
       },

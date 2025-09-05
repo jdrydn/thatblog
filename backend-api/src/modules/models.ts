@@ -12,8 +12,7 @@ import {
 } from './blogs/model';
 import { mapBlogsUsers, type MapBlogUserItem } from './map-blogs-users/model';
 import { system, type SystemItem } from './system/model';
-import { userProfiles, type UserProfileItem } from './user-profiles/model';
-import { userSessions, type UserSessionItem } from './user-sessions/model';
+import { userProfiles, userSessions, type UserProfileItem, type UserSessionItem } from './users/model';
 
 export {
   blogBranding,

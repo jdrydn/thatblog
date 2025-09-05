@@ -2,8 +2,6 @@ import DataLoader from 'dataloader';
 
 import type { system, SystemItem } from './model';
 
-const SELF_ID = 'SELF';
-
 export function createLoaders(models: { system: typeof system }) {
   const SystemBySelf = new DataLoader<string, SystemItem>(
     async () => {
@@ -24,12 +22,14 @@ export function createLoaders(models: { system: typeof system }) {
     },
   );
 
-  const System = {
-    load: () => SystemBySelf.load(SELF_ID),
-    clear: () => SystemBySelf.clear(SELF_ID),
-  };
-
   return {
-    System,
+    System: Object.freeze({
+      load() {
+        return SystemBySelf.load('SELF');
+      },
+      clear() {
+        SystemBySelf.clear('SELF');
+      },
+    }),
   };
 }
