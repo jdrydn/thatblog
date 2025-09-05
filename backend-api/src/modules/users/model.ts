@@ -59,7 +59,7 @@ export const userProfiles = new Entity(
         sk: {
           field: 'sk',
           composite: [],
-          template: 'USER#PROFILE',
+          template: 'PROFILE',
           casing: 'none',
         },
       },
@@ -125,19 +125,19 @@ export const userSessions = new Entity(
     indexes: {
       /**
        * pk: 'USERS#${userId}',
-       * sk: 'SESSION#${sessionId}',
+       * sk: 'SESSIONS#${sessionId}',
        */
       byId: {
         pk: {
           field: 'pk',
           composite: ['userId'],
-          template: 'USERS#${userId}',
+          template: 'USERS#${userId',
           casing: 'none',
         },
         sk: {
           field: 'sk',
           composite: ['sessionId'],
-          template: 'SESSION#${sessionId}',
+          template: 'SESSIONS#${sessionId}',
           casing: 'none',
         },
       },
