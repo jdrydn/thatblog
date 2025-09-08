@@ -1,6 +1,7 @@
 import { Entity, type EntityItem } from 'electrodb';
 
-import { dcdb, tableName } from '@/backend-api/src/lib/dynamodb';
+import { DYNAMODB_TABLENAME } from '@/backend-api/src/config';
+import { dcdb } from '@/backend-api/src/services';
 
 export const mapBlogsUsers = new Entity(
   {
@@ -73,7 +74,7 @@ export const mapBlogsUsers = new Entity(
   },
   {
     client: dcdb,
-    table: tableName,
+    table: DYNAMODB_TABLENAME,
   },
 );
 

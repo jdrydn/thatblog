@@ -1,6 +1,7 @@
 import { Entity, type EntityItem } from 'electrodb';
 
-import { dcdb, tableName } from '@/backend-api/src/lib/dynamodb';
+import { DYNAMODB_TABLENAME } from '@/backend-api/src/config';
+import { dcdb } from '@/backend-api/src/services';
 
 export const blogBranding = new Entity(
   {
@@ -58,7 +59,7 @@ export const blogBranding = new Entity(
   },
   {
     client: dcdb,
-    table: tableName,
+    table: DYNAMODB_TABLENAME,
   },
 );
 
@@ -123,7 +124,7 @@ export const blogDomains = new Entity(
   },
   {
     client: dcdb,
-    table: tableName,
+    table: DYNAMODB_TABLENAME,
   },
 );
 
@@ -183,7 +184,7 @@ export const blogPreferences = new Entity(
   },
   {
     client: dcdb,
-    table: tableName,
+    table: DYNAMODB_TABLENAME,
   },
 );
 

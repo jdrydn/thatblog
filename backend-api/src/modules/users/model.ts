@@ -1,7 +1,8 @@
 import { Entity, type EntityItem } from 'electrodb';
 import { ulid } from 'ulid';
 
-import { dcdb, tableName } from '@/backend-api/src/lib/dynamodb';
+import { DYNAMODB_TABLENAME } from '@/backend-api/src/config';
+import { dcdb } from '@/backend-api/src/services';
 
 export const userProfiles = new Entity(
   {
@@ -82,7 +83,7 @@ export const userProfiles = new Entity(
   },
   {
     client: dcdb,
-    table: tableName,
+    table: DYNAMODB_TABLENAME,
   },
 );
 
@@ -145,7 +146,7 @@ export const userSessions = new Entity(
   },
   {
     client: dcdb,
-    table: tableName,
+    table: DYNAMODB_TABLENAME,
   },
 );
 
