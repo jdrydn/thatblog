@@ -3,13 +3,13 @@ import { z } from 'zod';
 
 import { procedure } from '@/backend-api/src/lib/trpc';
 import { comparePassword } from '@/backend-api/src/modules/authentication/passwords';
-import { mapBlogsUsers, userProfiles, userSessions } from '@/backend-api/src/modules/models';
+import { mapBlogsUsers, userSessions } from '@/backend-api/src/modules/models';
 
 export const loginUserMutation = procedure
   .input(
     z.object({
       email: z.string(),
-      password: z.string(),
+      password: z.string().transform((value) => Buffer.from(value, 'base64').toString('utf8')),
     }),
   )
   .mutation(async ({ ctx, input }) => {
@@ -22,18 +22,12 @@ export const loginUserMutation = procedure
       meta: { email },
     };
 
-    const results = await userProfiles.query.byEmail({ email }).go({
-      attributes: ['userId'],
-    });
+    const user = await ctx.loaders.UserProfileByEmail.load(email);
+    assert(user?.userId, 'User not found by email', errUserNotFound);
+    assert(user.password, 'User does not have a password attached', errUserNotFound);
+    assert(await comparePassword(user.password, password), 'User password does not match', errUserNotFound);
 
-    assert(results.data?.[0]?.userId, 'User not found by email', errUserNotFound);
-
-    const [{ userId }] = results.data;
-    const { data: profile } = await userProfiles.get({ userId }).go();
-
-    assert(profile, 'User not found by userId', errUserNotFound);
-    assert(profile.password, 'User does not have a password attached', errUserNotFound);
-    assert(await comparePassword(profile.password, password), 'User password does not match', errUserNotFound);
+    const { userId } = user;
 
     ctx.log.info({ userId });
 
@@ -46,13 +40,13 @@ export const loginUserMutation = procedure
     return {
       user: {
         id: userId,
-        name: profile.name,
-        email: profile.email,
-        createdAt: profile.createdAt,
+        name: user.name,
+        email: user.email,
+        createdAt: new Date(user.createdAt),
       },
       session: {
         id: session.sessionId,
-        createdAt: session.createdAt,
+        createdAt: new Date(session.createdAt),
       },
       blogs: blogsMap.map(({ blogId, displayName }) => ({ blogId, displayName })),
     };

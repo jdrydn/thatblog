@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "esbuild ./src/handler.ts --bundle --format=cjs --minify --outfile=./dist/api.js --platform=node --target=node20"
+    "build": "esbuild ./src/handler.ts --bundle --format=cjs --minify --outfile=./dist/api.js --platform=node --target=node20",
+    "test:unit": "vitest",
+    "test:unit:ci": "vitest run --coverage"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.767.0",

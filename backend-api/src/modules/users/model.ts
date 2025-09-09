@@ -15,6 +15,7 @@ export const userProfiles = new Entity(
       userId: {
         type: 'string',
         required: true,
+        default: () => ulid(),
       },
       name: {
         type: 'string',
@@ -33,13 +34,14 @@ export const userProfiles = new Entity(
         required: true,
         readOnly: true,
         default: () => Date.now(),
+        set: (value) => value ?? Date.now(),
       },
       updatedAt: {
         type: 'number',
         readOnly: true,
         required: true,
         default: () => Date.now(),
-        set: () => Date.now(),
+        set: (value) => value ?? Date.now(),
         watch: '*',
       },
     },
@@ -109,18 +111,19 @@ export const userSessions = new Entity(
         required: true,
         readOnly: true,
         default: () => Date.now(),
+        set: (value) => value ?? Date.now(),
       },
       updatedAt: {
         type: 'number',
         readOnly: true,
         required: true,
         default: () => Date.now(),
-        set: () => Date.now(),
+        set: (value) => value ?? Date.now(),
         watch: '*',
       },
       archivedAt: {
         type: 'number',
-        set: () => Date.now(),
+        set: (value) => value ?? Date.now(),
       },
     },
     indexes: {

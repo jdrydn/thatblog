@@ -8,6 +8,10 @@ import { TestDynamoDBContainer } from '@thatblog/test-dynamodb/testcontainer';
 const startedAt = Date.now();
 let container: TestDynamoDBContainer | null = null;
 
+/**
+ * This runs once per test invocation
+ * So in dev, with hot reloading, this'll only run once!
+ */
 export async function setup() {
   if (process.env.SKIP_TESTCONTAINERS_DYNAMODB !== 'yes') {
     console.log(

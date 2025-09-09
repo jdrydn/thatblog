@@ -6,9 +6,11 @@ const env = {
   AWS_SECRET_ACCESS_KEY: 'ExampleSecretAccessKey',
   AWS_SESSION_TOKEN: '',
   AWS_REGION: 'local',
+  AWS_LAMBDA_FUNCTION_NAME: 'thatblog-local-dev',
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'silent',
   THATBLOG_DYNAMODB_ENDPOINT: 'http://localhost:42321',
-  THATBLOG_DYNAMODB_TABLE: 'thatblog-local-tests',
+  THATBLOG_DYNAMODB_TABLENAME: 'thatblog-local-tests',
+  THATBLOG_S3_BUCKET: 'LOCAL',
   TZ: 'UTC',
 };
 
@@ -20,6 +22,7 @@ export default defineConfig({
     globalSetup: path.join(__dirname, './vitest.setup.ts'),
     // We don't want to run integration-tests from here
     include: ['src/**/*.spec.ts'],
+    exclude: ['integration-tests/**'],
     // coverage: {
     //   provider: 'v8',
     //   reporter: ['text', 'html'],

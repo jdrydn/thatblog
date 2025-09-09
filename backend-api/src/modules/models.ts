@@ -1,6 +1,7 @@
 import { Service } from 'electrodb';
 
-import { dcdb, tableName } from '@/backend-api/src/lib/dynamodb';
+import { dcdb } from '@/backend-api/src/services';
+import { DYNAMODB_TABLENAME } from '@/backend-api/src/config';
 
 import {
   blogBranding,
@@ -43,6 +44,6 @@ export const application = new Service(
   },
   {
     client: dcdb,
-    table: tableName,
+    table: DYNAMODB_TABLENAME,
   },
 );
