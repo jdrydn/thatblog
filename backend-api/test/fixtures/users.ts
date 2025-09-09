@@ -1,7 +1,7 @@
 import { ulid } from 'ulid';
 
 import { hashPasswordSync } from '@/backend-api/src/modules/authentication/passwords';
-import type { UserProfileItem, UserSessionItem } from '@/backend-api/src/modules/users/model';
+import type { UserProfileItem, UserSessionItem } from '@/backend-api/src/modules/users/models';
 
 export function createUserProfile(create?: Partial<UserProfileItem>): UserProfileItem {
   return {

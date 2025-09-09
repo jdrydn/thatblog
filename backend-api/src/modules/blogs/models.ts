@@ -3,7 +3,7 @@ import { Entity, type EntityItem } from 'electrodb';
 import { DYNAMODB_TABLENAME } from '@/backend-api/src/config';
 import { dcdb } from '@/backend-api/src/services';
 
-export const blogBranding = new Entity(
+export const BlogBranding = new Entity(
   {
     model: {
       service: 'thatblog',
@@ -63,7 +63,7 @@ export const blogBranding = new Entity(
   },
 );
 
-export const blogDomains = new Entity(
+export const BlogDomain = new Entity(
   {
     model: {
       service: 'thatblog',
@@ -128,7 +128,7 @@ export const blogDomains = new Entity(
   },
 );
 
-export const blogPreferences = new Entity(
+export const BlogPreferences = new Entity(
   {
     model: {
       service: 'thatblog',
@@ -188,6 +188,6 @@ export const blogPreferences = new Entity(
   },
 );
 
-export type BlogBrandingItem = EntityItem<typeof blogBranding>;
-export type BlogDomainItem = EntityItem<typeof blogDomains>;
-export type BlogPreferencesItem = EntityItem<typeof blogPreferences>;
+export type BlogBrandingItem = EntityItem<typeof BlogBranding>;
+export type BlogDomainItem = EntityItem<typeof BlogDomain>;
+export type BlogPreferencesItem = EntityItem<typeof BlogPreferences>;

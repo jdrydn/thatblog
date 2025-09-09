@@ -3,7 +3,7 @@ import { Entity, type EntityItem } from 'electrodb';
 import { DYNAMODB_TABLENAME } from '@/backend-api/src/config';
 import { dcdb } from '@/backend-api/src/services';
 
-export const mapBlogsUsers = new Entity(
+export const MapBlogUser = new Entity(
   {
     model: {
       service: 'thatblog',
@@ -85,4 +85,4 @@ export const mapBlogsUsers = new Entity(
   },
 );
 
-export type MapBlogUserItem = EntityItem<typeof mapBlogsUsers>;
+export type MapBlogUserItem = EntityItem<typeof MapBlogUser>;

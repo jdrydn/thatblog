@@ -5,9 +5,9 @@ import { GeoffTestingtonUserProfile } from '@/backend-api/test/fixtures';
 
 import { loginUserMutation } from './loginUser';
 
-useModels(async ({ application }) => {
-  await application.transaction
-    .write(({ userProfiles }) => [userProfiles.upsert(GeoffTestingtonUserProfile).commit()])
+useModels(async ({ Application }) => {
+  await Application.transaction
+    .write(({ UserProfile }) => [UserProfile.upsert(GeoffTestingtonUserProfile).commit()])
     .go();
 });
 

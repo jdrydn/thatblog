@@ -4,7 +4,7 @@ import { v7 as uuid } from 'uuid';
 import { DYNAMODB_TABLENAME } from '@/backend-api/src/config';
 import { dcdb } from '@/backend-api/src/services';
 
-export const system = new Entity(
+export const System = new Entity(
   {
     model: {
       service: 'thatblog',
@@ -60,4 +60,4 @@ export const system = new Entity(
   },
 );
 
-export type SystemItem = EntityItem<typeof system>;
+export type SystemItem = EntityItem<typeof System>;

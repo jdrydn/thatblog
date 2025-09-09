@@ -1,12 +1,15 @@
-import { blogDomains } from './model';
+import { BlogDomain } from './models';
 
 export async function getDefaultBlogId(): Promise<{ blogId: string; domain: string } | undefined> {
-  const { data } = await blogDomains.query.byBlog({}).go({ limit: 1 });
+  const { data } = await BlogDomain.query.byBlog({}).go({ limit: 1 });
   return data?.shift();
 }
 
-export async function getBlogByDomain(domain: string, path?: string): Promise<{ blogId: string; domain: string; path: string } | undefined> {
-  const { data } = await blogDomains.query.byDomain({ domain, path }).go({})
-  const found = data.find(({ path: prefix }) => path?.length ? path.startsWith(prefix) : prefix === '')
-  return found
+export async function getBlogByDomainPath(
+  domain: string,
+  path?: string,
+): Promise<{ blogId: string; domain: string; path: string } | undefined> {
+  const { data } = await BlogDomain.query.byDomain({ domain, path }).go({});
+  const found = data.find(({ path: prefix }) => (path?.length ? path.startsWith(prefix) : prefix === ''));
+  return found;
 }

@@ -1,13 +1,13 @@
 import _omit from 'lodash/omit';
 import DataLoader from 'dataloader';
 
-import type * as blogModels from './model';
+import type * as blogModels from './models';
 
 export function createLoaders(models: typeof blogModels) {
   const BlogBrandingById = new DataLoader<string, blogModels.BlogBrandingItem | undefined>(async (blogIds) => {
     const results: (blogModels.BlogBrandingItem | undefined)[] = blogIds.map(() => undefined);
 
-    const { data } = await models.blogBranding.get(blogIds.map((blogId) => ({ blogId }))).go()
+    const { data } = await models.BlogBranding.get(blogIds.map((blogId) => ({ blogId }))).go();
 
     for (const item of data) {
       const i = blogIds.findIndex((blogId) => item.blogId === blogId);
@@ -20,7 +20,7 @@ export function createLoaders(models: typeof blogModels) {
   const BlogPreferencesById = new DataLoader<string, blogModels.BlogPreferencesItem | undefined>(async (blogIds) => {
     const results: (blogModels.BlogPreferencesItem | undefined)[] = blogIds.map(() => undefined);
 
-    const { data } = await models.blogPreferences.get(blogIds.map((blogId) => ({ blogId }))).go()
+    const { data } = await models.BlogPreferences.get(blogIds.map((blogId) => ({ blogId }))).go();
 
     for (const item of data) {
       const i = blogIds.findIndex((blogId) => item.blogId === blogId);

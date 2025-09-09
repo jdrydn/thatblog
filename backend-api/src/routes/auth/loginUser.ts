@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { procedure } from '@/backend-api/src/lib/trpc';
 import { comparePassword } from '@/backend-api/src/modules/authentication/passwords';
-import { mapBlogsUsers, userSessions } from '@/backend-api/src/modules/models';
+import { MapBlogUser, UserSession } from '@/backend-api/src/modules/models';
 
 export const loginUserMutation = procedure
   .input(
@@ -31,9 +31,9 @@ export const loginUserMutation = procedure
 
     ctx.log.info({ userId });
 
-    const { data: session } = await userSessions.create({ userId }).go();
+    const { data: session } = await UserSession.create({ userId }).go();
 
-    const { data: blogsMap } = await mapBlogsUsers.query.byUser({ userId }).go({ pages: 'all' });
+    const { data: blogsMap } = await MapBlogUser.query.byUser({ userId }).go({ pages: 'all' });
 
     // @TODO Create a token
 

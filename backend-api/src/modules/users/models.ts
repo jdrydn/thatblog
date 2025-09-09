@@ -4,7 +4,7 @@ import { ulid } from 'ulid';
 import { DYNAMODB_TABLENAME } from '@/backend-api/src/config';
 import { dcdb } from '@/backend-api/src/services';
 
-export const userProfiles = new Entity(
+export const UserProfile = new Entity(
   {
     model: {
       service: 'thatblog',
@@ -89,7 +89,7 @@ export const userProfiles = new Entity(
   },
 );
 
-export const userSessions = new Entity(
+export const UserSession = new Entity(
   {
     model: {
       service: 'thatblog',
@@ -153,5 +153,5 @@ export const userSessions = new Entity(
   },
 );
 
-export type UserProfileItem = EntityItem<typeof userProfiles>;
-export type UserSessionItem = EntityItem<typeof userSessions>;
+export type UserProfileItem = EntityItem<typeof UserProfile>;
+export type UserSessionItem = EntityItem<typeof UserSession>;

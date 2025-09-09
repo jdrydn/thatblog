@@ -4,43 +4,43 @@ import { dcdb } from '@/backend-api/src/services';
 import { DYNAMODB_TABLENAME } from '@/backend-api/src/config';
 
 import {
-  blogBranding,
+  BlogBranding,
   type BlogBrandingItem,
-  blogDomains,
+  BlogDomain,
   type BlogDomainItem,
-  blogPreferences,
+  BlogPreferences,
   type BlogPreferencesItem,
-} from './blogs/model';
-import { mapBlogsUsers, type MapBlogUserItem } from './map-blogs-users/model';
-import { system, type SystemItem } from './system/model';
-import { userProfiles, userSessions, type UserProfileItem, type UserSessionItem } from './users/model';
+} from './blogs/models';
+import { MapBlogUser, type MapBlogUserItem } from './map-blog-user/models';
+import { System, type SystemItem } from './system/models';
+import { UserProfile, UserSession, type UserProfileItem, type UserSessionItem } from './users/models';
 
 export {
-  blogBranding,
+  BlogBranding,
   type BlogBrandingItem,
-  blogDomains,
+  BlogDomain,
   type BlogDomainItem,
-  blogPreferences,
+  BlogPreferences,
   type BlogPreferencesItem,
-  mapBlogsUsers,
+  MapBlogUser,
   type MapBlogUserItem,
-  system,
+  System,
   type SystemItem,
-  userProfiles,
+  UserProfile,
   type UserProfileItem,
-  userSessions,
+  UserSession,
   type UserSessionItem,
 };
 
-export const application = new Service(
+export const Application = new Service(
   {
-    blogBranding,
-    blogDomains,
-    blogPreferences,
-    mapBlogsUsers,
-    system,
-    userProfiles,
-    userSessions,
+    BlogBranding,
+    BlogDomain,
+    BlogPreferences,
+    MapBlogUser,
+    System,
+    UserProfile,
+    UserSession,
   },
   {
     client: dcdb,

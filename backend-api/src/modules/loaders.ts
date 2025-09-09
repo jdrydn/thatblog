@@ -1,4 +1,5 @@
 import { createLoaders as createBlogLoaders } from './blogs/loaders';
+import { createLoaders as createMapBlogUserLoaders } from './map-blog-user/loaders';
 import { createLoaders as createSystemLoader } from './system/loader';
 import { createLoaders as createUserLoaders } from './users/loaders';
 
@@ -9,5 +10,6 @@ export function createLoaders(models: typeof allModels) {
     ...createSystemLoader(models),
     ...createBlogLoaders(models),
     ...createUserLoaders(models),
+    ...createMapBlogUserLoaders(models),
   };
 }

@@ -2,8 +2,7 @@ import assert from 'http-assert-plus';
 import { z } from 'zod';
 
 import { procedure } from '@/backend-api/src/lib/trpc';
-import { getBlogByDomain } from '@/backend-api/src/modules/blogs/helpers';
-import type { BlogItem } from '@/backend-api/src/modules/types';
+import { getBlogByDomainPath } from '@/backend-api/src/modules/blogs/helpers';
 
 export default procedure
   .input(
@@ -14,44 +13,45 @@ export default procedure
       z.object({
         hostname: z.string(),
         path: z.string(),
-      })
+      }),
     ]),
   )
   .query(async ({ ctx, input }) => {
-    const { BlogItemById } = ctx.loaders;
+    let blogId: string | undefined;
 
-    let blog: BlogItem | undefined
     if ('hostname' in input) {
-      const found = await getBlogByDomain(input.hostname, input.path)
+      const found = await getBlogByDomainPath(input.hostname, input.path);
       assert(found?.blogId, 404, 'Blog not found', {
         code: 'BLOG_NOT_FOUND',
         where: { hostname: input.hostname, path: input.path },
       });
 
-      blog = await BlogItemById.load(found.blogId);
-      assert(blog?.id, 500, 'Blog not found by ID', {
-        code: 'BLOG_NOT_FOUND',
-        where: { id: found.blogId },
-      });
+      ({ blogId } = found);
     } else {
-      blog = await BlogItemById.load(input.id);
-      assert(blog?.id, 500, 'Blog not found by ID', {
-        code: 'BLOG_NOT_FOUND',
-        where: { id: input.id },
-      });
+      ({ id: blogId } = input);
     }
+
+    const { BlogBrandingById, BlogPreferencesById } = ctx.loaders;
+    const [blogBranding, blogPreferences] = await Promise.all([
+      BlogBrandingById.load(blogId),
+      BlogPreferencesById.load(blogId),
+    ]);
+    assert(blogBranding && blogPreferences, 404, 'Blog not found', {
+      code: 'BLOG_NOT_FOUND',
+      where: { id: blogId },
+    });
 
     return {
       data: {
-        id: blog.id,
+        id: blogId,
         branding: {
-          title: blog.branding.title,
-          description: blog.branding.description,
+          title: blogBranding.title,
+          description: blogBranding.description,
         },
         preferences: {
-          timezone: blog.preferences.timezone,
-          dateFormat: blog.preferences.dateFormat,
-          timeFormat: blog.preferences.timeFormat,
+          timezone: blogPreferences.timezone,
+          dateFormat: blogPreferences.dateFormat,
+          timeFormat: blogPreferences.timeFormat,
         },
       },
     };

@@ -3,9 +3,15 @@ import type { EntityItem } from 'electrodb';
 import type { createLoaders } from '@/backend-api/src/modules/loaders';
 import type { logger } from '@/backend-api/src/lib/logger';
 
-export type * as models from './models';
-
-export { BlogItem } from './blogs/loaders';
+export type {
+  BlogBrandingItem,
+  BlogDomainItem,
+  BlogPreferencesItem,
+  MapBlogUserItem,
+  SystemItem,
+  UserProfileItem,
+  UserSessionItem,
+} from './models';
 
 export interface Context {
   userId?: string | undefined;

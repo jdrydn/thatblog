@@ -1,13 +1,13 @@
 import _omit from 'lodash/omit';
 import DataLoader from 'dataloader';
 
-import type * as userModels from './model';
+import type * as userModels from './models';
 
 export function createLoaders(models: typeof userModels) {
   const UserProfileById = new DataLoader<string, userModels.UserProfileItem | undefined>(async (userIds) => {
     const results: (userModels.UserProfileItem | undefined)[] = userIds.map(() => undefined);
 
-    const { data } = await models.userProfiles.get(userIds.map((userId) => ({ userId }))).go();
+    const { data } = await models.UserProfile.get(userIds.map((userId) => ({ userId }))).go();
 
     for (const item of data) {
       const i = userIds.findIndex((userId) => item.userId === userId);
@@ -19,7 +19,7 @@ export function createLoaders(models: typeof userModels) {
 
   const UserProfileByEmail = new DataLoader<string, userModels.UserProfileItem | undefined>(
     async ([email]) => {
-      const { data } = await models.userProfiles.query.byEmail({ email }).go({
+      const { data } = await models.UserProfile.query.byEmail({ email }).go({
         hydrate: true,
         limit: 1,
       });
@@ -41,7 +41,7 @@ export function createLoaders(models: typeof userModels) {
     async (keys) => {
       const results: (userModels.UserSessionItem | undefined)[] = keys.map(() => undefined);
 
-      const { data } = await models.userSessions.get([...keys]).go();
+      const { data } = await models.UserSession.get([...keys]).go();
 
       for (const item of data) {
         const i = keys.findIndex(({ userId, sessionId }) => item.userId === userId && item.sessionId === sessionId);

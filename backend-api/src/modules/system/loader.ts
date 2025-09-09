@@ -1,17 +1,17 @@
 import DataLoader from 'dataloader';
 
-import type { system, SystemItem } from './model';
+import type * as allModels from './models';
 
-export function createLoaders(models: { system: typeof system }) {
-  const SystemBySelf = new DataLoader<string, SystemItem>(
+export function createLoaders(models: typeof allModels) {
+  const SystemBySelf = new DataLoader<string, allModels.SystemItem>(
     async () => {
-      let system: SystemItem;
+      let system: allModels.SystemItem;
 
-      const getResult = await models.system.get({}).go();
+      const getResult = await models.System.get({}).go();
       if (getResult.data) {
         system = getResult.data;
       } else {
-        const createResult = await models.system.create({}).go();
+        const createResult = await models.System.create({}).go();
         system = createResult.data;
       }
 
