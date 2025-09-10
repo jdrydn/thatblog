@@ -23,11 +23,11 @@ export default defineConfig({
     // We don't want to run integration-tests from here
     include: ['src/**/*.spec.ts'],
     exclude: ['integration-tests/**'],
-    // coverage: {
-    //   provider: 'v8',
-    //   reporter: ['text', 'html'],
-    //   include: ['src/**'],
-    // },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: ['src/**'],
+    },
     alias: {
       '@/backend-api/src': path.join(__dirname, './src'),
       '@/backend-api/test': path.join(__dirname, './test'),

@@ -4,6 +4,7 @@
 !.vscode/extensions.json
 
 cdk.out/
+coverage/
 dist/
 dist-ssr/
 node_modules/
