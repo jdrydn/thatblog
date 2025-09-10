@@ -19,4 +19,7 @@ export interface Context {
 
   loaders: ReturnType<typeof createLoaders>;
   log: typeof logger;
+
+  ipAddress: string;
+  userAgent: string;
 }

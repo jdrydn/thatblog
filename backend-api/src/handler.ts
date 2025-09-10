@@ -1,3 +1,4 @@
+import assert from 'http-assert-plus';
 import { awsLambdaRequestHandler, type CreateAWSLambdaContextOptions } from '@trpc/server/adapters/aws-lambda';
 import { APIGatewayProxyEventV2 } from 'aws-lambda';
 
@@ -13,6 +14,13 @@ import type { Context } from '@/backend-api/src/modules/types';
 export const handler = awsLambdaRequestHandler({
   router: apiRouter,
   async createContext({ event, context }: CreateAWSLambdaContextOptions<APIGatewayProxyEventV2>): Promise<Context> {
+    const ipAddress = event.requestContext.http.sourceIp;
+    const userAgentHeader = getHeader(event.headers, 'User-Agent');
+    assert(ipAddress && userAgentHeader, 400, 'Missing User-Agent header', {
+      title: 'Invalid request',
+      description: 'Invalid request',
+    });
+
     const loaders = createLoaders(models);
 
     const authHeader = getHeader(event.headers, 'Authorization');
@@ -24,6 +32,8 @@ export const handler = awsLambdaRequestHandler({
       // _X_AMZN_TRACE_ID is set on each Lambda invocation, so bundle it into each log on each log call
       traceId: process.env._X_AMZN_TRACE_ID,
       reqId: context.awsRequestId,
+      ipAddress,
+      userAgent: userAgentHeader,
       userId: authToken?.userId,
       sessionId: authToken?.sessionId,
     });
@@ -37,12 +47,14 @@ export const handler = awsLambdaRequestHandler({
       sessionId: authToken?.sessionId,
       log,
       loaders,
+      ipAddress,
+      userAgent: userAgentHeader,
     } satisfies Context;
   },
   onError({ error, type, path, input, ctx }) {
     (ctx?.log ?? logger).error({
       trpc: { type, path, input },
-      err: error.hasOwnProperty('cause') ? error.cause : error,
+      err: error.cause ?? error,
     });
   },
 });

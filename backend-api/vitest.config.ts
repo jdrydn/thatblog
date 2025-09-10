@@ -2,6 +2,7 @@ import path from 'path';
 import { defineConfig } from 'vitest/config';
 
 const env = {
+  AWS_PROFILE: '',
   AWS_ACCESS_KEY_ID: 'ExampleAccessKey',
   AWS_SECRET_ACCESS_KEY: 'ExampleSecretAccessKey',
   AWS_SESSION_TOKEN: '',
@@ -20,6 +21,7 @@ export default defineConfig({
   test: {
     globals: true,
     globalSetup: path.join(__dirname, './vitest.setup.ts'),
+    setupFiles: [path.join(__dirname, './test/vitest.matchers.ts')],
     // We don't want to run integration-tests from here
     include: ['src/**/*.spec.ts'],
     exclude: ['integration-tests/**'],

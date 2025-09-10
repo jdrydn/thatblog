@@ -1,4 +1,4 @@
-import { test } from 'vitest';
+import { test, expect } from 'vitest';
 import { runProcedure } from '@/backend-api/test/trpc';
 import { useModels } from '@/backend-api/test/hooks/useModels';
 import { GeoffTestingtonUserProfile } from '@/backend-api/test/fixtures';
@@ -15,6 +15,20 @@ test('it should login with email/password', async () => {
   const result = await runProcedure(undefined, loginUserMutation, {
     email: 'geoff.testington@example.com',
     password: Buffer.from('hello-world-1', 'utf8').toString('base64'),
+  });
+
+  expect(result).toEqual({
+    token: expect.anything(),
+    user: {
+      id: GeoffTestingtonUserProfile.userId,
+      name: GeoffTestingtonUserProfile.name,
+      email: GeoffTestingtonUserProfile.email,
+      createdAt: expect.dateCloseTo(new Date(), '1s'),
+    },
+    session: {
+      id: expect.anything(),
+      createdAt: expect.dateCloseTo(new Date(), '1s'),
+    },
   });
 
   console.log(result);

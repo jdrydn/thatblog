@@ -3,7 +3,6 @@ import createLogger, { stdSerializers } from 'pino';
 export const logger = createLogger({
   level: process.env.LOG_LEVEL ?? 'info',
   messageKey: 'message',
-  nestedKey: 'data',
   errorKey: 'err', // data.err
 
   base: {

@@ -7,6 +7,8 @@ export function createContext(create?: Partial<Context>): Context {
   return {
     loaders: createLoaders(models),
     log: create?.log ?? logger.child({}),
+    ipAddress: '127.0.0.1',
+    userAgent: '@thatblog/backend-api test:unit',
     ...create,
   };
 }

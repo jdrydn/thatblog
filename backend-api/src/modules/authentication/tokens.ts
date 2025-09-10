@@ -2,14 +2,14 @@ import jwt from 'jsonwebtoken';
 
 import { AWS_LAMBDA_FUNCTION_NAME } from '@/backend-api/src/config';
 
-import type { models } from '../types';
+import type { SystemItem } from '../types';
 
 export interface UserToken {
   userId: string;
   sessionId: string;
 }
 
-export function createUserToken(system: models.SystemItem, create: UserToken): string {
+export function createUserToken(system: SystemItem, create: UserToken): string {
   return jwt.sign({}, system.jwtUserAuthSecret, {
     algorithm: 'HS256',
     issuer: AWS_LAMBDA_FUNCTION_NAME,
@@ -20,7 +20,7 @@ export function createUserToken(system: models.SystemItem, create: UserToken): s
   });
 }
 
-export function verifyUserToken(system: models.SystemItem, token: string): UserToken | undefined {
+export function verifyUserToken(system: SystemItem, token: string): UserToken | undefined {
   const payload = jwt.verify(token, system.jwtUserAuthSecret, {
     algorithms: ['HS256'],
     complete: false,

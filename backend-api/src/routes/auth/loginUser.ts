@@ -1,9 +1,10 @@
 import assert from 'http-assert-plus';
 import { z } from 'zod';
 
+import { createUserToken } from '@/backend-api/src/modules/authentication/tokens';
 import { procedure } from '@/backend-api/src/lib/trpc';
 import { comparePassword } from '@/backend-api/src/modules/authentication/passwords';
-import { MapBlogUser, UserSession } from '@/backend-api/src/modules/models';
+import { Application } from '@/backend-api/src/modules/models';
 
 export const loginUserMutation = procedure
   .input(
@@ -13,6 +14,9 @@ export const loginUserMutation = procedure
     }),
   )
   .mutation(async ({ ctx, input }) => {
+    const { System } = ctx.loaders;
+    const system = await System.load();
+
     const { email, password } = input;
 
     const errUserNotFound = {
@@ -22,22 +26,28 @@ export const loginUserMutation = procedure
       meta: { email },
     };
 
-    const user = await ctx.loaders.UserProfileByEmail.load(email);
+    const { UserProfileByEmail } = ctx.loaders;
+    const user = await UserProfileByEmail.load(email);
     assert(user?.userId, 'User not found by email', errUserNotFound);
+    const { userId } = user;
     assert(user.password, 'User does not have a password attached', errUserNotFound);
     assert(await comparePassword(user.password, password), 'User password does not match', errUserNotFound);
 
-    const { userId } = user;
-
-    ctx.log.info({ userId });
-
+    const { UserSessionById } = ctx.loaders;
+    const { UserSession } = Application.entities;
+    // Create a new session for this user
     const { data: session } = await UserSession.create({ userId }).go();
+    const { sessionId } = session;
+    UserSessionById.prime({ userId, sessionId }, session);
 
-    const { data: blogsMap } = await MapBlogUser.query.byUser({ userId }).go({ pages: 'all' });
+    ctx.log.info({ userId, sessionId }, 'User successfully logged-in');
 
-    // @TODO Create a token
+    // const { data: blogsMap } = await MapBlogUser.query.byUser({ userId }).go({ pages: 'all' });
+
+    const token = createUserToken(system, { userId, sessionId });
 
     return {
+      token,
       user: {
         id: userId,
         name: user.name,
@@ -48,6 +58,6 @@ export const loginUserMutation = procedure
         id: session.sessionId,
         createdAt: new Date(session.createdAt),
       },
-      blogs: blogsMap.map(({ blogId, displayName }) => ({ blogId, displayName })),
+      // blogs: blogsMap.map(({ blogId, displayName }) => ({ blogId, displayName })),
     };
   });
