@@ -1,8 +1,7 @@
 import { Procedure, ProcedureType, ProcedureParams } from '@trpc/server';
 
-import { createCallerFactory, router } from '@/backend-api/src/lib/trpc';
-import { createContext } from './context';
-import type { Context } from '@/backend-api/src/modules/types';
+import { createCallerFactory, router } from '@/backend-api/src/trpc/core';
+import { createContext, type Context } from './context';
 
 export function runProcedure<T extends ProcedureType, P extends ProcedureParams>(
   ctx: Context | undefined,

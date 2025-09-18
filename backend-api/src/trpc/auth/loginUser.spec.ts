@@ -1,4 +1,6 @@
+import matchers from '@thatblog/test-matchers';
 import { test, expect } from 'vitest';
+
 import { runProcedure } from '@/backend-api/test/trpc';
 import { useModels } from '@/backend-api/test/hooks/useModels';
 import { GeoffTestingtonUserProfile } from '@/backend-api/test/fixtures';
@@ -18,18 +20,16 @@ test('it should login with email/password', async () => {
   });
 
   expect(result).toEqual({
-    token: expect.anything(),
+    token: expect.any(String),
     user: {
       id: GeoffTestingtonUserProfile.userId,
       name: GeoffTestingtonUserProfile.name,
       email: GeoffTestingtonUserProfile.email,
-      createdAt: expect.dateCloseTo(new Date(), '1s'),
+      createdAt: matchers.dateCloseTo(new Date(), '1s'),
     },
     session: {
       id: expect.anything(),
-      createdAt: expect.dateCloseTo(new Date(), '1s'),
+      createdAt: matchers.dateCloseTo(new Date(), '1s'),
     },
   });
-
-  console.log(result);
 });
