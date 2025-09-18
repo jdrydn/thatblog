@@ -2,7 +2,7 @@ import assert from 'http-assert-plus';
 import { initTRPC } from '@trpc/server';
 
 import { errorFormatter } from './errors';
-import type { Context } from '../modules/types';
+import type { Context } from './context';
 
 const t = initTRPC.context<Context>().create({
   errorFormatter,

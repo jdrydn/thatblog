@@ -2,7 +2,7 @@ import assert from 'http-assert-plus';
 import { z } from 'zod';
 
 import { createUserToken } from '@/backend-api/src/modules/authentication/tokens';
-import { procedure } from '@/backend-api/src/lib/trpc';
+import { procedure } from '@/backend-api/src/trpc/core';
 import { comparePassword } from '@/backend-api/src/modules/authentication/passwords';
 import { Application } from '@/backend-api/src/modules/models';
 

@@ -1,10 +1,10 @@
 import assert from 'http-assert-plus';
 import { z } from 'zod';
 
-import { procedure } from '@/backend-api/src/lib/trpc';
+import { procedure } from '@/backend-api/src/trpc/core';
 import { getBlogByDomainPath } from '@/backend-api/src/modules/blogs/helpers';
 
-export default procedure
+export const getQuery = procedure
   .input(
     z.union([
       z.object({
