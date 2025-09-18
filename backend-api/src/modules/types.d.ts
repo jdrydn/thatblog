@@ -12,14 +12,3 @@ export type {
   UserProfileItem,
   UserSessionItem,
 } from './models';
-
-export interface Context {
-  userId?: string | undefined;
-  sessionId?: string | undefined;
-
-  loaders: ReturnType<typeof createLoaders>;
-  log: typeof logger;
-
-  ipAddress: string;
-  userAgent: string;
-}
