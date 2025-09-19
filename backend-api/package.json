@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "esbuild ./src/handler.ts --bundle --format=cjs --minify --outfile=./dist/api.js --platform=node --target=node20",
-    "test:unit": "vitest",
+    "test:unit": "vitest run",
     "test:unit:ci": "vitest run --coverage"
   },
   "dependencies": {

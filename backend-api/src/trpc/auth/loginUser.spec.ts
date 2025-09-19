@@ -1,4 +1,5 @@
-import matchers from '@thatblog/test-matchers';
+import ms from 'ms';
+import matchers from 'expect-asymmetric';
 import { test, expect } from 'vitest';
 
 import { runProcedure } from '@/backend-api/test/trpc';
@@ -25,11 +26,11 @@ test('it should login with email/password', async () => {
       id: GeoffTestingtonUserProfile.userId,
       name: GeoffTestingtonUserProfile.name,
       email: GeoffTestingtonUserProfile.email,
-      createdAt: matchers.dateCloseTo(new Date(), '1s'),
+      createdAt: matchers.dateWithin(new Date(), ms('1s')),
     },
     session: {
       id: expect.anything(),
-      createdAt: matchers.dateCloseTo(new Date(), '1s'),
+      createdAt: matchers.dateWithin(new Date(), ms('1s')),
     },
   });
 });
