@@ -21,7 +21,7 @@ test('it should login with email/password', async () => {
   });
 
   expect(result).toEqual({
-    token: expect.any(String),
+    token: matchers.stringJWT(),
     user: {
       id: GeoffTestingtonUserProfile.userId,
       name: GeoffTestingtonUserProfile.name,
