@@ -2,6 +2,7 @@ packages:
   - packages/*
   - themes/*
   - backend-api/
+  - backend-trpc/
   - frontend-admin/
   - frontend-blog/
   - infrastructure

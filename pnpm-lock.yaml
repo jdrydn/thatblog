@@ -100,7 +100,9 @@ importers:
         specifier: ^2.7.0
         version: 2.8.1
 
-  backend-api:
+  backend-api: {}
+
+  backend-trpc:
     dependencies:
       '@aws-sdk/client-dynamodb':
         specifier: ^3.767.0
