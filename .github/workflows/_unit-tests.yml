@@ -15,7 +15,7 @@ jobs:
       dynamodb:
         image: amazon/dynamodb-local:3.0.0
         ports:
-          - 32777:8000/tcp
+          - 8000/tcp
         options: >-
           --health-cmd="curl http://localhost:8000/shell"
           --health-interval=5s
@@ -27,4 +27,5 @@ jobs:
       - run: pnpm run test:unit
         working-directory: ./backend-api
         env:
+          THATBLOG_DYNAMODB_ENDPOINT: http://localhost:${{ job.services.dynamodb.ports[8000] }}
           SKIP_TESTCONTAINERS_DYNAMODB: 'yes'

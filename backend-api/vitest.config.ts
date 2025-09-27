@@ -9,7 +9,7 @@ const env = {
   AWS_REGION: 'local',
   AWS_LAMBDA_FUNCTION_NAME: 'thatblog-local-dev',
   LOG_LEVEL: process.env.LOG_LEVEL ?? 'silent',
-  THATBLOG_DYNAMODB_ENDPOINT: 'http://localhost:42321',
+  THATBLOG_DYNAMODB_ENDPOINT: process.env.THATBLOG_DYNAMODB_ENDPOINT ?? 'http://localhost:33660',
   THATBLOG_DYNAMODB_TABLENAME: 'thatblog-local-tests',
   THATBLOG_S3_BUCKET: 'LOCAL',
   TZ: 'UTC',
