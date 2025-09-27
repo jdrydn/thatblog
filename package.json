@@ -6,6 +6,9 @@
   "scripts": {
     "build": "npm --workspaces run build --if-present",
     "deploy": "./scripts/deploy.sh",
+    "lint": "run-s --continue-on-error lint:*",
+    "lint:workspaces": "npm --workspaces run lint --if-present",
+    "lint:tsc": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "workspaces": [

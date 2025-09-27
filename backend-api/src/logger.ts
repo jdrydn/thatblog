@@ -2,8 +2,8 @@ import createLogger, { stdSerializers } from 'pino';
 
 export const logger = createLogger({
   level: process.env.LOG_LEVEL ?? 'info',
-  messageKey: 'message',
-  errorKey: 'err', // data.err
+  messageKey: 'msg',
+  errorKey: 'err',
 
   base: {
     // Bundle Lambda env vars into each log
@@ -15,5 +15,19 @@ export const logger = createLogger({
 
   serializers: {
     err: stdSerializers.err,
+    ctx(ctx: unknown) {
+      if (Object.prototype.toString.call(ctx) === '[object Object]') {
+        return {
+          // Spread the contents of the context
+          ...(ctx as object),
+          // But omit specific keys on the context
+          log: undefined,
+          loaders: undefined,
+          models: undefined,
+        };
+      } else {
+        return ctx;
+      }
+    },
   },
 });

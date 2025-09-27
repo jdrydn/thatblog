@@ -1,6 +1,6 @@
 import * as models from '@/backend-api/src/modules/models';
 import { createLoaders } from '@/backend-api/src/modules/loaders';
-import { logger } from '@/backend-api/src/lib/logger';
+import { logger } from '@/backend-api/src/logger';
 import type { Context } from '@/backend-api/src/trpc/context';
 
 export type { Context };
