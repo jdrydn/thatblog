@@ -1,0 +1,32 @@
+name: _Unit-Tests
+
+on:
+  workflow_call:
+
+permissions:
+  pull-requests: read
+  contents: read
+  packages: read
+  actions: read
+
+jobs:
+
+  backend-api:
+    runs-on: ubuntu-latest
+    services:
+      dynamodb:
+        image: amazon/dynamodb-local:3.0.0
+        ports:
+          - 32777:8000/tcp
+        options: >-
+          --health-cmd="curl http://localhost:8000/shell"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/init-node
+      - run: pnpm run test:unit
+        working-directory: ./backend-api
+        env:
+          SKIP_TESTCONTAINERS_DYNAMODB: 'yes'
