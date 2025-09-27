@@ -127,6 +127,9 @@ importers:
         specifier: ^3.0.0
         version: 3.0.1
     devDependencies:
+      '@thatblog/test-dynamodb':
+        specifier: workspace:*
+        version: link:../packages/test-dynamodb
       '@types/aws-lambda':
         specifier: ^8.10.149
         version: 8.10.152
@@ -246,7 +249,7 @@ importers:
   frontend-blog:
     dependencies:
       '@thatblog/hyde':
-        specifier: workspace:../packages/hyde
+        specifier: workspace:*
         version: link:../packages/hyde
       express:
         specifier: ^4.21.2
@@ -340,7 +343,7 @@ importers:
   packages/theme-kit:
     dependencies:
       '@thatblog/hyde':
-        specifier: workspace:../hyde
+        specifier: workspace:*
         version: link:../hyde
     devDependencies:
       yargs:

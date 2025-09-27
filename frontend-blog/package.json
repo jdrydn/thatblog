@@ -7,7 +7,7 @@
     "dev": "nodemon ./src/dev-server.ts"
   },
   "dependencies": {
-    "@thatblog/hyde": "workspace:../packages/hyde",
+    "@thatblog/hyde": "workspace:*",
     "express": "^4.21.2",
     "html-minifier-terser": "^7.2.0",
     "liquidjs": "^10.20.2",
