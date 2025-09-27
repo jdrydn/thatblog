@@ -3,7 +3,7 @@ import path from 'path';
 
 import { exists, render } from '@thatblog/hyde';
 import { createSlug, parseSlug } from '@thatblog/utils';
-import { logger } from '@/backend-api/src/lib/logger';
+import { logger } from '@/backend-api/src/logger';
 
 import * as data from '@/backend-api/src/data';
 

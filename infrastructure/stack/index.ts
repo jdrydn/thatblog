@@ -1,4 +1,3 @@
-import assert from 'assert';
 import path from 'path';
 import * as cdk from 'aws-cdk-lib';
 
@@ -31,29 +30,48 @@ export default function createStack(app: cdk.App, stackName: string) {
     websiteIndexDocument: 'index.html',
   });
 
-  bucket.grantRead(lambdaRole);
+  bucket.grantReadWrite(lambdaRole);
 
-  const siteIntegration = new cdk.aws_apigatewayv2_integrations.HttpUrlIntegration(
-    'SiteIntegration',
-    bucket.bucketWebsiteUrl,
-    {
-      parameterMapping: cdk.aws_apigatewayv2.ParameterMapping.fromObject({
-        // 'overwrite:path': cdk.aws_apigatewayv2.MappingValue.custom('/frontend-blog/$request.path'),
-        'overwrite:path': cdk.aws_apigatewayv2.MappingValue.requestPath(),
-      }),
-      timeout: cdk.Duration.seconds(10),
-    },
-  );
-
-  // api.addRoutes({
-  //   path: '/assets/{proxy+}',
-  //   methods: [cdk.aws_apigatewayv2.HttpMethod.GET],
-  //   integration: siteIntegration,
-  // });
   api.addRoutes({
     path: '/themes/{proxy+}',
     methods: [cdk.aws_apigatewayv2.HttpMethod.GET],
-    integration: siteIntegration,
+    integration: new cdk.aws_apigatewayv2_integrations.HttpUrlIntegration(
+      'ThemesIntegration',
+      bucket.bucketWebsiteUrl,
+      {
+        parameterMapping: cdk.aws_apigatewayv2.ParameterMapping.fromObject({
+          // 'overwrite:path': cdk.aws_apigatewayv2.MappingValue.custom('/frontend-blog/$request.path'),
+          'overwrite:path': cdk.aws_apigatewayv2.MappingValue.requestPath(),
+        }),
+        timeout: cdk.Duration.seconds(10),
+      },
+    ),
+  });
+
+  const apiLambda = new cdk.aws_lambda.Function(stack, 'ApiLambda', {
+    functionName: `${stackName}-api`,
+    runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
+    handler: 'api.handler',
+    code: cdk.aws_lambda.Code.fromAsset(path.join(__dirname, '../../backend-api/dist')),
+    role: lambdaRole,
+    architecture: cdk.aws_lambda.Architecture.ARM_64,
+    memorySize: 1024,
+    environment: {
+      NODE_ENV: 'production',
+      THATBLOG_DYNAMODB_TABLENAME: 'thatblog-example',
+      THATBLOG_S3_BUCKET: bucket.bucketName,
+      THATBLOG_USER_AUTH_SECRET: 'hello-world',
+      LOG_LEVEL: 'debug',
+    },
+    timeout: cdk.Duration.seconds(29),
+  });
+
+  api.addRoutes({
+    path: '/api/{proxy+}',
+    methods: [cdk.aws_apigatewayv2.HttpMethod.ANY],
+    integration: new cdk.aws_apigatewayv2_integrations.HttpLambdaIntegration('ApiIntegration', apiLambda, {
+      payloadFormatVersion: cdk.aws_apigatewayv2.PayloadFormatVersion.VERSION_2_0,
+    }),
   });
 
   const siteLambda = new cdk.aws_lambda.Function(stack, 'SiteLambda', {
@@ -66,8 +84,8 @@ export default function createStack(app: cdk.App, stackName: string) {
     memorySize: 1024,
     environment: {
       NODE_ENV: 'production',
-      S3_BUCKET: bucket.bucketName,
-      THATBLOG_URL_ORIGIN: api.url!,
+      THATBLOG_S3_BUCKET: bucket.bucketName,
+      THATBLOG_USER_AUTH_SECRET: 'hello-world',
       HYDE_TEMPLATE_CACHE_DIR: '/tmp',
     },
     timeout: cdk.Duration.seconds(29),
@@ -81,7 +99,7 @@ export default function createStack(app: cdk.App, stackName: string) {
 
   api.addRoutes({
     path: '/{proxy+}',
-    methods: [cdk.aws_apigatewayv2.HttpMethod.ANY],
+    methods: [cdk.aws_apigatewayv2.HttpMethod.GET],
     integration: new cdk.aws_apigatewayv2_integrations.HttpLambdaIntegration('SiteIntegration', siteLambda, {
       payloadFormatVersion: cdk.aws_apigatewayv2.PayloadFormatVersion.VERSION_2_0,
     }),
