@@ -30,8 +30,8 @@ export default defineConfig({
       include: ['src/**'],
     },
     alias: {
-      '@/backend-api/src': path.join(__dirname, './src'),
-      '@/backend-api/test': path.join(__dirname, './test'),
+      '@/backend-trpc/src': path.join(__dirname, './src'),
+      '@/backend-trpc/test': path.join(__dirname, './test'),
     },
     env: {
       APP_ENV: process.env.APP_ENV ?? 'local',

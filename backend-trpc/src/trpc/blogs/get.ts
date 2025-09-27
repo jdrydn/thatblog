@@ -1,8 +1,8 @@
 import assert from 'http-assert-plus';
 import { z } from 'zod';
 
-import { procedure } from '@/backend-api/src/trpc/core';
-import { getBlogByDomainPath } from '@/backend-api/src/modules/blogs/helpers';
+import { procedure } from '@/backend-trpc/src/trpc/core';
+import { getBlogByDomainPath } from '@/backend-trpc/src/modules/blogs/helpers';
 
 export const getQuery = procedure
   .input(

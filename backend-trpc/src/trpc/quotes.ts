@@ -1,5 +1,5 @@
 import { randomInt } from 'crypto';
-import { procedure } from '@/backend-api/src/trpc/core';
+import { procedure } from '@/backend-trpc/src/trpc/core';
 
 const quotes = [
   /* eslint-disable max-len */

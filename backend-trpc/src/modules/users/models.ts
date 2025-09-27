@@ -1,8 +1,8 @@
 import { Entity, type EntityItem } from 'electrodb';
 import { ulid } from 'ulid';
 
-import { DYNAMODB_TABLENAME } from '@/backend-api/src/config';
-import { dcdb } from '@/backend-api/src/services';
+import { DYNAMODB_TABLENAME } from '@/backend-trpc/src/config';
+import { dcdb } from '@/backend-trpc/src/services';
 
 export const UserProfile = new Entity(
   {

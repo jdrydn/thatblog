@@ -2,11 +2,11 @@ import assert from 'http-assert-plus';
 import type { CreateAWSLambdaContextOptions } from '@trpc/server/adapters/aws-lambda';
 import type { APIGatewayProxyEventV2 } from 'aws-lambda';
 
-import * as models from '@/backend-api/src/modules/models';
-import { logger } from '@/backend-api/src/logger';
-import { getHeader, parseAuthHeader } from '@/backend-api/src/helpers/api-gateway';
-import { verifyUserToken } from '@/backend-api/src/modules/authentication/tokens';
-import { createLoaders } from '@/backend-api/src/modules/loaders';
+import * as models from '@/backend-trpc/src/modules/models';
+import { logger } from '@/backend-trpc/src/logger';
+import { getHeader, parseAuthHeader } from '@/backend-trpc/src/helpers/api-gateway';
+import { verifyUserToken } from '@/backend-trpc/src/modules/authentication/tokens';
+import { createLoaders } from '@/backend-trpc/src/modules/loaders';
 
 export interface Context {
   userId?: string | undefined;

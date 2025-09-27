@@ -1,7 +1,7 @@
 import { Service } from 'electrodb';
 
-import { dcdb } from '@/backend-api/src/services';
-import { DYNAMODB_TABLENAME } from '@/backend-api/src/config';
+import { dcdb } from '@/backend-trpc/src/services';
+import { DYNAMODB_TABLENAME } from '@/backend-trpc/src/config';
 
 import {
   BlogBranding,

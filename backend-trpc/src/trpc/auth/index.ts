@@ -1,4 +1,4 @@
-import { router } from '@/backend-api/src/trpc/core';
+import { router } from '@/backend-trpc/src/trpc/core';
 
 import { loginUserMutation } from './loginUser';
 
