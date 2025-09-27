@@ -5,15 +5,16 @@ import { procedureRequiresUser } from '@/src/trpc/core';
 import { listBlogIdsForUserId } from '@/src/modules/map-blog-user/helpers';
 import { getBlogByDomainPath, formatBlog } from '@/src/modules/blogs/helpers';
 
-export const getBlogQuery = procedureRequiresUser
+export const getPostQuery = procedureRequiresUser
   .input(
     z.union([
       z.object({
-        id: z.string(),
+        blogId: z.string(),
+        postId: z.string(),
       }),
       z.object({
-        hostname: z.string(),
-        path: z.string().default(''),
+        blogId: z.string(),
+        postSlug: z.string(),
       }),
     ]),
   )

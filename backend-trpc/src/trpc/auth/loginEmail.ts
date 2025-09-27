@@ -6,7 +6,7 @@ import { procedure } from '@/src/trpc/core';
 import { comparePassword } from '@/src/modules/authentication/passwords';
 import { Application } from '@/src/modules/models';
 
-export const loginUserMutation = procedure
+export const loginEmailMutation = procedure
   .input(
     z.object({
       email: z.string(),

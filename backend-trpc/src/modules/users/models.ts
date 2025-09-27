@@ -1,14 +1,15 @@
+import isISO8601 from 'validator/es/lib/isISO8601';
 import { Entity, type EntityItem } from 'electrodb';
 import { ulid } from 'ulid';
 
 import { DYNAMODB_TABLENAME } from '@/src/config';
 import { dcdb } from '@/src/services';
 
-export const UserProfile = new Entity(
+export const User = new Entity(
   {
     model: {
       service: 'thatblog',
-      entity: 'users-profile',
+      entity: 'user',
       version: '1',
     },
     attributes: {
@@ -30,25 +31,26 @@ export const UserProfile = new Entity(
         default: undefined,
       },
       createdAt: {
-        type: 'number',
-        required: true,
+        type: 'string',
         readOnly: true,
-        default: () => Date.now(),
-        set: (value) => value ?? Date.now(),
+        required: true,
+        default: () => new Date().toISOString(),
+        set: (value) => value ?? new Date().toISOString(),
+        validate: (value) => isISO8601(value),
       },
       updatedAt: {
-        type: 'number',
-        readOnly: true,
-        required: true,
-        default: () => Date.now(),
-        set: (value) => value ?? Date.now(),
+        type: 'string',
         watch: '*',
+        required: true,
+        default: () => new Date().toISOString(),
+        set: (value) => value ?? new Date().toISOString(),
+        validate: (value) => isISO8601(value),
       },
     },
     indexes: {
       /**
        * pk: 'USERS#${userId}',
-       * sk: 'USER#PROFILE',
+       * sk: 'ITEM',
        * gs1pk: 'USERS#EMAIL',
        * gs1sk: '${email}'
        */
@@ -62,7 +64,7 @@ export const UserProfile = new Entity(
         sk: {
           field: 'sk',
           composite: [],
-          template: 'PROFILE',
+          template: 'ITEM',
           casing: 'none',
         },
       },
@@ -93,7 +95,7 @@ export const UserSession = new Entity(
   {
     model: {
       service: 'thatblog',
-      entity: 'users-sessions',
+      entity: 'user-session',
       version: '1',
     },
     attributes: {
@@ -107,23 +109,24 @@ export const UserSession = new Entity(
         default: () => ulid(),
       },
       createdAt: {
-        type: 'number',
-        required: true,
+        type: 'string',
         readOnly: true,
-        default: () => Date.now(),
-        set: (value) => value ?? Date.now(),
+        required: true,
+        default: () => new Date().toISOString(),
+        set: (value) => value ?? new Date().toISOString(),
+        validate: (value) => isISO8601(value),
       },
       updatedAt: {
-        type: 'number',
-        readOnly: true,
-        required: true,
-        default: () => Date.now(),
-        set: (value) => value ?? Date.now(),
+        type: 'string',
         watch: '*',
+        required: true,
+        default: () => new Date().toISOString(),
+        set: (value) => value ?? new Date().toISOString(),
+        validate: (value) => isISO8601(value),
       },
       archivedAt: {
-        type: 'number',
-        set: (value) => value ?? Date.now(),
+        type: 'string',
+        validate: (value) => typeof value !== 'string' || isISO8601(value),
       },
     },
     indexes: {
@@ -153,5 +156,5 @@ export const UserSession = new Entity(
   },
 );
 
-export type UserProfileItem = EntityItem<typeof UserProfile>;
+export type UserItem = EntityItem<typeof User>;
 export type UserSessionItem = EntityItem<typeof UserSession>;

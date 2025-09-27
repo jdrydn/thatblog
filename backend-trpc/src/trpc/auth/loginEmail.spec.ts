@@ -6,7 +6,7 @@ import { runProcedure } from '@/test/trpc';
 import { useModels } from '@/test/hooks/useModels';
 import { GeoffTestingtonUserProfile } from '@/test/fixtures';
 
-import { loginUserMutation } from './loginUser';
+import { loginEmailMutation } from './loginEmail';
 
 useModels(async ({ Application }) => {
   await Application.transaction
@@ -15,7 +15,7 @@ useModels(async ({ Application }) => {
 });
 
 test('it should login with email/password', async () => {
-  const result = await runProcedure(undefined, loginUserMutation, {
+  const result = await runProcedure(undefined, loginEmailMutation, {
     email: 'geoff.testington@example.com',
     password: Buffer.from('hello-world-1', 'utf8').toString('base64'),
   });

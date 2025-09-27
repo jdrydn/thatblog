@@ -1,3 +1,4 @@
+import isISO8601 from 'validator/es/lib/isISO8601';
 import { Entity, type EntityItem } from 'electrodb';
 
 import { DYNAMODB_TABLENAME } from '@/src/config';
@@ -7,7 +8,7 @@ export const MapBlogUser = new Entity(
   {
     model: {
       service: 'thatblog',
-      entity: 'map-blogs-users',
+      entity: 'map-blog-user',
       version: '1',
     },
     attributes: {
@@ -24,19 +25,20 @@ export const MapBlogUser = new Entity(
         required: true,
       },
       createdAt: {
-        type: 'number',
-        required: true,
+        type: 'string',
         readOnly: true,
-        default: () => Date.now(),
-        set: (value) => value ?? Date.now(),
+        required: true,
+        default: () => new Date().toISOString(),
+        set: (value) => value ?? new Date().toISOString(),
+        validate: (value) => isISO8601(value),
       },
       updatedAt: {
-        type: 'number',
-        readOnly: true,
-        required: true,
-        default: () => Date.now(),
-        set: (value) => value ?? Date.now(),
+        type: 'string',
         watch: '*',
+        required: true,
+        default: () => new Date().toISOString(),
+        set: (value) => value ?? new Date().toISOString(),
+        validate: (value) => isISO8601(value),
       },
     },
     indexes: {

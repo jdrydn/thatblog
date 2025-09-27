@@ -13,20 +13,20 @@ export const router = t.router;
 
 export const procedure = t.procedure.use(async ({ ctx, type, path, input, next }) => {
   const start = Date.now();
-
   ctx.log.debug({ trpc: { type, path, input } }, 'STARTED');
 
-  const result = await next();
-
-  ctx.log.debug(
-    {
-      trpc: { type, path, input },
-      durationMs: Date.now() - start,
-    },
-    'FINISHED',
-  );
-
-  return result;
+  try {
+    const result = await next();
+    return result;
+  } finally {
+    ctx.log.debug(
+      {
+        trpc: { type, path, input },
+        durationMs: Date.now() - start,
+      },
+      'FINISHED',
+    );
+  }
 });
 
 export const procedureRequiresUser = procedure.use(async ({ ctx, next }) => {

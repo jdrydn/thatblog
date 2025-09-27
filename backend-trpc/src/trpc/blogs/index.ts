@@ -1,7 +1,9 @@
 import { router } from '@/src/trpc/core';
 
-import { getQuery } from './get';
+import { getBlogQuery } from './get';
+import { listBlogsQuery } from './list';
 
-export const blogRouter = router({
-  get: getQuery,
+export const blogsRouter = router({
+  list: listBlogsQuery,
+  get: getBlogQuery,
 });

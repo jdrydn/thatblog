@@ -9,3 +9,8 @@ export async function listAllBlogsForUserId(userId: string): Promise<MapBlogUser
   const { data } = await MapBlogUser.query.byUser({ userId }).go({ pages: 'all' });
   return data;
 }
+
+export async function listBlogIdsForUserId(userId: string): Promise<string[]> {
+  const { data } = await MapBlogUser.query.byUser({ userId }).go({ attributes: ['blogId'], pages: 'all' });
+  return data.map(({ blogId }) => blogId);
+}

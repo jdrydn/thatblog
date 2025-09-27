@@ -1,7 +1,9 @@
 import { router } from '@/src/trpc/core';
 
-import { loginUserMutation } from './loginUser';
+import { getQuery } from './get';
+import { loginEmailMutation } from './loginEmail';
 
 export const authRouter = router({
-  loginUser: loginUserMutation,
+  email: loginEmailMutation,
+  get: getQuery,
 });
