@@ -1,0 +1,17 @@
+packages:
+  - packages/*
+  - themes/*
+  - backend-api/
+  - frontend-admin/
+  - frontend-blog/
+  - infrastructure
+
+ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - '@tailwindcss/oxide'
+  - cpu-features
+  - protobufjs
+  - ssh2
+
+onlyBuiltDependencies:
+  - esbuild

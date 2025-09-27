@@ -7,7 +7,7 @@
     "dev": "tsx ./bin.ts"
   },
   "dependencies": {
-    "@thatblog/hyde": "^0.1.0"
+    "@thatblog/hyde": "workspace:../hyde"
   },
   "devDependencies": {
     "yargs": "^17.7.2"

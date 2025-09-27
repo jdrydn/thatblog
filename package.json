@@ -3,23 +3,15 @@
   "description": "Serverless blog platform monorepo",
   "version": "0.0.0",
   "private": true,
+  "packageManager": "pnpm@10.17.1+sha512.17c560fca4867ae9473a3899ad84a88334914f379be46d455cbf92e5cf4b39d34985d452d2583baf19967fa76cb5c17bc9e245529d0b98745721aa7200ecaf7a",
   "scripts": {
-    "build": "npm --workspaces run build --if-present",
+    "build": "pnpm run --recursive --if-present build",
     "deploy": "./scripts/deploy.sh",
     "lint": "run-s --continue-on-error lint:*",
-    "lint:workspaces": "npm --workspaces run lint --if-present",
+    "lint:workspaces": "pnpm run --recursive --if-present lint",
     "lint:tsc": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "workspaces": [
-    "packages/*",
-    "themes/*",
-    "backend-api/",
-    "backend-worker/",
-    "frontend-admin/",
-    "frontend-blog/",
-    "infrastructure/"
-  ],
   "repository": "https://github.com/jdrydn/thatblog",
   "bugs": "https://github.com/jdrydn/thatblog/issues",
   "homepage": "https://github.com/jdrydn/thatblog#readme",
