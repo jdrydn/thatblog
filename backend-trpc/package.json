@@ -1,5 +1,5 @@
 {
-  "name": "@thatblog/backend-api",
+  "name": "@thatblog/backend-trpc",
   "version": "0.0.0",
   "private": true,
   "scripts": {
