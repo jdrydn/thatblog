@@ -4,10 +4,8 @@ on:
   workflow_call:
 
 permissions:
-  pull-requests: read
   contents: read
-  packages: read
-  actions: read
+  pull-requests: read
 
 jobs:
 
