@@ -1,8 +1,8 @@
 import { awsLambdaRequestHandler } from '@trpc/server/adapters/aws-lambda';
 
-import { logger } from '@/backend-trpc/src/logger';
-import { apiRouter as router } from '@/backend-trpc/src/trpc';
-import { createContext } from '@/backend-trpc/src/trpc/context';
+import { logger } from '@/src/logger';
+import { apiRouter as router } from '@/src/trpc';
+import { createContext } from '@/src/trpc/context';
 
 export const handler = awsLambdaRequestHandler({
   router,

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-import { AWS_LAMBDA_FUNCTION_NAME } from '@/backend-trpc/src/config';
+import { AWS_LAMBDA_FUNCTION_NAME } from '@/src/config';
 
 import type { SystemItem } from '../types';
 

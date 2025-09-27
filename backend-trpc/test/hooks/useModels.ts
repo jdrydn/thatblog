@@ -1,6 +1,6 @@
 import { beforeAll, afterAll } from 'vitest';
 
-import type * as allModels from '@/backend-trpc/src/modules/models';
+import type * as allModels from '@/src/modules/models';
 
 type Teardown = () => Promise<void>;
 type Setup = (models: typeof allModels) => Promise<void | Teardown>;
@@ -12,7 +12,7 @@ export function useModels(setup: Setup): void {
   let teardown: Teardown | undefined = undefined;
 
   beforeAll(async () => {
-    const models = await import('@/backend-trpc/src/modules/models');
+    const models = await import('@/src/modules/models');
     teardown = (await setup(models)) ?? undefined;
   });
   afterAll(async () => {
@@ -21,6 +21,6 @@ export function useModels(setup: Setup): void {
 }
 
 export async function getModels() {
-  const models = await import('@/backend-trpc/src/modules/models');
+  const models = await import('@/src/modules/models');
   return models;
 }

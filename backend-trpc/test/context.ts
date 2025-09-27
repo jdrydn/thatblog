@@ -1,7 +1,7 @@
-import * as models from '@/backend-trpc/src/modules/models';
-import { createLoaders } from '@/backend-trpc/src/modules/loaders';
-import { logger } from '@/backend-trpc/src/logger';
-import type { Context } from '@/backend-trpc/src/trpc/context';
+import * as models from '@/src/modules/models';
+import { createLoaders } from '@/src/modules/loaders';
+import { logger } from '@/src/logger';
+import type { Context } from '@/src/trpc/context';
 
 export type { Context };
 

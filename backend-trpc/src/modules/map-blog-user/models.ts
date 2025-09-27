@@ -1,7 +1,7 @@
 import { Entity, type EntityItem } from 'electrodb';
 
-import { DYNAMODB_TABLENAME } from '@/backend-trpc/src/config';
-import { dcdb } from '@/backend-trpc/src/services';
+import { DYNAMODB_TABLENAME } from '@/src/config';
+import { dcdb } from '@/src/services';
 
 export const MapBlogUser = new Entity(
   {

@@ -2,9 +2,9 @@ import ms from 'ms';
 import matchers from 'expect-asymmetric';
 import { test, expect } from 'vitest';
 
-import { runProcedure } from '@/backend-api/test/trpc';
-import { useModels } from '@/backend-api/test/hooks/useModels';
-import { GeoffTestingtonUserProfile } from '@/backend-api/test/fixtures';
+import { runProcedure } from '@/test/trpc';
+import { useModels } from '@/test/hooks/useModels';
+import { GeoffTestingtonUserProfile } from '@/test/fixtures';
 
 import { loginUserMutation } from './loginUser';
 

@@ -250,9 +250,15 @@ importers:
 
   frontend-blog:
     dependencies:
+      '@thatblog/backend-trpc':
+        specifier: workspace:*
+        version: link:../backend-trpc
       '@thatblog/hyde':
         specifier: workspace:*
         version: link:../packages/hyde
+      '@thatblog/utils':
+        specifier: workspace:*
+        version: link:../packages/utils
       express:
         specifier: ^4.21.2
         version: 4.21.2

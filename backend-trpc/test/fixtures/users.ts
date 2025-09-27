@@ -1,7 +1,7 @@
 import { ulid } from 'ulid';
 
-import { hashPasswordSync } from '@/backend-trpc/src/modules/authentication/passwords';
-import type { UserProfileItem, UserSessionItem } from '@/backend-trpc/src/modules/users/models';
+import { hashPasswordSync } from '@/src/modules/authentication/passwords';
+import type { UserProfileItem, UserSessionItem } from '@/src/modules/users/models';
 
 export function createUserProfile(create?: Partial<UserProfileItem>): UserProfileItem {
   return {

@@ -1,10 +1,10 @@
 import assert from 'http-assert-plus';
 import { z } from 'zod';
 
-import { createUserToken } from '@/backend-trpc/src/modules/authentication/tokens';
-import { procedure } from '@/backend-trpc/src/trpc/core';
-import { comparePassword } from '@/backend-trpc/src/modules/authentication/passwords';
-import { Application } from '@/backend-trpc/src/modules/models';
+import { createUserToken } from '@/src/modules/authentication/tokens';
+import { procedure } from '@/src/trpc/core';
+import { comparePassword } from '@/src/modules/authentication/passwords';
+import { Application } from '@/src/modules/models';
 
 export const loginUserMutation = procedure
   .input(

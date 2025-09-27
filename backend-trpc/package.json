@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "esbuild ./src/handler.ts --bundle --format=cjs --minify --outfile=./dist/api.js --platform=node --target=node20",
+    "lint": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:unit:ci": "vitest run --coverage"
   },

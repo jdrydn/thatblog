@@ -1,7 +1,7 @@
 import ms from 'ms';
 
-import { DYNAMODB_ENDPOINT, DYNAMODB_TABLENAME } from '@/backend-trpc/src/config';
-import { dydb } from '@/backend-trpc/src/services';
+import { DYNAMODB_ENDPOINT, DYNAMODB_TABLENAME } from '@/src/config';
+import { dydb } from '@/src/services';
 import { createTable, deleteTable } from '@thatblog/test-dynamodb/tables';
 import { TestDynamoDBContainer } from '@thatblog/test-dynamodb/testcontainer';
 
