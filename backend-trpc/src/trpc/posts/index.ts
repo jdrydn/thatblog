@@ -1,9 +1,21 @@
 import { router } from '@/src/trpc/core';
 
 import { getPostQuery } from './get';
-import { listPostsQuery } from './list';
+// import { listPostsQuery } from './list';
+
+import { getContentsQuery, listPostContentsQuery, listManyPostsContentsQuery } from './contents.read';
+import { createPostContentsMutation, updatePostContentsMutation, deletePostContentsMutation } from './contents.write';
 
 export const postsRouter = router({
-  list: listPostsQuery,
+  // list: listPostsQuery,
   get: getPostQuery,
+
+  contents: router({
+    list: listPostContentsQuery,
+    listMany: listManyPostsContentsQuery,
+    get: getContentsQuery,
+    create: createPostContentsMutation,
+    update: updatePostContentsMutation,
+    delete: deletePostContentsMutation,
+  }),
 });

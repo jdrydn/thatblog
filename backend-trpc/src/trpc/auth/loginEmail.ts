@@ -26,8 +26,8 @@ export const loginEmailMutation = procedure
       meta: { email },
     };
 
-    const { UserProfileByEmail } = ctx.loaders;
-    const user = await UserProfileByEmail.load(email);
+    const { UserByEmail } = ctx.loaders;
+    const user = await UserByEmail.load(email);
     assert(user?.userId, 'User not found by email', errUserNotFound);
     const { userId } = user;
     assert(user.password, 'User does not have a password attached', errUserNotFound);

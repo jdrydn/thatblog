@@ -3,65 +3,35 @@ import { z } from 'zod';
 
 import { procedureRequiresUser } from '@/src/trpc/core';
 import { listBlogIdsForUserId } from '@/src/modules/map-blog-user/helpers';
-import { getBlogByDomainPath, formatBlog } from '@/src/modules/blogs/helpers';
+import { formatPost } from '@/src/modules/posts/helpers';
 
 export const getPostQuery = procedureRequiresUser
   .input(
-    z.union([
-      z.object({
-        blogId: z.string(),
-        postId: z.string(),
-      }),
-      z.object({
-        blogId: z.string(),
-        postSlug: z.string(),
-      }),
-    ]),
+    z.object({
+      blogId: z.string(),
+      postId: z.string(),
+    }),
   )
   .query(async ({ ctx, input }) => {
     const { userId } = ctx;
+    const { blogId, postId } = input;
 
     const allowedBlogIds = await listBlogIdsForUserId(userId);
-    let blogId: string | undefined;
-
-    if ('hostname' in input) {
-      const found = await getBlogByDomainPath(input.hostname, input.path);
-      assert(found?.blogId, 404, 'Blog not found', {
-        code: 'BLOG_NOT_FOUND',
-        where: { hostname: input.hostname, path: input.path },
-      });
-
-      ({ blogId } = found);
-      assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
-        code: 'BLOG_NOT_FOUND',
-        where: { hostname: input.hostname, path: input.path },
-      });
-    } else {
-      ({ id: blogId } = input);
-      assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
-        code: 'BLOG_NOT_FOUND',
-        where: { id: blogId },
-      });
-    }
-
-    const { BlogById } = ctx.loaders;
-    const blog = await BlogById.load(blogId);
-    assert(blog?.blogId, 404, 'Blog not found', {
+    assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
       code: 'BLOG_NOT_FOUND',
       where: { id: blogId },
     });
 
-    const { BlogBrandingById, BlogPreferencesById } = ctx.loaders;
-    const [blogBranding, blogPreferences] = await Promise.all([
-      BlogBrandingById.load(blogId),
-      BlogPreferencesById.load(blogId),
-    ]);
+    const { PostById } = ctx.loaders;
+    const post = await PostById.load({ blogId, postId });
+    assert(post?.blogId, 404, 'Post not found', {
+      code: 'POST_NOT_FOUND',
+      where: { blogId, postId },
+    });
 
     return {
-      data: formatBlog({
-        blog,
-        branding: blogBranding,
-        preferences: blogPreferences,
+      data: formatPost({
+        post,
       }),
     };
   });

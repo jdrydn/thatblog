@@ -4,6 +4,8 @@ import { dcdb } from '@/src/services';
 import { DYNAMODB_TABLENAME } from '@/src/config';
 
 import {
+  Blog,
+  type BlogItem,
   BlogBranding,
   type BlogBrandingItem,
   BlogDomain,
@@ -12,10 +14,13 @@ import {
   type BlogPreferencesItem,
 } from './blogs/models';
 import { MapBlogUser, type MapBlogUserItem } from './map-blog-user/models';
+import { Post, type PostItem } from './posts/models';
 import { System, type SystemItem } from './system/models';
-import { UserProfile, UserSession, type UserProfileItem, type UserSessionItem } from './users/models';
+import { User, UserSession, type UserItem, type UserSessionItem } from './users/models';
 
 export {
+  Blog,
+  type BlogItem,
   BlogBranding,
   type BlogBrandingItem,
   BlogDomain,
@@ -24,10 +29,12 @@ export {
   type BlogPreferencesItem,
   MapBlogUser,
   type MapBlogUserItem,
+  Post,
+  type PostItem,
   System,
   type SystemItem,
-  UserProfile,
-  type UserProfileItem,
+  User,
+  type UserItem,
   UserSession,
   type UserSessionItem,
 };
@@ -38,8 +45,9 @@ export const Application = new Service(
     BlogDomain,
     BlogPreferences,
     MapBlogUser,
+    Post,
     System,
-    UserProfile,
+    User,
     UserSession,
   },
   {

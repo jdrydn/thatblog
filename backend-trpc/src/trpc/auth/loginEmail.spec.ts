@@ -9,9 +9,7 @@ import { GeoffTestingtonUserProfile } from '@/test/fixtures';
 import { loginEmailMutation } from './loginEmail';
 
 useModels(async ({ Application }) => {
-  await Application.transaction
-    .write(({ UserProfile }) => [UserProfile.upsert(GeoffTestingtonUserProfile).commit()])
-    .go();
+  await Application.transaction.write(({ User }) => [User.upsert(GeoffTestingtonUserProfile).commit()]).go();
 });
 
 test('it should login with email/password', async () => {

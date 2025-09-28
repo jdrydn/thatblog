@@ -126,7 +126,7 @@ importers:
         specifier: ^3.4.1
         version: 3.4.5(@aws-sdk/client-dynamodb@3.896.0)
       ulid:
-        specifier: ^3.0.0
+        specifier: ^3.0.1
         version: 3.0.1
       validator:
         specifier: ^13.15.15
