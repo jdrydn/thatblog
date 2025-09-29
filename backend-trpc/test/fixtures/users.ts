@@ -1,15 +1,15 @@
 import { ulid } from 'ulid';
 
 import { hashPasswordSync } from '@/src/modules/authentication/passwords';
-import type { UserProfileItem, UserSessionItem } from '@/src/modules/users/models';
+import type { UserItem, UserSessionItem } from '@/src/modules/users/models';
 
-export function createUserProfile(create?: Partial<UserProfileItem>): UserProfileItem {
+export function createUserProfile(create?: Partial<UserItem>): UserItem {
   return {
     userId: ulid(),
     name: 'Geoff Testington',
     email: 'geoff.testington@example.com',
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     ...create,
 
     // Overwrite the password field if set
@@ -21,8 +21,8 @@ export function createUserSession(create?: Partial<UserSessionItem>): UserSessio
   return {
     userId: ulid(),
     sessionId: ulid(),
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     ...create,
   };
 }

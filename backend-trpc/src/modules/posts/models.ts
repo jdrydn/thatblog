@@ -72,13 +72,13 @@ export const Post = new Entity(
     },
     indexes: {
       /**
-       * pk: 'BLOGS:${blogId}#POSTS',
+       * pk: 'BLOGS#${blogId}#POSTS',
        * sk: '${postId}',
        */
       byId: {
         pk: {
           field: 'pk',
-          template: 'BLOGS:${blogId}#POSTS',
+          template: 'BLOGS#${blogId}#POSTS',
           composite: ['blogId'],
           casing: 'none',
         },
@@ -93,7 +93,7 @@ export const Post = new Entity(
         index: 'ls1',
         pk: {
           field: 'pk',
-          template: 'BLOGS:${blogId}#POSTS',
+          template: 'BLOGS#${blogId}#POSTS',
           composite: ['blogId'],
           casing: 'none',
         },
@@ -108,27 +108,27 @@ export const Post = new Entity(
         index: 'ls2',
         pk: {
           field: 'pk',
-          template: 'BLOGS:${blogId}#POSTS',
+          template: 'BLOGS#${blogId}#POSTS',
           composite: ['blogId'],
           casing: 'none',
         },
         sk: {
-          field: 'ls1sk',
+          field: 'ls2sk',
           template: 'UPDATED#${updatedAt}',
           composite: ['updatedAt'],
           casing: 'none',
         },
       },
       byPublishedAt: {
-        index: 'ls2',
+        index: 'ls3',
         pk: {
           field: 'pk',
-          template: 'BLOGS:${blogId}#POSTS',
+          template: 'BLOGS#${blogId}#POSTS',
           composite: ['blogId'],
           casing: 'none',
         },
         sk: {
-          field: 'ls1sk',
+          field: 'ls3sk',
           template: 'PUBLISHED#${publishedAt}',
           composite: ['publishedAt'],
           casing: 'none',
@@ -138,14 +138,14 @@ export const Post = new Entity(
         index: 'ls5',
         pk: {
           field: 'pk',
-          template: 'BLOGS:${blogId}#POSTS',
+          template: 'BLOGS#${blogId}#POSTS',
           composite: ['blogId'],
           casing: 'none',
         },
         sk: {
-          field: 'sk',
-          template: '${postId}',
-          composite: ['postId'],
+          field: 'ls5sk',
+          template: 'SLUG#${slug}',
+          composite: ['slug'],
           casing: 'none',
         },
       },
