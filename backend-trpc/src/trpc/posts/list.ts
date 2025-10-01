@@ -1,15 +1,21 @@
 import assert from 'http-assert-plus';
 import { z } from 'zod';
 
-import { procedureRequiresUser } from '@/src/trpc/core';
+import { procedure } from '@/src/trpc/core';
 import { listBlogIdsForUserId } from '@/src/modules/map-blog-user/helpers';
-import { Post, type PostItem } from '@/src/modules/posts/models';
+import { Post } from '@/src/modules/posts/models';
 import { formatPost } from '@/src/modules/posts/helpers';
 
-export const listPostsQuery = procedureRequiresUser
+export const listPostsQuery = procedure
   .input(
     z.object({
       blogId: z.string().ulid(),
+      where: z
+        .object({
+          published: z.boolean().default(true),
+          archived: z.boolean().default(false),
+        })
+        .default({}),
       cursor: z.string().optional(),
       sort: z
         .enum(['CREATED_ASC', 'CREATED_DESC', 'UPDATED_ASC', 'UPDATED_DESC', 'PUBLISHED_ASC', 'PUBLISHED_DESC'])
@@ -18,57 +24,99 @@ export const listPostsQuery = procedureRequiresUser
   )
   .query(async ({ ctx, input }) => {
     const { userId } = ctx;
-    const { blogId, cursor, sort } = input;
+    const { blogId, where, cursor, sort } = input;
 
-    const allowedBlogIds = await listBlogIdsForUserId(userId);
-    assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
-      code: 'BLOG_NOT_FOUND',
-      where: { id: blogId },
-    });
+    if (userId) {
+      const allowedBlogIds = await listBlogIdsForUserId(ctx, userId);
+      assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
+        code: 'BLOG_NOT_FOUND',
+        where: { id: blogId },
+      });
+    } else {
+      // Unauthenticated users cannot query unpublished posts
+      assert(where.published === true, 401, 'Cannot filter unpublished when unauthenticated', {
+        title: 'Please authenticate to filter unpublished posts',
+        description: 'Check your filters & try again, or authenticate',
+      });
+      // Unauthenticated users cannot query archived posts
+      assert(where.archived === false, 401, 'Cannot filter archived when unauthenticated', {
+        title: 'Please authenticate to filter archived posts',
+        description: 'Check your filters & try again, or authenticate',
+      });
+    }
 
-    let results: {
-      data: Array<PostItem>;
-      cursor: string | null | undefined;
-    };
+    if (
+      // If sorting where published, but filtering where not published, then return no results
+      (sort.startsWith('PUBLISHED_') && where.published === false) ||
+      // If sorting where published, but filtering where archived, then return no results
+      (sort.startsWith('PUBLISHED_') && where.archived === true)
+    ) {
+      return {
+        data: [],
+        meta: {
+          cursor: null,
+          count: 0,
+        },
+      };
+    }
+
+    let query: ReturnType<ReturnType<typeof Post.query.byCreatedAt>['where']>;
+    let order: 'asc' | 'desc';
 
     switch (sort) {
       case 'CREATED_ASC': {
-        results = await Post.query.byCreatedAt({ blogId }).go({ hydrate: true, order: 'asc', cursor });
+        query = Post.query.byCreatedAt({ blogId });
+        order = 'asc';
         break;
       }
       case 'CREATED_DESC': {
-        results = await Post.query.byCreatedAt({ blogId }).go({ hydrate: true, order: 'desc', cursor });
+        query = Post.query.byCreatedAt({ blogId });
+        order = 'desc';
         break;
       }
 
       case 'UPDATED_ASC': {
-        results = await Post.query.byUpdatedAt({ blogId }).go({ hydrate: true, order: 'asc', cursor });
+        query = Post.query.byUpdatedAt({ blogId });
+        order = 'asc';
         break;
       }
       case 'UPDATED_DESC': {
-        results = await Post.query.byUpdatedAt({ blogId }).go({ hydrate: true, order: 'desc', cursor });
+        query = Post.query.byUpdatedAt({ blogId });
+        order = 'desc';
         break;
       }
 
       case 'PUBLISHED_ASC': {
-        results = await Post.query.byPublishedAt({ blogId }).go({ hydrate: true, order: 'asc', cursor });
+        query = Post.query.byPublishedAt({ blogId });
+        order = 'asc';
         break;
       }
       case 'PUBLISHED_DESC': {
-        results = await Post.query.byPublishedAt({ blogId }).go({ hydrate: true, order: 'desc', cursor });
+        query = Post.query.byPublishedAt({ blogId });
+        order = 'desc';
         break;
       }
     }
 
+    query = query.where((item, { notExists }) => notExists(item.archivedAt));
+
+    if (sort.startsWith('PUBLISHED_') === false && where.published === true) {
+      // If not sorting by published, but we want to ensure we only get published content
+      query = query.where((item, { exists }) => exists(item.publishedAt));
+    }
+
+    query = query.where((item, { exists, notExists }) =>
+      // Filter in/out archived items
+      where.archived ? exists(item.archivedAt) : notExists(item.archivedAt),
+    );
+
+    const results = await query.go({ hydrate: true, cursor, order });
+
     return {
-      data: results.data.map(({ blogId, siteUrl, createdAt, updatedAt }) => ({
-        id: blogId,
-        siteUrl,
-        createdAt,
-        updatedAt,
-      })),
+      data: results.data.map((post) => formatPost(post)),
       meta: {
-        count: blogIds.length,
+        cursor: results.cursor,
+        count: results.data.length,
       },
     };
   });

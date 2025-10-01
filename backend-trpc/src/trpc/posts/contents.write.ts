@@ -23,7 +23,7 @@ export const createPostContentsMutation = procedureRequiresUser
     const { userId } = ctx;
     const { blogId, postId, create } = input;
 
-    const allowedBlogIds = await listBlogIdsForUserId(userId);
+    const allowedBlogIds = await listBlogIdsForUserId(ctx, userId);
     assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
       code: 'BLOG_NOT_FOUND',
       where: { id: blogId },
@@ -59,7 +59,7 @@ export const updatePostContentsMutation = procedureRequiresUser
     const { userId } = ctx;
     const { blogId, postId, contentId, update } = input;
 
-    const allowedBlogIds = await listBlogIdsForUserId(userId);
+    const allowedBlogIds = await listBlogIdsForUserId(ctx, userId);
     assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
       code: 'BLOG_NOT_FOUND',
       where: { id: blogId },
@@ -91,7 +91,7 @@ export const deletePostContentsMutation = procedureRequiresUser
     const { userId } = ctx;
     const { blogId, postId, contentId } = input;
 
-    const allowedBlogIds = await listBlogIdsForUserId(userId);
+    const allowedBlogIds = await listBlogIdsForUserId(ctx, userId);
     assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
       code: 'BLOG_NOT_FOUND',
       where: { id: blogId },

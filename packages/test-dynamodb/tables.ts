@@ -1,4 +1,28 @@
-import { type DynamoDBClient, CreateTableCommand, DeleteTableCommand } from '@aws-sdk/client-dynamodb';
+import {
+  type DynamoDBClient,
+  CreateTableCommand,
+  ListTablesCommand,
+  DeleteTableCommand,
+} from '@aws-sdk/client-dynamodb';
+
+export async function checkTableExists(dydb: DynamoDBClient, tableName: string): Promise<boolean> {
+  let nextPage: string | undefined;
+
+  do {
+    const res = await dydb.send(new ListTablesCommand({ Limit: 100 }));
+    nextPage = res.LastEvaluatedTableName;
+
+    if (Array.isArray(res.TableNames)) {
+      for (const table of res.TableNames) {
+        if (table === tableName) {
+          return true;
+        }
+      }
+    }
+  } while (nextPage !== undefined);
+
+  return false;
+}
 
 export async function createTable(dydb: DynamoDBClient, tableName: string) {
   await dydb.send(
@@ -85,4 +109,16 @@ export async function deleteTable(dydb: DynamoDBClient, tableName: string) {
       TableName: tableName,
     }),
   );
+}
+
+export async function recycleTable(dydb: DynamoDBClient, tableName: string) {
+  const endpoint = process.env.DYNAMODB_ENDPOINT ?? 'AWS';
+
+  if (await checkTableExists(dydb, tableName)) {
+    await deleteTable(dydb, tableName);
+    console.log('[DynamoDB] Deleted table: %s (%s)', tableName, endpoint);
+  }
+
+  await createTable(dydb, tableName);
+  console.log('[DynamoDB] Recreated table: %s (%s) (%s)\n', tableName, endpoint);
 }

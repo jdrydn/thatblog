@@ -19,7 +19,7 @@ export const getContentsQuery = procedureRequiresUser
     const { userId } = ctx;
     const { blogId, postId, contentId } = input;
 
-    const allowedBlogIds = await listBlogIdsForUserId(userId);
+    const allowedBlogIds = await listBlogIdsForUserId(ctx, userId);
     assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
       code: 'BLOG_NOT_FOUND',
       where: { id: blogId },
@@ -60,7 +60,7 @@ export const listPostContentsQuery = procedureRequiresUser
     const { userId } = ctx;
     const { blogId, postId, excerpts } = input;
 
-    const allowedBlogIds = await listBlogIdsForUserId(userId);
+    const allowedBlogIds = await listBlogIdsForUserId(ctx, userId);
     assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
       code: 'BLOG_NOT_FOUND',
       where: { id: blogId },
@@ -111,7 +111,7 @@ export const listManyPostsContentsQuery = procedureRequiresUser
     const { userId } = ctx;
     const { blogId, postIds, excerpts } = input;
 
-    const allowedBlogIds = await listBlogIdsForUserId(userId);
+    const allowedBlogIds = await listBlogIdsForUserId(ctx, userId);
     assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
       code: 'BLOG_NOT_FOUND',
       where: { id: blogId },

@@ -16,7 +16,7 @@ export const getPostQuery = procedureRequiresUser
     const { userId } = ctx;
     const { blogId, postId } = input;
 
-    const allowedBlogIds = await listBlogIdsForUserId(userId);
+    const allowedBlogIds = await listBlogIdsForUserId(ctx, userId);
     assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
       code: 'BLOG_NOT_FOUND',
       where: { id: blogId },
@@ -30,8 +30,6 @@ export const getPostQuery = procedureRequiresUser
     });
 
     return {
-      data: formatPost({
-        post,
-      }),
+      data: formatPost(post),
     };
   });

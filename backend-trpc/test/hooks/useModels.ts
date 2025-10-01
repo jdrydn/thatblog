@@ -1,4 +1,8 @@
 import { beforeAll, afterAll } from 'vitest';
+import { createTable, checkTableExists } from '@thatblog/test-dynamodb/tables';
+
+import { DYNAMODB_TABLENAME } from '@/src/config';
+import { dydb } from '@/src/services';
 
 import type * as allModels from '@/src/modules/models';
 
@@ -12,9 +16,15 @@ export function useModels(setup: Setup): void {
   let teardown: Teardown | undefined = undefined;
 
   beforeAll(async () => {
+    if ((await checkTableExists(dydb, DYNAMODB_TABLENAME)) === false) {
+      await createTable(dydb, DYNAMODB_TABLENAME);
+      console.log('Created table: %s', DYNAMODB_TABLENAME);
+    }
+
     const models = await import('@/src/modules/models');
     teardown = (await setup(models)) ?? undefined;
   });
+
   afterAll(async () => {
     await teardown?.();
   });

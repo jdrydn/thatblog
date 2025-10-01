@@ -21,7 +21,7 @@ export const loginEmailMutation = procedure
 
     const errUserNotFound = {
       title: 'User not found',
-      description: 'Email or password does not match - please review',
+      description: 'User not found, or password does not match - please try again',
       statusCode: 404,
       meta: { email },
     };
