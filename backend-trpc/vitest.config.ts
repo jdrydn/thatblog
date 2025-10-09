@@ -21,7 +21,7 @@ export default defineConfig({
   test: {
     globals: true,
     globalSetup: path.join(__dirname, './vitest.setup.ts'),
-    setupFiles: path.join(__dirname, './test/setup-vitest.ts'),
+    setupFiles: path.join(__dirname, './test/setup-unit.ts'),
     // We don't want to run integration-tests from here
     include: ['src/**/*.spec.ts'],
     exclude: ['integration-tests/**'],

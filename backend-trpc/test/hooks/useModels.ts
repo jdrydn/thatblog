@@ -18,7 +18,7 @@ export function useModels(setup: Setup): void {
   beforeAll(async () => {
     if ((await checkTableExists(dydb, DYNAMODB_TABLENAME)) === false) {
       await createTable(dydb, DYNAMODB_TABLENAME);
-      console.log('Created table: %s', DYNAMODB_TABLENAME);
+      // console.log('Created table: %s', DYNAMODB_TABLENAME);
     }
 
     const models = await import('@/src/modules/models');

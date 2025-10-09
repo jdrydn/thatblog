@@ -9,9 +9,11 @@ export const getQuery = procedure.query(async ({ ctx }) => {
     description: 'Please sign-in, or check your request & try again',
   });
 
-  const { UserProfileById, UserSessionById } = ctx.loaders;
+  const { UserById, UserSessionById } = ctx.loaders;
   const [user, session] = await Promise.all([
-    UserProfileById.load(userId),
+    // Fetch the user by ID
+    UserById.load(userId),
+    // Fetch the user session by ID
     UserSessionById.load({ userId, sessionId }),
   ]);
 

@@ -10,7 +10,7 @@ export function createContext(create?: Partial<Context>): Context {
     loaders: createLoaders(models),
     log: create?.log ?? logger.child({}),
     ipAddress: '127.0.0.1',
-    userAgent: '@thatblog/backend-api test:unit',
+    userAgent: '@thatblog/backend-trpc test:unit',
     ...create,
   };
 }
