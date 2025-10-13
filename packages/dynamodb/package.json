@@ -1,6 +1,6 @@
 {
   "name": "@thatblog/dynamodb",
-  "version": "latest",
+  "version": "0.0.0",
   "private": true,
   "scripts": {},
   "dependencies": {

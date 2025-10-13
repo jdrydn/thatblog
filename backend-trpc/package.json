@@ -12,6 +12,7 @@
     "@aws-sdk/client-dynamodb": "^3.767.0",
     "@aws-sdk/lib-dynamodb": "^3.767.0",
     "@aws-sdk/util-dynamodb": "^3.767.0",
+    "@thatblog/formats": "workspace:*",
     "@trpc/server": "^10.45.2",
     "bcryptjs": "^3.0.2",
     "dataloader": "^2.2.3",

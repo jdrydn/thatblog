@@ -22,6 +22,7 @@ export async function setup() {
     container = new TestDynamoDBContainer();
     await container.start(process.env.THATBLOG_DYNAMODB_ENDPOINT);
     console.log('[DynamoDB][Local] Ready! (%s)', ms(Date.now() - startedAt));
+    process.stdout.write('\n');
   }
 }
 

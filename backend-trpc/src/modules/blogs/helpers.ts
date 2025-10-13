@@ -1,3 +1,5 @@
+import { DATE_FORMATS, TIME_FORMATS } from '@thatblog/formats';
+
 import { BlogDomain, type BlogItem, type BlogBrandingItem, type BlogPreferencesItem } from './models';
 
 export async function getDefaultBlogId(): Promise<{ blogId: string; domain: string } | undefined> {
@@ -35,8 +37,8 @@ export function formatBlog({
     preferences: preferences
       ? {
           timezone: preferences.timezone,
-          dateFormat: preferences.dateFormat,
-          timeFormat: preferences.timeFormat,
+          dateFormat: preferences.dateFormat ? DATE_FORMATS[preferences.dateFormat] : DATE_FORMATS[1],
+          timeFormat: preferences.timeFormat ? TIME_FORMATS[preferences.timeFormat] : TIME_FORMATS[1],
         }
       : undefined,
     createdAt: blog.createdAt,

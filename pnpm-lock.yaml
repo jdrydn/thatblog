@@ -60,6 +60,9 @@ importers:
       '@types/node':
         specifier: ^20.17.24
         version: 20.19.17
+      '@vitest/coverage-v8':
+        specifier: ^3.2.4
+        version: 3.2.4(vitest@3.2.4(@types/node@20.19.17)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
@@ -96,6 +99,12 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.9.2
+      vite:
+        specifier: ^7.1.4
+        version: 7.1.7(@types/node@20.19.17)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/node@20.19.17)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)
       yaml:
         specifier: ^2.7.0
         version: 2.8.1
@@ -113,6 +122,9 @@ importers:
       '@aws-sdk/util-dynamodb':
         specifier: ^3.767.0
         version: 3.896.0(@aws-sdk/client-dynamodb@3.896.0)
+      '@thatblog/formats':
+        specifier: workspace:*
+        version: link:../packages/formats
       '@trpc/server':
         specifier: ^10.45.2
         version: 10.45.2
@@ -323,6 +335,12 @@ importers:
       '@aws-sdk/util-dynamodb':
         specifier: ^3.767.0
         version: 3.896.0(@aws-sdk/client-dynamodb@3.896.0)
+
+  packages/formats:
+    dependencies:
+      date-fns:
+        specifier: ^4.1.0
+        version: 4.1.0
 
   packages/hyde:
     dependencies:

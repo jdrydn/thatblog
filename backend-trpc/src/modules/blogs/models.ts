@@ -1,5 +1,6 @@
 import isISO8601 from 'validator/es/lib/isISO8601';
 import { Entity, type EntityItem } from 'electrodb';
+import { DATE_FORMATS, TIME_FORMATS } from '@thatblog/formats';
 
 import { DYNAMODB_TABLENAME } from '@/src/config';
 import { dcdb } from '@/src/services';
@@ -82,10 +83,6 @@ export const BlogBranding = new Entity(
       },
       description: {
         type: 'string',
-      },
-      siteUrl: {
-        type: 'string',
-        required: false,
       },
       updatedAt: {
         type: 'string',
@@ -205,12 +202,12 @@ export const BlogPreferences = new Entity(
         default: 'Etc/UTC',
       },
       dateFormat: {
-        type: 'string',
-        required: false,
+        type: Object.keys(DATE_FORMATS),
+        default: '1',
       },
       timeFormat: {
-        type: 'string',
-        required: false,
+        type: Object.keys(TIME_FORMATS),
+        default: '1',
       },
       updatedAt: {
         type: 'string',

@@ -41,6 +41,7 @@ export {
 
 export const Application = new Service(
   {
+    Blog,
     BlogBranding,
     BlogDomain,
     BlogPreferences,
