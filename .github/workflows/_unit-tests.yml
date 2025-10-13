@@ -9,7 +9,7 @@ permissions:
 
 jobs:
 
-  backend-api:
+  backend-trpc:
     runs-on: ubuntu-latest
     services:
       dynamodb:
@@ -24,8 +24,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/init-node
-      - run: pnpm run test:unit
-        working-directory: ./backend-api
+      - run: pnpm run test:unit:ci
+        working-directory: ./backend-trpc
         env:
           THATBLOG_DYNAMODB_ENDPOINT: http://localhost:${{ job.services.dynamodb.ports[8000] }}
           SKIP_TESTCONTAINERS_DYNAMODB: 'yes'
+
+  packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/init-node
+      - run: pnpm run --filter './packages/*' --if-present test:unit:ci
