@@ -30,11 +30,11 @@ test('it should return the current user & session', async () => {
       id: GeoffTestingtonUserProfile.userId,
       name: GeoffTestingtonUserProfile.name,
       email: GeoffTestingtonUserProfile.email,
-      createdAt: matchers.dateWithin(new Date(), ms('1s')),
+      createdAt: matchers.stringDateISO8601(),
     },
     session: {
       id: expect.anything(),
-      createdAt: matchers.dateWithin(new Date(), ms('1s')),
+      createdAt: matchers.stringDateISO8601(),
     },
   });
 });
