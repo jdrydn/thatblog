@@ -24,7 +24,7 @@ test('it should login with email/password', async () => {
       id: GeoffTestingtonUserProfile.userId,
       name: GeoffTestingtonUserProfile.name,
       email: GeoffTestingtonUserProfile.email,
-      createdAt: matchers.stringDateISO8601(),
+      createdAt: matchers.dateEquals(new Date(GeoffTestingtonUserProfile.createdAt)),
     },
     session: {
       id: expect.anything(),

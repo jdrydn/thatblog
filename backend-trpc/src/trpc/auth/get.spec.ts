@@ -1,4 +1,3 @@
-import ms from 'ms';
 import matchers from 'expect-asymmetric';
 import { test, expect } from 'vitest';
 
@@ -30,11 +29,11 @@ test('it should return the current user & session', async () => {
       id: GeoffTestingtonUserProfile.userId,
       name: GeoffTestingtonUserProfile.name,
       email: GeoffTestingtonUserProfile.email,
-      createdAt: matchers.stringDateISO8601(),
+      createdAt: matchers.dateEquals(new Date(GeoffTestingtonUserProfile.createdAt)),
     },
     session: {
       id: expect.anything(),
-      createdAt: matchers.stringDateISO8601(),
+      createdAt: matchers.dateEquals(new Date(GeoffTestingtonUserSession.createdAt)),
     },
   });
 });
