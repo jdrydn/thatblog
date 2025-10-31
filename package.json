@@ -8,8 +8,8 @@
     "build": "pnpm run --recursive --if-present build",
     "deploy": "./scripts/deploy.sh",
     "lint": "pnpm run --recursive --if-present lint",
-    "test:unit": "pnpm run --recursive --if-present test:unit",
-    "test:unit:ci": "pnpm run --recursive --if-present test:unit:ci"
+    "test:unit": "pnpm run --recursive --if-present --no-bail --workspace-concurrency 1 test:unit",
+    "test:unit:ci": "pnpm run --recursive --if-present --no-bail --workspace-concurrency 1 test:unit:ci"
   },
   "repository": "https://github.com/jdrydn/thatblog",
   "bugs": "https://github.com/jdrydn/thatblog/issues",
