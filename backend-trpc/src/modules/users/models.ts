@@ -2,7 +2,7 @@ import isISO8601 from 'validator/es/lib/isISO8601';
 import { Entity, type EntityItem } from 'electrodb';
 import { ulid } from 'ulid';
 
-import { DYNAMODB_TABLENAME } from '@/src/config';
+import { DYNAMODB_TABLE } from '@/src/config';
 import { dcdb } from '@/src/services';
 
 export const User = new Entity(
@@ -87,7 +87,7 @@ export const User = new Entity(
   },
   {
     client: dcdb,
-    table: DYNAMODB_TABLENAME,
+    table: DYNAMODB_TABLE,
   },
 );
 
@@ -152,7 +152,7 @@ export const UserSession = new Entity(
   },
   {
     client: dcdb,
-    table: DYNAMODB_TABLENAME,
+    table: DYNAMODB_TABLE,
   },
 );
 

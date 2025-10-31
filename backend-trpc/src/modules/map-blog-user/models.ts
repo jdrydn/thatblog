@@ -1,7 +1,7 @@
 import isISO8601 from 'validator/es/lib/isISO8601';
 import { Entity, type EntityItem } from 'electrodb';
 
-import { DYNAMODB_TABLENAME } from '@/src/config';
+import { DYNAMODB_TABLE } from '@/src/config';
 import { dcdb } from '@/src/services';
 
 export const MapBlogUser = new Entity(
@@ -83,7 +83,7 @@ export const MapBlogUser = new Entity(
   },
   {
     client: dcdb,
-    table: DYNAMODB_TABLENAME,
+    table: DYNAMODB_TABLE,
   },
 );
 

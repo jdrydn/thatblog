@@ -1,7 +1,7 @@
 import { Entity, type EntityItem } from 'electrodb';
 import { v7 as uuid } from 'uuid';
 
-import { DYNAMODB_TABLENAME } from '@/src/config';
+import { DYNAMODB_TABLE } from '@/src/config';
 import { dcdb } from '@/src/services';
 
 export const System = new Entity(
@@ -56,7 +56,7 @@ export const System = new Entity(
   },
   {
     client: dcdb,
-    table: DYNAMODB_TABLENAME,
+    table: DYNAMODB_TABLE,
   },
 );
 

@@ -12,7 +12,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { z } from 'zod';
 
-import { DYNAMODB_TABLENAME } from '@/src/config';
+import { DYNAMODB_TABLE } from '@/src/config';
 import { dcdb } from '@/src/services';
 
 export const postContentSchema = z.discriminatedUnion('type', [
@@ -81,7 +81,7 @@ export async function getContentItem(
   contentId: string,
 ): Promise<PostContentItemWithId | undefined> {
   const params: GetCommandInput = {
-    TableName: DYNAMODB_TABLENAME,
+    TableName: DYNAMODB_TABLE,
     Key: {
       pk: createItemPK(blogId, postId),
       sk: contentId,
@@ -101,7 +101,7 @@ export async function getContentItems(
   items: Array<{ postId: string; contentIds: string[] }>,
 ): Promise<Record<string, Array<PostContentItemWithId>>> {
   let query: BatchGetCommandInput['RequestItems'] | undefined = {
-    [DYNAMODB_TABLENAME]: {
+    [DYNAMODB_TABLE]: {
       Keys: items.reduce((list, { postId, contentIds }) => {
         const pk = createItemPK(blogId, postId);
         for (const sk of contentIds) {
@@ -121,8 +121,8 @@ export async function getContentItems(
       }),
     );
 
-    if (Array.isArray(res?.Responses?.[DYNAMODB_TABLENAME])) {
-      for (const item of res.Responses[DYNAMODB_TABLENAME] as Array<Record<string, unknown>>) {
+    if (Array.isArray(res?.Responses?.[DYNAMODB_TABLE])) {
+      for (const item of res.Responses[DYNAMODB_TABLE] as Array<Record<string, unknown>>) {
         const parsed = formatReadItem(item);
         if (parsed) {
           if (!Array.isArray(results[parsed.postId])) {
@@ -134,7 +134,7 @@ export async function getContentItems(
       }
     }
 
-    if (res.UnprocessedKeys && res.UnprocessedKeys[DYNAMODB_TABLENAME]) {
+    if (res.UnprocessedKeys && res.UnprocessedKeys[DYNAMODB_TABLE]) {
       query = res.UnprocessedKeys;
     } else {
       query = undefined;
@@ -146,7 +146,7 @@ export async function getContentItems(
 
 export async function createContentItem(blogId: string, postId: string, contentId: string, create: PostContentItem) {
   const params: PutCommandInput = {
-    TableName: DYNAMODB_TABLENAME,
+    TableName: DYNAMODB_TABLE,
     Item: {
       pk: createItemPK(blogId, postId),
       sk: contentId,
@@ -183,7 +183,7 @@ export async function updateContentItem(
   );
 
   const params: UpdateCommandInput = {
-    TableName: DYNAMODB_TABLENAME,
+    TableName: DYNAMODB_TABLE,
     Key: {
       pk: createItemPK(blogId, postId),
       sk: contentId,
@@ -208,7 +208,7 @@ export async function updateContentItem(
 
 export async function deleteContentItem(blogId: string, postId: string, contentId: string) {
   const params: DeleteCommandInput = {
-    TableName: DYNAMODB_TABLENAME,
+    TableName: DYNAMODB_TABLE,
     Key: {
       pk: createItemPK(blogId, postId),
       sk: contentId,

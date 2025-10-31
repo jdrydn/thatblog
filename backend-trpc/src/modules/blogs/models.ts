@@ -2,7 +2,7 @@ import isISO8601 from 'validator/es/lib/isISO8601';
 import { Entity, type EntityItem } from 'electrodb';
 import { DATE_FORMATS, TIME_FORMATS } from '@thatblog/formats';
 
-import { DYNAMODB_TABLENAME } from '@/src/config';
+import { DYNAMODB_TABLE } from '@/src/config';
 import { dcdb } from '@/src/services';
 
 export const Blog = new Entity(
@@ -61,7 +61,7 @@ export const Blog = new Entity(
   },
   {
     client: dcdb,
-    table: DYNAMODB_TABLENAME,
+    table: DYNAMODB_TABLE,
   },
 );
 
@@ -116,7 +116,7 @@ export const BlogBranding = new Entity(
   },
   {
     client: dcdb,
-    table: DYNAMODB_TABLENAME,
+    table: DYNAMODB_TABLE,
   },
 );
 
@@ -181,7 +181,7 @@ export const BlogDomain = new Entity(
   },
   {
     client: dcdb,
-    table: DYNAMODB_TABLENAME,
+    table: DYNAMODB_TABLE,
   },
 );
 
@@ -241,7 +241,7 @@ export const BlogPreferences = new Entity(
   },
   {
     client: dcdb,
-    table: DYNAMODB_TABLENAME,
+    table: DYNAMODB_TABLE,
   },
 );
 
