@@ -7,7 +7,7 @@ import { Post } from '@/src/modules/posts/models';
 import { getContentItem, getContentItems } from '@/src/modules/posts-contents/models';
 import { sortPostContentItems } from '@/src/modules/posts-contents/helpers';
 
-export const getContentsQuery = procedureRequiresUser
+export const getPostContentsQuery = procedureRequiresUser
   .input(
     z.object({
       blogId: z.string().ulid(),
@@ -29,7 +29,14 @@ export const getContentsQuery = procedureRequiresUser
       attributes: ['postId', 'contents'],
     });
 
-    if (!postContentMap?.contents?.items || postContentMap.contents.items.length === 0) {
+    if (
+      // Post content map is missing/malformed
+      !postContentMap?.contents?.items ||
+      // Or post content map has no items
+      postContentMap.contents.items.length === 0 ||
+      // Or post content items do not contain this item
+      !postContentMap.contents.items.includes(contentId)
+    ) {
       return {
         data: {
           postId,

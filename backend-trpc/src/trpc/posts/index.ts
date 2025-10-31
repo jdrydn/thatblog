@@ -3,7 +3,7 @@ import { router } from '@/src/trpc/core';
 import { getPostQuery } from './get';
 // import { listPostsQuery } from './list';
 
-import { getContentsQuery, listPostContentsQuery, listManyPostsContentsQuery } from './contents.read';
+import { getPostContentsQuery, listPostContentsQuery, listManyPostsContentsQuery } from './contents.read';
 import { createPostContentsMutation, updatePostContentsMutation, deletePostContentsMutation } from './contents.write';
 
 export const postsRouter = router({
@@ -13,7 +13,7 @@ export const postsRouter = router({
   contents: router({
     list: listPostContentsQuery,
     listMany: listManyPostsContentsQuery,
-    get: getContentsQuery,
+    get: getPostContentsQuery,
     create: createPostContentsMutation,
     update: updatePostContentsMutation,
     delete: deletePostContentsMutation,

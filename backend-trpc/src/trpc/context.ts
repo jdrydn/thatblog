@@ -31,9 +31,10 @@ export async function createContext({
   });
 
   const loaders = createLoaders(models);
+  const system = await loaders.System.load();
 
   const authHeader = getHeader(event.headers, 'Authorization');
-  const authToken = authHeader ? verifyUserToken(await loaders.System.load(), parseAuthHeader(authHeader)) : undefined;
+  const authToken = authHeader && system ? verifyUserToken(system, parseAuthHeader(authHeader)) : undefined;
 
   const log = logger.child({
     // _X_AMZN_TRACE_ID is set on each Lambda invocation, so bundle it into each log on each log call
