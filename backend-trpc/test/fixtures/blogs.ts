@@ -60,19 +60,19 @@ export const LocalhostBlog = {
 
 export const SomeImportantBlog = {
   Item: createBlog({
-    blogId: '01K75BMCX3AB3GXCJTP05Z4QNB',
+    blogId: '01K9090T2RH60Y08T7Z97PEBXM',
     siteUrl: 'https://blog.someimportantcompany.com',
   }),
   Branding: createBlogBranding({
-    blogId: '01K75BMCX3AB3GXCJTP05Z4QNB',
+    blogId: '01K9090T2RH60Y08T7Z97PEBXM',
     title: 'Some Important Blog',
   }),
   Domain: createBlogDomain({
-    blogId: '01K75BMCX3AB3GXCJTP05Z4QNB',
+    blogId: '01K9090T2RH60Y08T7Z97PEBXM',
     domain: 'blog.someimportantcompany.com',
   }),
   Preferences: createBlogPreferences({
-    blogId: '01K75BMCX3AB3GXCJTP05Z4QNB',
+    blogId: '01K9090T2RH60Y08T7Z97PEBXM',
     timezone: 'Europe/London',
   }),
 };

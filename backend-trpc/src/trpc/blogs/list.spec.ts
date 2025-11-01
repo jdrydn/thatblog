@@ -39,6 +39,30 @@ test('query should return blogs', async () => {
       },
     ],
     meta: {
+      count: 2,
+    },
+  });
+});
+
+test('query should return blogs by ID', async () => {
+  const ctx = createContext({
+    userId: GeoffTestingtonUser.Session.userId,
+    sessionId: GeoffTestingtonUser.Session.sessionId,
+  });
+  const result = await runProcedure(ctx, listBlogsQuery, {
+    id: LocalhostBlog.Item.blogId,
+  });
+
+  expect(result).toEqual({
+    data: [
+      {
+        id: LocalhostBlog.Item.blogId,
+        siteUrl: LocalhostBlog.Item.siteUrl,
+        createdAt: LocalhostBlog.Item.createdAt,
+        updatedAt: LocalhostBlog.Item.updatedAt,
+      },
+    ],
+    meta: {
       count: 1,
     },
   });
@@ -69,7 +93,22 @@ test('query should return blogs by IDs', async () => {
       },
     ],
     meta: {
-      count: 1,
+      count: 2,
     },
+  });
+});
+
+test('query should return blogs where not found', async () => {
+  const ctx = createContext({
+    userId: GeoffTestingtonUser.Session.userId,
+    sessionId: GeoffTestingtonUser.Session.sessionId,
+  });
+  const result = await runProcedure(ctx, listBlogsQuery, {
+    id: 'BLOG-NOT-EXISTS',
+  });
+
+  expect(result).toEqual({
+    data: [],
+    meta: { count: 0 },
   });
 });
