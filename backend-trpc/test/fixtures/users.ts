@@ -3,7 +3,7 @@ import { ulid } from 'ulid';
 import { hashPasswordSync } from '@/src/modules/authentication/passwords';
 import type { UserItem, UserSessionItem } from '@/src/modules/users/models';
 
-export function createUserProfile(create?: Partial<UserItem>): UserItem {
+export function createUser(create?: Partial<UserItem>): UserItem {
   return {
     userId: ulid(),
     name: 'Geoff Testington',
@@ -27,14 +27,15 @@ export function createUserSession(create?: Partial<UserSessionItem>): UserSessio
   };
 }
 
-export const GeoffTestingtonUserProfile = createUserProfile({
-  userId: '01K4R0C93A9FSHD848Q4ZSBBM2',
-  name: 'Geoff Testington',
-  email: 'geoff.testington@example.com',
-  password: 'hello-world-1',
-});
-
-export const GeoffTestingtonUserSession = createUserSession({
-  userId: GeoffTestingtonUserProfile.userId,
-  sessionId: '01K4R0CW4KW0MC9E1N5Q9J2GWB',
-});
+export const GeoffTestingtonUser = {
+  Item: createUser({
+    userId: '01K4R0C93A9FSHD848Q4ZSBBM2',
+    name: 'Geoff Testington',
+    email: 'geoff.testington@example.com',
+    password: 'hello-world-1',
+  }),
+  Session: createUserSession({
+    userId: '01K4R0C93A9FSHD848Q4ZSBBM2',
+    sessionId: '01K4R0CW4KW0MC9E1N5Q9J2GWB',
+  }),
+};

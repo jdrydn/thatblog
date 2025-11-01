@@ -1,39 +1,31 @@
-import matchers from 'expect-asymmetric';
 import { test, expect } from 'vitest';
 
 import { runProcedure } from '@/test/trpc';
 import { createContext } from '@/test/context';
 import { useModels } from '@/test/hooks/useModels';
-import { GeoffTestingtonUserProfile, GeoffTestingtonUserSession } from '@/test/fixtures';
+import { createScenarios, GeoffTestingtonUser } from '@/test/fixtures';
 
 import { getQuery } from './get';
 
-useModels(async ({ Application }) => {
-  await Application.transaction
-    .write(({ User, UserSession }) => [
-      User.upsert(GeoffTestingtonUserProfile).commit(),
-      UserSession.upsert(GeoffTestingtonUserSession).commit(),
-    ])
-    .go();
-});
+useModels(({ Application }) => createScenarios(Application, ['GEOFF_TESTINGTON_USER']));
 
 test('it should return the current user & session', async () => {
   const ctx = createContext({
-    userId: GeoffTestingtonUserProfile.userId,
-    sessionId: GeoffTestingtonUserSession.sessionId,
+    userId: GeoffTestingtonUser.Item.userId,
+    sessionId: GeoffTestingtonUser.Session.sessionId,
   });
   const result = await runProcedure(ctx, getQuery);
 
   expect(result).toEqual({
     user: {
-      id: GeoffTestingtonUserProfile.userId,
-      name: GeoffTestingtonUserProfile.name,
-      email: GeoffTestingtonUserProfile.email,
-      createdAt: matchers.dateEquals(new Date(GeoffTestingtonUserProfile.createdAt)),
+      id: GeoffTestingtonUser.Item.userId,
+      name: GeoffTestingtonUser.Item.name,
+      email: GeoffTestingtonUser.Item.email,
+      createdAt: GeoffTestingtonUser.Item.createdAt,
     },
     session: {
-      id: expect.anything(),
-      createdAt: matchers.dateEquals(new Date(GeoffTestingtonUserSession.createdAt)),
+      id: GeoffTestingtonUser.Session.sessionId,
+      createdAt: GeoffTestingtonUser.Session.createdAt,
     },
   });
 });

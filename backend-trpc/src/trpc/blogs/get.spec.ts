@@ -1,24 +1,13 @@
-import ms from 'ms';
-import matchers from 'expect-asymmetric';
 import { test, expect } from 'vitest';
 
 import { runProcedure } from '@/test/trpc';
 import { createContext } from '@/test/context';
 import { useModels } from '@/test/hooks/useModels';
-import { SomeImportantBlog } from '@/test/fixtures';
+import { createScenarios, SomeImportantBlog } from '@/test/fixtures';
 
 import { getQuery } from './get';
 
-useModels(async ({ Application }) => {
-  await Application.transaction
-    .write(({ Blog, BlogBranding, BlogDomain, BlogPreferences }) => [
-      Blog.upsert(SomeImportantBlog.Item).commit(),
-      BlogBranding.upsert(SomeImportantBlog.Branding).commit(),
-      BlogDomain.upsert(SomeImportantBlog.Domain).commit(),
-      BlogPreferences.upsert(SomeImportantBlog.Preferences).commit(),
-    ])
-    .go();
-});
+useModels(({ Application }) => createScenarios(Application, ['SOME_IMPORTANT_BLOG']));
 
 test('query should return a blog by ID', async () => {
   const ctx = createContext();
@@ -29,7 +18,7 @@ test('query should return a blog by ID', async () => {
   expect(result).toEqual({
     data: {
       id: SomeImportantBlog.Item.blogId,
-      siteUrl: 'http://localhost:3000',
+      siteUrl: SomeImportantBlog.Item.siteUrl,
       branding: {
         title: 'Some Important Blog',
         description: undefined,
@@ -37,10 +26,10 @@ test('query should return a blog by ID', async () => {
       preferences: {
         dateFormat: 'do MMM, yyyy',
         timeFormat: 'h:mm aaa',
-        timezone: 'Etc/UTC',
+        timezone: 'Europe/London',
       },
-      createdAt: matchers.stringDateISO8601(),
-      updatedAt: matchers.stringDateISO8601(),
+      createdAt: SomeImportantBlog.Item.createdAt,
+      updatedAt: SomeImportantBlog.Item.updatedAt,
     },
   });
 });
@@ -54,7 +43,7 @@ test('query should return a blog by hostname', async () => {
   expect(result).toEqual({
     data: {
       id: SomeImportantBlog.Item.blogId,
-      siteUrl: 'http://localhost:3000',
+      siteUrl: SomeImportantBlog.Item.siteUrl,
       branding: {
         title: 'Some Important Blog',
         description: undefined,
@@ -62,10 +51,10 @@ test('query should return a blog by hostname', async () => {
       preferences: {
         dateFormat: 'do MMM, yyyy',
         timeFormat: 'h:mm aaa',
-        timezone: 'Etc/UTC',
+        timezone: 'Europe/London',
       },
-      createdAt: matchers.stringDateISO8601(),
-      updatedAt: matchers.stringDateISO8601(),
+      createdAt: SomeImportantBlog.Item.createdAt,
+      updatedAt: SomeImportantBlog.Item.updatedAt,
     },
   });
 });

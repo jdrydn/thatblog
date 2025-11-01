@@ -22,7 +22,6 @@ export const MapBlogUser = new Entity(
       },
       displayName: {
         type: 'string',
-        required: true,
       },
       createdAt: {
         type: 'string',

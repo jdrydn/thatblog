@@ -30,6 +30,7 @@ export const Post = new Entity(
       },
       publishedAt: {
         type: 'string',
+        default: undefined,
         validate: (value) => typeof value !== 'string' || isISO8601(value),
       },
       contents: {

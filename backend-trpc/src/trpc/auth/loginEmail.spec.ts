@@ -4,13 +4,11 @@ import { test, expect } from 'vitest';
 
 import { runProcedure, runProcedureErr } from '@/test/trpc';
 import { useModels } from '@/test/hooks/useModels';
-import { GeoffTestingtonUserProfile } from '@/test/fixtures';
+import { createScenarios, GeoffTestingtonUser } from '@/test/fixtures';
 
 import { loginEmailMutation } from './loginEmail';
 
-useModels(async ({ Application }) => {
-  await Application.transaction.write(({ User }) => [User.upsert(GeoffTestingtonUserProfile).commit()]).go();
-});
+useModels(({ Application }) => createScenarios(Application, ['GEOFF_TESTINGTON_USER']));
 
 test('it should login with email/password', async () => {
   const result = await runProcedure(undefined, loginEmailMutation, {
@@ -21,13 +19,13 @@ test('it should login with email/password', async () => {
   expect(result).toEqual({
     token: matchers.stringJWT(),
     user: {
-      id: GeoffTestingtonUserProfile.userId,
-      name: GeoffTestingtonUserProfile.name,
-      email: GeoffTestingtonUserProfile.email,
-      createdAt: matchers.dateEquals(new Date(GeoffTestingtonUserProfile.createdAt)),
+      id: GeoffTestingtonUser.Item.userId,
+      name: GeoffTestingtonUser.Item.name,
+      email: GeoffTestingtonUser.Item.email,
+      createdAt: GeoffTestingtonUser.Item.createdAt,
     },
     session: {
-      id: expect.anything(),
+      id: matchers.stringULID(),
       createdAt: matchers.dateWithin(new Date(), ms('1s')),
     },
   });

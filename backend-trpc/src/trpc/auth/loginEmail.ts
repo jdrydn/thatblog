@@ -52,11 +52,11 @@ export const loginEmailMutation = procedure
         id: userId,
         name: user.name,
         email: user.email,
-        createdAt: new Date(user.createdAt),
+        createdAt: user.createdAt,
       },
       session: {
         id: session.sessionId,
-        createdAt: new Date(session.createdAt),
+        createdAt: session.createdAt,
       },
       // blogs: blogsMap.map(({ blogId, displayName }) => ({ blogId, displayName })),
     };

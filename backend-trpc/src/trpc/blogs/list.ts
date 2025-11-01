@@ -21,7 +21,8 @@ export const listBlogsQuery = procedureRequiresUser
     const { userId } = ctx;
 
     // Start with the allowed blog IDs
-    let blogIds = await listBlogIdsForUserId(userId);
+    let blogIds = await listBlogIdsForUserId(ctx, userId);
+    console.log(blogIds);
 
     if (Array.isArray(input.id)) {
       const { id } = input;
