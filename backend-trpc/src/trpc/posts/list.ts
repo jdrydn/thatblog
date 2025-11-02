@@ -10,13 +10,14 @@ export const listPostsQuery = procedure
   .input(
     z.object({
       blogId: z.string().ulid(),
-      where: z
-        .object({
-          published: z.boolean().default(true),
-          archived: z.boolean().default(false),
-        })
-        .default({}),
-      cursor: z.string().optional(),
+      // where: z
+      //   .object({
+      //     published: z.boolean().default(true),
+      //     archived: z.boolean().default(false),
+      //   })
+      //   .default({}),
+      cursor: z.string().nullable().optional(),
+      limit: z.number().optional(),
       sort: z
         .enum(['CREATED_ASC', 'CREATED_DESC', 'UPDATED_ASC', 'UPDATED_DESC', 'PUBLISHED_ASC', 'PUBLISHED_DESC'])
         .default('PUBLISHED_DESC'),
@@ -24,7 +25,7 @@ export const listPostsQuery = procedure
   )
   .query(async ({ ctx, input }) => {
     const { userId } = ctx;
-    const { blogId, where, cursor, sort } = input;
+    const { blogId, /* where, */ cursor, limit, sort } = input;
 
     if (userId) {
       const allowedBlogIds = await listBlogIdsForUserId(ctx, userId);
@@ -34,31 +35,37 @@ export const listPostsQuery = procedure
       });
     } else {
       // Unauthenticated users cannot query unpublished posts
-      assert(where.published === true, 401, 'Cannot filter unpublished when unauthenticated', {
-        title: 'Please authenticate to filter unpublished posts',
-        description: 'Check your filters & try again, or authenticate',
-      });
-      // Unauthenticated users cannot query archived posts
-      assert(where.archived === false, 401, 'Cannot filter archived when unauthenticated', {
-        title: 'Please authenticate to filter archived posts',
-        description: 'Check your filters & try again, or authenticate',
+      // assert(where.published === true, 401, 'Cannot filter unpublished when unauthenticated', {
+      //   title: 'Please authenticate to filter unpublished posts',
+      //   description: 'Check your filters & try again, or authenticate',
+      // });
+      // // Unauthenticated users cannot query archived posts
+      // assert(where.archived === false, 401, 'Cannot filter archived when unauthenticated', {
+      //   title: 'Please authenticate to filter archived posts',
+      //   description: 'Check your filters & try again, or authenticate',
+      // });
+
+      assert(sort.startsWith('PUBLISHED_'), 400, 'Only sorting by published posts is allowed when unauthenticated', {
+        title: 'Please authenticate to sort other than published',
+        description: 'Check your sort parameter & try again, or authenticate',
+        meta: { sort },
       });
     }
 
-    if (
-      // If sorting where published, but filtering where not published, then return no results
-      (sort.startsWith('PUBLISHED_') && where.published === false) ||
-      // If sorting where published, but filtering where archived, then return no results
-      (sort.startsWith('PUBLISHED_') && where.archived === true)
-    ) {
-      return {
-        data: [],
-        meta: {
-          cursor: null,
-          count: 0,
-        },
-      };
-    }
+    // if (
+    //   // If sorting where published, but filtering where not published, then return no results
+    //   (sort.startsWith('PUBLISHED_') && where.published === false) ||
+    //   // If sorting where published, but filtering where archived, then return no results
+    //   (sort.startsWith('PUBLISHED_') && where.archived === true)
+    // ) {
+    //   return {
+    //     data: [],
+    //     meta: {
+    //       cursor: null,
+    //       count: 0,
+    //     },
+    //   };
+    // }
 
     let query: ReturnType<ReturnType<typeof Post.query.byCreatedAt>['where']>;
     let order: 'asc' | 'desc';
@@ -98,19 +105,22 @@ export const listPostsQuery = procedure
       }
     }
 
-    query = query.where((item, { notExists }) => notExists(item.archivedAt));
+    // NONE OF THESE ARE SUPPORTED
+    // BECAUSE THE ATTRIBUTES ARE NOT PROJECTED INTO THE LSI (BECAUSE ONE-TABLE)
 
-    if (sort.startsWith('PUBLISHED_') === false && where.published === true) {
-      // If not sorting by published, but we want to ensure we only get published content
-      query = query.where((item, { exists }) => exists(item.publishedAt));
-    }
+    // query = query.where((item, { notExists }) => notExists(item.archivedAt));
 
-    query = query.where((item, { exists, notExists }) =>
-      // Filter in/out archived items
-      where.archived ? exists(item.archivedAt) : notExists(item.archivedAt),
-    );
+    // if (sort.startsWith('PUBLISHED_') === false && where.published === true) {
+    //   // If not sorting by published, but we want to ensure we only get published content
+    //   query = query.where((item, { exists }) => exists(item.publishedAt));
+    // }
 
-    const results = await query.go({ hydrate: true, cursor, order });
+    // query = query.where((item, { exists, notExists }) =>
+    //   // Filter in/out archived items
+    //   where.archived ? exists(item.archivedAt) : notExists(item.archivedAt),
+    // );
+
+    const results = await query.go({ hydrate: true, limit, cursor, order });
 
     return {
       data: results.data.map((post) => formatPost(post)),

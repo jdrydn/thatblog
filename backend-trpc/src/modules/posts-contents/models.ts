@@ -3,6 +3,9 @@ import {
   type GetCommandInput,
   BatchGetCommand,
   type BatchGetCommandInput,
+  BatchWriteCommand,
+  type BatchWriteCommandInput,
+  type BatchWriteCommandOutput,
   PutCommand,
   type PutCommandInput,
   UpdateCommand,
@@ -14,23 +17,33 @@ import { z } from 'zod';
 
 import { DYNAMODB_TABLE } from '@/src/config';
 import { dcdb } from '@/src/services';
+import { calculateJsonSize } from '@/src/helpers/isomorphic';
 
-export const postContentSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('MARKDOWN'), value: z.string() }),
-  z.object({ type: z.literal('RICHTEXT'), value: z.string() }),
-  z.object({ type: z.literal('HTML'), value: z.string() }),
-  z.object({
-    type: z.literal('MEDIA'),
-    media: z
-      .array(
-        z.object({
-          href: z.string(),
-          alt: z.string().optional(),
-        }),
-      )
-      .min(1),
-  }),
-]);
+import type { PostContentTypes } from './types';
+
+export const postContentSchema = z
+  .discriminatedUnion('type', [
+    z.object({ type: z.literal('MARKDOWN'), value: z.string() }) satisfies z.ZodType<PostContentTypes.Markdown>,
+    z.object({ type: z.literal('RICHTEXT'), value: z.string() }) satisfies z.ZodType<PostContentTypes.RichText>,
+    z.object({ type: z.literal('HTML'), value: z.string() }) satisfies z.ZodType<PostContentTypes.HTML>,
+    z.object({
+      type: z.literal('MEDIA'),
+      media: z
+        .array(
+          z.object({
+            href: z.union([z.string().startsWith('/'), z.string().url()]),
+            alt: z.string().optional(),
+            caption: z.string().optional(),
+            source: z.string().optional(),
+          }),
+        )
+        .nonempty(),
+    }) satisfies z.ZodType<PostContentTypes.Media>,
+  ])
+  // Ensure the entire content object will sit in DynamoDB
+  .refine((value) => calculateJsonSize(value) <= 399 * 1024, {
+    message: 'Post content exceeds maximum size',
+  });
 
 export type PostContentItem = z.infer<typeof postContentSchema>;
 export type PostContentItemWithId = { contentId: string } & PostContentItem;
@@ -38,41 +51,36 @@ export type PostContentType = PostContentItem['type'];
 
 const createItemPK = (blogId: string, postId: string) => `BLOGS#${blogId}#POSTS#${postId}`;
 
+const formatReadItemSchema = z.object({
+  // BLOGS#${blogId}#POSTS#${postId}
+  pk: z.tuple([z.literal('BLOGS'), z.string().ulid(), z.literal('POSTS'), z.string().ulid()]),
+  // ${contentId}
+  contentId: z.string().ulid(),
+  // type, value, etc.
+  contents: postContentSchema,
+});
+
 function formatReadItem(
   item: Record<string, unknown>,
-): ({ blogId: string; postId: string; contentId: string } & PostContentItem) | undefined {
+): ({ blogId: string; postId: string } & PostContentItemWithId) | undefined {
   // If the item doesn't have our DynamoDB properties, then reject
   if (typeof item.pk !== 'string' || typeof item.sk !== 'string' || typeof item.type !== 'string') {
     return undefined;
   }
 
-  const { data } = z
-    .object({
-      pk: z.tuple([
-        // BLOGS#${blogId}#POSTS#${postId}
-        z.literal('BLOGS'),
-        z.string().ulid(),
-        z.literal('POSTS'),
-        z.string().ulid(),
-        // ${contentId}
-        z.string().ulid(),
-      ]),
-      contents: postContentSchema,
-    })
-    .safeParse({
-      keys: item.pk.split('#').concat([item.sk]),
-      contents: item,
-    });
-  if (data === undefined) {
+  const { data } = formatReadItemSchema.safeParse({
+    pk: item.pk.split('#'),
+    contentId: item.sk,
+    contents: item,
+  });
+
+  if (data && data.pk && data.contentId) {
+    const { pk, contentId, contents } = data;
+    const [, blogId, , postId] = pk;
+    return { blogId, postId, contentId, ...contents };
+  } else {
     return undefined;
   }
-
-  return {
-    blogId: data.pk[1],
-    postId: data.pk[3],
-    contentId: data.pk[4],
-    ...data.contents,
-  };
 }
 
 export async function getContentItem(
@@ -144,7 +152,12 @@ export async function getContentItems(
   return results;
 }
 
-export async function createContentItem(blogId: string, postId: string, contentId: string, create: PostContentItem) {
+export async function createContentItem(
+  blogId: string,
+  postId: string,
+  contentId: string,
+  create: PostContentItem,
+): Promise<void> {
   const params: PutCommandInput = {
     TableName: DYNAMODB_TABLE,
     Item: {
@@ -158,6 +171,41 @@ export async function createContentItem(blogId: string, postId: string, contentI
   };
 
   await dcdb.send(new PutCommand(params));
+}
+
+export async function createContentItems(
+  blogId: string,
+  postId: string,
+  creates: Array<{ contentId: string } & PostContentItem>,
+): Promise<void> {
+  let query: BatchWriteCommandInput['RequestItems'] | undefined = {
+    [DYNAMODB_TABLE]: creates.map(({ contentId, ...create }) => ({
+      PutRequest: {
+        Item: {
+          pk: createItemPK(blogId, postId),
+          sk: contentId,
+          ...create,
+        },
+        ConditionExpression: 'attribute_not_exists(#pk) AND attribute_not_exists(#sk)',
+        ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk' },
+        ReturnValues: 'NONE',
+      },
+    })),
+  };
+
+  do {
+    const res: BatchWriteCommandOutput = await dcdb.send(
+      new BatchWriteCommand({
+        RequestItems: query,
+      }),
+    );
+
+    if (res.UnprocessedItems && res.UnprocessedItems[DYNAMODB_TABLE]) {
+      query = res.UnprocessedItems;
+    } else {
+      query = undefined;
+    }
+  } while (query !== undefined);
 }
 
 export async function updateContentItem(

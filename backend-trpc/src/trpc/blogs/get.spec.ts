@@ -5,13 +5,13 @@ import { createContext } from '@/test/context';
 import { useModels } from '@/test/hooks/useModels';
 import { createScenarios, SomeImportantBlog } from '@/test/fixtures';
 
-import { getQuery } from './get';
+import { getBlogQuery } from './get';
 
 useModels(({ Application }) => createScenarios(Application, ['SOME_IMPORTANT_BLOG']));
 
 test('query should return a blog by ID', async () => {
   const ctx = createContext();
-  const result = await runProcedure(ctx, getQuery, {
+  const result = await runProcedure(ctx, getBlogQuery, {
     id: SomeImportantBlog.Item.blogId,
   });
 
@@ -36,7 +36,7 @@ test('query should return a blog by ID', async () => {
 
 test('query should return a blog by hostname', async () => {
   const ctx = createContext();
-  const result = await runProcedure(ctx, getQuery, {
+  const result = await runProcedure(ctx, getBlogQuery, {
     hostname: SomeImportantBlog.Domain.domain,
   });
 

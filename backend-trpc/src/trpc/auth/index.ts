@@ -5,5 +5,5 @@ import { loginEmailMutation } from './loginEmail';
 
 export const authRouter = router({
   get: getQuery,
-  email: loginEmailMutation,
+  loginEmail: loginEmailMutation,
 });

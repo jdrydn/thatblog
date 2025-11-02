@@ -5,9 +5,9 @@ export function formatPost(post: PostItem) {
     id: post.postId,
     blogId: post.blogId,
     title: post.title,
-    createdAt: new Date(post.createdAt),
-    updatedAt: new Date(post.updatedAt),
-    publishedAt: post.publishedAt ? new Date(post.publishedAt) : undefined,
-    archivedAt: post.archivedAt ? new Date(post.archivedAt) : undefined,
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
+    publishedAt: post.publishedAt,
+    archivedAt: post.archivedAt,
   };
 }

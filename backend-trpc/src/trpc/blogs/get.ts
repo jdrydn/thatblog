@@ -5,7 +5,7 @@ import { procedure } from '@/src/trpc/core';
 // import { listBlogIdsForUserId } from '@/src/modules/map-blog-user/helpers';
 import { getBlogByDomainPath, formatBlog } from '@/src/modules/blogs/helpers';
 
-export const getQuery = procedure
+export const getBlogQuery = procedure
   .input(
     z.union([
       z.object({
