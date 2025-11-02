@@ -32,14 +32,22 @@ export const SomeImportantPosts = {
     Item: createPost({
       blogId: '01K9090T2RH60Y08T7Z97PEBXM',
       postId: '01K8WJ31GXYCPGF8T55QETE1AM',
-      contents: { items: ['01K91EK54A4EG5MEF8D8D7JQ4Z'] },
+      contents: {
+        items: ['01K91EK54A4EG5MEF8D8D7JQ4Z', '01K91EK54A4EG5MEF8D8D7JQ5A'],
+        excerptUntil: '01K91EK54A4EG5MEF8D8D7JQ4Z',
+      },
       publishedAt: new Date('2025-10-31T07:21:00').toISOString(),
-      createdAt: new Date('2025-10-31T07:20:00').toISOString(),
+      createdAt: new Date('2025-10-31T07:21:00').toISOString(),
       updatedAt: new Date('2025-10-31T07:20:00').toISOString(),
     }),
     Contents: [
       {
         contentId: '01K91EK54A4EG5MEF8D8D7JQ4Z',
+        type: 'MARKDOWN',
+        value: 'An excerpt here',
+      },
+      {
+        contentId: '01K91EK54A4EG5MEF8D8D7JQ5A',
         type: 'MARKDOWN',
         value: 'Hello, world!',
       },
@@ -51,7 +59,7 @@ export const SomeImportantPosts = {
       postId: '01K8WJ3KA1NT4GKXDG9DRSB0TK',
       contents: { items: ['01K91EKAH1DFFXXJS4QP6Q661M'] },
       publishedAt: new Date('2025-10-31T07:22:00').toISOString(),
-      createdAt: new Date('2025-10-31T07:20:00').toISOString(),
+      createdAt: new Date('2025-10-31T07:22:00').toISOString(),
       updatedAt: new Date('2025-10-31T07:20:00').toISOString(),
     }),
     Contents: [
@@ -67,7 +75,7 @@ export const SomeImportantPosts = {
       blogId: '01K9090T2RH60Y08T7Z97PEBXM',
       postId: '01K8WJ3VH59F8G203FMPGWVXVJ',
       publishedAt: new Date('2025-10-31T07:23:00').toISOString(),
-      createdAt: new Date('2025-10-31T07:20:00').toISOString(),
+      createdAt: new Date('2025-10-31T07:23:00').toISOString(),
       updatedAt: new Date('2025-10-31T07:20:00').toISOString(),
     }),
   },
@@ -76,7 +84,7 @@ export const SomeImportantPosts = {
       blogId: '01K9090T2RH60Y08T7Z97PEBXM',
       postId: '01K8WJ44B8VYA25NHWGBMZFDY2',
       publishedAt: new Date('2025-10-31T07:24:00').toISOString(),
-      createdAt: new Date('2025-10-31T07:20:00').toISOString(),
+      createdAt: new Date('2025-10-31T07:24:00').toISOString(),
       updatedAt: new Date('2025-10-31T07:20:00').toISOString(),
     }),
   },
@@ -84,7 +92,7 @@ export const SomeImportantPosts = {
     Item: createPost({
       blogId: '01K9090T2RH60Y08T7Z97PEBXM',
       postId: '01K8WJ44B8VYA25NHWGBMZFEZ3',
-      createdAt: new Date('2025-10-31T07:20:00').toISOString(),
+      createdAt: new Date('2025-10-31T07:25:00').toISOString(),
       updatedAt: new Date('2025-10-31T07:20:00').toISOString(),
     }),
   },

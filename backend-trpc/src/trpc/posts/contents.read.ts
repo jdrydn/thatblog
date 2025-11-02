@@ -1,13 +1,12 @@
 import assert from 'http-assert-plus';
 import { z } from 'zod';
 
-import { procedureRequiresUser } from '@/src/trpc/core';
-import { listBlogIdsForUserId } from '@/src/modules/map-blog-user/helpers';
+import { procedure } from '@/src/trpc/core';
 import { Post } from '@/src/modules/posts/models';
 import { getContentItem, getContentItems } from '@/src/modules/posts-contents/models';
 import { sortPostContentItems } from '@/src/modules/posts-contents/helpers';
 
-export const getPostContentsQuery = procedureRequiresUser
+export const getPostContentsQuery = procedure
   .input(
     z.object({
       blogId: z.string().ulid(),
@@ -16,18 +15,14 @@ export const getPostContentsQuery = procedureRequiresUser
     }),
   )
   .query(async ({ ctx, input }) => {
-    const { userId } = ctx;
     const { blogId, postId, contentId } = input;
 
-    const allowedBlogIds = await listBlogIdsForUserId(ctx, userId);
-    assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
-      code: 'BLOG_NOT_FOUND',
-      where: { id: blogId },
+    const { data: postContentMap } = await Post.get({ blogId, postId }).go({
+      attributes: ['postId', 'contents', 'publishedAt'],
     });
 
-    const { data: postContentMap } = await Post.get({ blogId, postId }).go({
-      attributes: ['postId', 'contents'],
-    });
+    assert(postContentMap?.postId, 404, 'Post not found');
+    assert(ctx.userId !== undefined || postContentMap.publishedAt !== undefined, 404, 'Post not found');
 
     if (
       // Post content map is missing/malformed
@@ -55,7 +50,7 @@ export const getPostContentsQuery = procedureRequiresUser
     };
   });
 
-export const listPostContentsQuery = procedureRequiresUser
+export const listPostContentsQuery = procedure
   .input(
     z.object({
       blogId: z.string().ulid(),
@@ -64,18 +59,14 @@ export const listPostContentsQuery = procedureRequiresUser
     }),
   )
   .query(async ({ ctx, input }) => {
-    const { userId } = ctx;
     const { blogId, postId, excerpts } = input;
 
-    const allowedBlogIds = await listBlogIdsForUserId(ctx, userId);
-    assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
-      code: 'BLOG_NOT_FOUND',
-      where: { id: blogId },
+    const { data: postContentMap } = await Post.get({ blogId, postId }).go({
+      attributes: ['postId', 'contents', 'publishedAt'],
     });
 
-    const { data: postContentMap } = await Post.get({ blogId, postId }).go({
-      attributes: ['postId', 'contents'],
-    });
+    assert(postContentMap?.postId, 404, 'Post not found');
+    assert(ctx.userId !== undefined || postContentMap.publishedAt !== undefined, 404, 'Post not found');
 
     if (!postContentMap?.contents?.items || postContentMap.contents.items.length === 0) {
       return {
@@ -91,7 +82,7 @@ export const listPostContentsQuery = procedureRequiresUser
       excerpts === true && postContentMap.contents?.excerptUntil
         ? postContentMap.contents.items.slice(
             0,
-            postContentMap.contents.items.indexOf(postContentMap.contents.excerptUntil),
+            postContentMap.contents.items.indexOf(postContentMap.contents.excerptUntil) + 1,
           )
         : postContentMap.contents.items;
 
@@ -106,7 +97,7 @@ export const listPostContentsQuery = procedureRequiresUser
     };
   });
 
-export const listManyPostsContentsQuery = procedureRequiresUser
+export const listManyPostsContentsQuery = procedure
   .input(
     z.object({
       blogId: z.string().ulid(),
@@ -115,26 +106,24 @@ export const listManyPostsContentsQuery = procedureRequiresUser
     }),
   )
   .query(async ({ ctx, input }) => {
-    const { userId } = ctx;
     const { blogId, postIds, excerpts } = input;
 
-    const allowedBlogIds = await listBlogIdsForUserId(ctx, userId);
-    assert(allowedBlogIds.includes(blogId), 404, 'Blog not found', {
-      code: 'BLOG_NOT_FOUND',
-      where: { id: blogId },
-    });
-
     const { data: postsContentMap } = await Post.get(postIds.map((postId) => ({ blogId, postId }))).go({
-      attributes: ['postId', 'contents'],
+      attributes: ['postId', 'contents', 'publishedAt'],
     });
 
     const contentIdsMap: Record<string, Array<string>> = Object.fromEntries(
       postsContentMap
-        .filter(({ contents }) => Array.isArray(contents?.items) && contents.items.length)
+        .filter(
+          ({ contents, publishedAt }) =>
+            (ctx.userId !== undefined || publishedAt !== undefined) &&
+            Array.isArray(contents?.items) &&
+            contents.items.length,
+        )
         .map(({ postId, contents }) => [
           postId,
           excerpts === true && contents?.excerptUntil
-            ? contents.items.slice(0, contents!.items.indexOf(contents.excerptUntil))
+            ? contents.items.slice(0, contents!.items.indexOf(contents.excerptUntil) + 1)
             : contents!.items,
         ]),
     );

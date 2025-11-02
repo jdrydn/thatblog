@@ -1,8 +1,10 @@
+import _omit from 'lodash/omit';
 import {
   GetCommand,
   type GetCommandInput,
   BatchGetCommand,
   type BatchGetCommandInput,
+  type BatchGetCommandOutput,
   BatchWriteCommand,
   type BatchWriteCommandInput,
   type BatchWriteCommandOutput,
@@ -62,7 +64,7 @@ const formatReadItemSchema = z.object({
 
 function formatReadItem(
   item: Record<string, unknown>,
-): ({ blogId: string; postId: string } & PostContentItemWithId) | undefined {
+): { blogId: string; postId: string; content: PostContentItemWithId } | undefined {
   // If the item doesn't have our DynamoDB properties, then reject
   if (typeof item.pk !== 'string' || typeof item.sk !== 'string' || typeof item.type !== 'string') {
     return undefined;
@@ -77,7 +79,7 @@ function formatReadItem(
   if (data && data.pk && data.contentId) {
     const { pk, contentId, contents } = data;
     const [, blogId, , postId] = pk;
-    return { blogId, postId, contentId, ...contents };
+    return { blogId, postId, content: { contentId, ...contents } };
   } else {
     return undefined;
   }
@@ -97,11 +99,8 @@ export async function getContentItem(
   };
 
   const res = await dcdb.send(new GetCommand(params));
-  if (res.Item) {
-    return formatReadItem(res.Item);
-  } else {
-    return undefined;
-  }
+  const result = res.Item ? formatReadItem(res.Item) : undefined;
+  return result?.content;
 }
 
 export async function getContentItems(
@@ -122,8 +121,12 @@ export async function getContentItems(
 
   const results: Awaited<ReturnType<typeof getContentItems>> = {};
 
+  if (!Array.isArray(query[DYNAMODB_TABLE].Keys) || query[DYNAMODB_TABLE].Keys!.length === 0) {
+    return results;
+  }
+
   do {
-    const res = await dcdb.send(
+    const res: BatchGetCommandOutput = await dcdb.send(
       new BatchGetCommand({
         RequestItems: query,
       }),
@@ -133,11 +136,11 @@ export async function getContentItems(
       for (const item of res.Responses[DYNAMODB_TABLE] as Array<Record<string, unknown>>) {
         const parsed = formatReadItem(item);
         if (parsed) {
-          if (!Array.isArray(results[parsed.postId])) {
-            results[parsed.postId] = [];
+          if (Array.isArray(results[parsed.postId])) {
+            results[parsed.postId].push(parsed.content);
+          } else {
+            results[parsed.postId] = [parsed.content];
           }
-
-          results[parsed.postId].push(parsed);
         }
       }
     }
