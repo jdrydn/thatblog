@@ -5,7 +5,7 @@ import { createContext } from '@/test/context';
 import { useModels } from '@/test/hooks/useModels';
 import { createScenarios, SomeImportantPosts } from '@/test/fixtures';
 
-import { getPostContentsQuery, listPostContentsQuery } from './contents.read';
+import { getPostContentsQuery, listPostContentsQuery, listManyPostsContentsQuery } from './contents.read';
 
 useModels(({ Application }) =>
   createScenarios(Application, [
@@ -86,6 +86,57 @@ describe('#listPostContentsQuery', () => {
         contents: SomeImportantPosts.Post1.Contents,
         length: SomeImportantPosts.Post1.Contents.length,
       },
+    });
+  });
+});
+
+describe('#listManyPostsContentsQuery', () => {
+  test('should list content by post ID with excerpt', async () => {
+    const ctx = createContext();
+
+    const result = await runProcedure(ctx, listManyPostsContentsQuery, {
+      blogId: SomeImportantPosts.Post1.Item.blogId,
+      postIds: [SomeImportantPosts.Post1.Item.postId, SomeImportantPosts.Post2.Item.postId],
+      excerpts: true,
+    });
+
+    expect(result).toEqual({
+      data: [
+        {
+          postId: SomeImportantPosts.Post1.Item.postId,
+          contents: SomeImportantPosts.Post1.Contents.slice(0, 1),
+          length: 1,
+        },
+        {
+          postId: SomeImportantPosts.Post2.Item.postId,
+          contents: SomeImportantPosts.Post2.Contents,
+          length: SomeImportantPosts.Post2.Contents.length,
+        },
+      ],
+    });
+  });
+
+  test('should list content by post ID', async () => {
+    const ctx = createContext();
+
+    const result = await runProcedure(ctx, listManyPostsContentsQuery, {
+      blogId: SomeImportantPosts.Post1.Item.blogId,
+      postIds: [SomeImportantPosts.Post1.Item.postId, SomeImportantPosts.Post2.Item.postId],
+    });
+
+    expect(result).toEqual({
+      data: [
+        {
+          postId: SomeImportantPosts.Post1.Item.postId,
+          contents: SomeImportantPosts.Post1.Contents,
+          length: SomeImportantPosts.Post1.Contents.length,
+        },
+        {
+          postId: SomeImportantPosts.Post2.Item.postId,
+          contents: SomeImportantPosts.Post2.Contents,
+          length: SomeImportantPosts.Post2.Contents.length,
+        },
+      ],
     });
   });
 });
