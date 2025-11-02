@@ -35,10 +35,11 @@ export const Post = new Entity(
       },
       contents: {
         type: 'map',
+        default: {},
         properties: {
           items: {
             type: 'list',
-            required: true,
+            default: [],
             items: {
               type: 'string',
               required: true,

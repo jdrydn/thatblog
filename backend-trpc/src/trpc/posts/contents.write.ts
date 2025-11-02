@@ -6,16 +6,16 @@ import { procedureRequiresUser } from '@/src/trpc/core';
 import { listBlogIdsForUserId } from '@/src/modules/map-blog-user/helpers';
 import {
   postContentSchema,
-  createContentItem,
-  updateContentItem,
-  deleteContentItem,
+  createContentItems,
+  updateContentItems,
+  deleteContentItems,
 } from '@/src/modules/posts-contents/models';
 
 export const createPostContentsMutation = procedureRequiresUser
   .input(
     z.object({
-      blogId: z.string(),
-      postId: z.string(),
+      blogId: z.string().ulid(),
+      postId: z.string().ulid(),
       create: postContentSchema,
     }),
   )
@@ -38,11 +38,13 @@ export const createPostContentsMutation = procedureRequiresUser
 
     const contentId = ulid();
 
-    await createContentItem(blogId, postId, contentId, create);
+    await createContentItems(blogId, postId, [{ contentId, create }]);
 
     return {
-      created: true,
-      contentId,
+      data: {
+        created: true,
+        contentId,
+      },
     };
   });
 
@@ -72,19 +74,21 @@ export const updatePostContentsMutation = procedureRequiresUser
       where: { blogId, postId },
     });
 
-    await updateContentItem(blogId, postId, contentId, update);
+    await updateContentItems(blogId, postId, [{ contentId, update }]);
 
     return {
-      updated: true,
+      data: {
+        updated: true,
+      },
     };
   });
 
 export const deletePostContentsMutation = procedureRequiresUser
   .input(
     z.object({
-      blogId: z.string(),
-      postId: z.string(),
-      contentId: z.string(),
+      blogId: z.string().ulid(),
+      postId: z.string().ulid(),
+      contentId: z.string().ulid(),
     }),
   )
   .mutation(async ({ ctx, input }) => {
@@ -104,9 +108,11 @@ export const deletePostContentsMutation = procedureRequiresUser
       where: { blogId, postId },
     });
 
-    await deleteContentItem(blogId, postId, contentId);
+    await deleteContentItems(blogId, postId, [contentId]);
 
     return {
-      deleted: true,
+      data: {
+        deleted: true,
+      },
     };
   });
