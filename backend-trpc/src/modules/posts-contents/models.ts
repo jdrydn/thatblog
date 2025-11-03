@@ -107,6 +107,10 @@ export async function getContentItems(
   blogId: string,
   items: Array<{ postId: string; contentIds: string[] }>,
 ): Promise<Record<string, Array<PostContentItemWithId>>> {
+  if (items.length === 0 || items.every(({ contentIds }) => contentIds.length === 0)) {
+    return {};
+  }
+
   let query: BatchGetCommandInput['RequestItems'] | undefined = {
     [DYNAMODB_TABLE]: {
       Keys: items.reduce((list, { postId, contentIds }) => {
@@ -119,11 +123,7 @@ export async function getContentItems(
     },
   };
 
-  const results: Awaited<ReturnType<typeof getContentItems>> = {};
-
-  if (!Array.isArray(query[DYNAMODB_TABLE].Keys) || query[DYNAMODB_TABLE].Keys!.length === 0) {
-    return results;
-  }
+  const results = new Map<string, NonNullable<ReturnType<typeof formatReadItem>>>();
 
   do {
     const res: BatchGetCommandOutput = await dcdb.send(
@@ -133,14 +133,10 @@ export async function getContentItems(
     );
 
     if (Array.isArray(res?.Responses?.[DYNAMODB_TABLE])) {
-      for (const item of res.Responses[DYNAMODB_TABLE] as Array<Record<string, unknown>>) {
+      for (const item of res.Responses[DYNAMODB_TABLE]) {
         const parsed = formatReadItem(item);
         if (parsed) {
-          if (Array.isArray(results[parsed.postId])) {
-            results[parsed.postId].push(parsed.content);
-          } else {
-            results[parsed.postId] = [parsed.content];
-          }
+          results.set(`${parsed.postId}-${parsed.content.contentId}`, parsed);
         }
       }
     }
@@ -152,7 +148,16 @@ export async function getContentItems(
     }
   } while (query !== undefined);
 
-  return results;
+  return Object.fromEntries(
+    items.map(({ postId, contentIds }) => [
+      postId,
+      contentIds
+        // Loop through all the results
+        .map((contentId) => results.get(`${postId}-${contentId}`)?.content)
+        // And filter out any not-found
+        .filter((v) => v !== undefined),
+    ]),
+  );
 }
 
 export async function createContentItems(
