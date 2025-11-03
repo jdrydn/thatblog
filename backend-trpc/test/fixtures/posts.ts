@@ -26,7 +26,7 @@ export async function createPostContents(
     await createContentItems(
       blogId,
       postId,
-      creates.map(({ contentId, ...create }) => ({ contentId, create })),
+      creates.map(({ contentId, content }) => ({ contentId, create: content })),
     );
   }
 }
@@ -47,13 +47,17 @@ export const SomeImportantPosts = {
     Contents: [
       {
         contentId: '01K91EK54A4EG5MEF8D8D7JQ4Z',
-        type: 'MARKDOWN',
-        value: 'An excerpt here',
+        content: {
+          type: 'MARKDOWN',
+          value: 'An excerpt here',
+        },
       },
       {
         contentId: '01K91EK54A4EG5MEF8D8D7JQ5A',
-        type: 'MARKDOWN',
-        value: 'Hello, world!',
+        content: {
+          type: 'MARKDOWN',
+          value: 'Hello, world!',
+        },
       },
     ],
   },
@@ -69,8 +73,10 @@ export const SomeImportantPosts = {
     Contents: [
       {
         contentId: '01K91EKAH1DFFXXJS4QP6Q661M',
-        type: 'MARKDOWN',
-        value: 'Hello, world!',
+        content: {
+          type: 'MARKDOWN',
+          value: 'Hello, world!',
+        },
       },
     ],
   },

@@ -29,7 +29,7 @@ describe('#getContentItem', () => {
     const { contentId } = SomeImportantPosts.Post1.Contents[0];
 
     const content = await getContentItem(blogId, postId, contentId);
-    expect(content).toEqual(SomeImportantPosts.Post1.Contents[0]);
+    expect(content).toEqual(SomeImportantPosts.Post1.Contents[0].content);
   });
 });
 

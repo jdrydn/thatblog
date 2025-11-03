@@ -30,7 +30,8 @@ describe('#getPostContentsQuery', () => {
     expect(result).toEqual({
       data: {
         postId: SomeImportantPosts.Post1.Item.postId,
-        content: SomeImportantPosts.Post1.Contents[0],
+        contentId: SomeImportantPosts.Post1.Contents[0].contentId,
+        content: SomeImportantPosts.Post1.Contents[0].content,
       },
     });
   });

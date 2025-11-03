@@ -44,6 +44,7 @@ export const getPostContentsQuery = procedure
     return {
       data: {
         postId,
+        contentId,
         content,
       },
     };

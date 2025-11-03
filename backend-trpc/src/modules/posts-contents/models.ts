@@ -41,7 +41,7 @@ export const postContentSchema = z
   });
 
 export type PostContentItem = z.infer<typeof postContentSchema>;
-export type PostContentItemWithId = { contentId: string } & PostContentItem;
+export type PostContentItemWithId = { contentId: string; content: PostContentItem };
 export type PostContentType = PostContentItem['type'];
 
 const createPostContentItemKey = (blogId: string, postId: string, contentId: string) => ({
@@ -55,12 +55,12 @@ const formatReadItemSchema = z.object({
   // ${contentId}
   contentId: z.string().ulid(),
   // type, value, etc.
-  contents: postContentSchema,
+  content: postContentSchema,
 });
 
 function formatReadItem(
   item: Record<string, unknown>,
-): { blogId: string; postId: string; content: PostContentItemWithId } | undefined {
+): { blogId: string; postId: string; contentId: string; content: PostContentItem } | undefined {
   // If the item doesn't have our DynamoDB properties, then reject
   if (typeof item.pk !== 'string' || typeof item.sk !== 'string' || typeof item.type !== 'string') {
     return undefined;
@@ -69,13 +69,13 @@ function formatReadItem(
   const { data } = formatReadItemSchema.safeParse({
     pk: item.pk.split('#'),
     contentId: item.sk,
-    contents: item,
+    content: item,
   });
 
   if (data && data.pk && data.contentId) {
-    const { pk, contentId, contents } = data;
+    const { pk, contentId, content } = data;
     const [, blogId, , postId] = pk;
-    return { blogId, postId, content: { contentId, ...contents } };
+    return { blogId, postId, contentId, content };
   } else {
     return undefined;
   }
@@ -85,7 +85,7 @@ export async function getContentItem(
   blogId: string,
   postId: string,
   contentId: string,
-): Promise<PostContentItemWithId | undefined> {
+): Promise<PostContentItem | undefined> {
   const params: GetCommandInput = {
     TableName: DYNAMODB_TABLE,
     Key: createPostContentItemKey(blogId, postId, contentId),
@@ -129,7 +129,7 @@ export async function getContentItems(
       for (const item of res.Responses[DYNAMODB_TABLE]) {
         const parsed = formatReadItem(item);
         if (parsed) {
-          results.set(`${parsed.postId}-${parsed.content.contentId}`, parsed);
+          results.set(`${parsed.postId}-${parsed.contentId}`, parsed);
         }
       }
     }
@@ -146,7 +146,10 @@ export async function getContentItems(
       postId,
       contentIds
         // Loop through all the results
-        .map((contentId) => results.get(`${postId}-${contentId}`)?.content)
+        .map((contentId) => {
+          const item = results.get(`${postId}-${contentId}`);
+          return item ? { contentId: item.contentId, content: item.content } : undefined;
+        })
         // And filter out any not-found
         .filter((v) => v !== undefined),
     ]),
