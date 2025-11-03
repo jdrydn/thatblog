@@ -45,10 +45,20 @@ export const createPostContentsMutation = procedureRequiresUser
 
     try {
       await createContentItems(blogId, postId, [{ contentId, create }]);
-      await updatePostContentIndex(blogId, postId, (contents) => ({
-        ...contents,
-        items: Array.isArray(contents?.items) ? contents.items.push(contentId) : [contentId],
-      }));
+      await updatePostContentIndex(blogId, postId, (contents) => {
+        if (Array.isArray(contents?.items)) {
+          contents.items.push(contentId);
+          return {
+            items: contents.items,
+            excerptUntil: contents.excerptUntil,
+          };
+        } else {
+          return {
+            items: [contentId],
+            excerptUntil: contents?.excerptUntil,
+          };
+        }
+      });
     } catch (err) {
       await deleteContentItems(blogId, postId, [contentId]).catch(catchErrCleanup(ctx, { blogId, postId, contentId }));
       throw err;

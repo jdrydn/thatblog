@@ -39,7 +39,7 @@ export const Post = new Entity(
         properties: {
           etag: {
             type: 'string',
-            default: undefined,
+            default: 'NONE',
           },
           items: {
             type: 'list',
