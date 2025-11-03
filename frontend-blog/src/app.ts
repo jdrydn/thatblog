@@ -1,11 +1,10 @@
 import express, { type Request, type Response, type NextFunction } from 'express';
 import path from 'path';
 
+import * as data from '@thatblog/backend-trpc/src/data';
 import { exists, render } from '@thatblog/hyde';
 import { createSlug, parseSlug } from '@thatblog/utils';
-import { logger } from '@/backend-api/src/logger';
-
-import * as data from '@/backend-api/src/data';
+import { logger } from '@thatblog/backend-trpc/src/logger';
 
 export const app = express();
 

@@ -1,9 +1,10 @@
 packages:
   - packages/*
   - themes/*
-  - backend-api/
-  - frontend-admin/
-  - frontend-blog/
+  - backend-api
+  - backend-trpc
+  - frontend-admin
+  - frontend-blog
   - infrastructure
 
 ignoredBuiltDependencies:

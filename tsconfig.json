@@ -27,14 +27,6 @@
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": false,
     "sourceMap": true,
-    "paths": {
-      "@/backend-api/src/*": ["./backend-api/src/*"],
-      "@/backend-api/test/*": ["./backend-api/test/*"],
-      "@/frontend-admin/src/*": ["./frontend-admin/src/*"],
-      "@/frontend-admin/test/*": ["./frontend-admin/test/*"],
-      "@/frontend-blog/src/*": ["./frontend-blog/src/*"],
-      "@/frontend-blog/test/*": ["./frontend-blog/test/*"]
-    }
   },
   "exclude": [ "node_modules/", "**/node_modules/" ]
 }

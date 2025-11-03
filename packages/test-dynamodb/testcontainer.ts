@@ -8,19 +8,28 @@ import { URL } from 'url';
  */
 export class TestDynamoDBContainer {
   private container: StartedTestContainer | null = null;
+  protected image: string = 'amazon/dynamodb-local:3.0.0';
+  protected port: number = 8000;
+
+  constructor(opts?: { image?: string | undefined; port?: number | undefined }) {
+    if (opts?.image) {
+      this.image = opts.image;
+    }
+    if (opts?.port) {
+      this.port = opts.port;
+    }
+  }
 
   /**
    * Creates and starts a DynamoDB testcontainer and sets up the database
    */
-  async start(): Promise<void> {
-    assert(process.env.THATBLOG_DYNAMODB_ENDPOINT, 'Missing { THATBLOG_DYNAMODB_ENDPOINT } env');
-
-    const { port } = new URL(process.env.THATBLOG_DYNAMODB_ENDPOINT);
+  async start(endpoint: string): Promise<void> {
+    const { port } = new URL(endpoint);
     const portNum = parseInt(port, 10);
-    assert(!isNaN(portNum), 'Expected { THATBLOG_DYNAMODB_ENDPOINT } env to have a port number');
+    assert(!isNaN(portNum), 'Expected { endpoint } var to have a port number');
 
-    this.container = await new GenericContainer('amazon/dynamodb-local:3.0.0')
-      .withExposedPorts({ container: 8000, host: portNum, protocol: 'tcp' })
+    this.container = await new GenericContainer(this.image)
+      .withExposedPorts({ container: this.port, host: portNum, protocol: 'tcp' })
       .start();
 
     assert(this.container, 'Container not started - call start() first');
