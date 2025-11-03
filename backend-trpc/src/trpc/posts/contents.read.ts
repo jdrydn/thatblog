@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { procedure } from '@/src/trpc/core';
 import { Post } from '@/src/modules/posts/models';
 import { getContentItem, getContentItems } from '@/src/modules/posts-contents/models';
-import { sortPostContentItems } from '@/src/modules/posts-contents/helpers';
 
 export const getPostContentsQuery = procedure
   .input(
@@ -68,30 +67,20 @@ export const listPostContentsQuery = procedure
     assert(postContentMap?.postId, 404, 'Post not found');
     assert(ctx.userId !== undefined || postContentMap.publishedAt !== undefined, 404, 'Post not found');
 
-    if (!postContentMap?.contents?.items || postContentMap.contents.items.length === 0) {
-      return {
-        data: {
-          postId,
-          contents: [],
-          length: 0,
-        },
-      };
-    }
-
     const contentIds =
-      excerpts === true && postContentMap.contents?.excerptUntil
+      excerpts === true && postContentMap?.contents?.items && postContentMap.contents?.excerptUntil
         ? postContentMap.contents.items.slice(
             0,
             postContentMap.contents.items.indexOf(postContentMap.contents.excerptUntil) + 1,
           )
-        : postContentMap.contents.items;
+        : postContentMap?.contents?.items ?? [];
 
-    const contentsValues = await getContentItems(blogId, [{ postId, contentIds }]);
+    const contentsValues = contentIds.length ? await getContentItems(blogId, [{ postId, contentIds }]) : {};
 
     return {
       data: {
         postId,
-        contents: contentsValues[postId] ? sortPostContentItems(contentIds, contentsValues[postId]) : undefined,
+        contents: contentsValues[postId] ? contentsValues[postId] : undefined,
         length: contentIds.length,
       },
     };
@@ -112,7 +101,7 @@ export const listManyPostsContentsQuery = procedure
       attributes: ['postId', 'contents', 'publishedAt'],
     });
 
-    const contentIdsMap: Record<string, Array<string>> = Object.fromEntries(
+    const contentIdsMap = Object.fromEntries(
       postsContentMap
         .filter(
           ({ contents, publishedAt }) =>
@@ -122,9 +111,9 @@ export const listManyPostsContentsQuery = procedure
         )
         .map(({ postId, contents }) => [
           postId,
-          excerpts === true && contents?.excerptUntil
-            ? contents.items.slice(0, contents!.items.indexOf(contents.excerptUntil) + 1)
-            : contents!.items,
+          excerpts === true && contents?.items && contents?.excerptUntil
+            ? contents.items.slice(0, contents.items.indexOf(contents.excerptUntil) + 1)
+            : contents?.items ?? [],
         ]),
     );
 
@@ -137,11 +126,8 @@ export const listManyPostsContentsQuery = procedure
       data: postIds.map((postId) => {
         return {
           postId,
-          contents:
-            contentIdsMap[postId] && contentsValues[postId]
-              ? sortPostContentItems(contentIdsMap[postId], contentsValues[postId])
-              : undefined,
-          length: contentIdsMap[postId] ? contentIdsMap[postId].length : contentsValues[postId].length,
+          contents: contentsValues[postId],
+          length: contentIdsMap[postId] ? contentIdsMap[postId].length : 0,
         };
       }),
     };
