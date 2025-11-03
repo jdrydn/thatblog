@@ -6,6 +6,8 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@thatblog/backend-trpc": "workspace:*",
+    "@thatblog/test-dynamodb": "workspace:*"
   },
   "devDependencies": {
   }
