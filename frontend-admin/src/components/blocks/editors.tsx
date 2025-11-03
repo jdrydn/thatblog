@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import Editor, { type EditorLang } from '@thatblog/code-editor';
 import { Ellipsis } from 'lucide-react';
+
+import Editor, { type EditorLang } from '@/components/code-editor';
 
 export function HtmlBlock() {
   return (
