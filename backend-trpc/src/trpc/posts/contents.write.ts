@@ -4,12 +4,17 @@ import { z } from 'zod';
 
 import { procedureRequiresUser } from '@/src/trpc/core';
 import { listBlogIdsForUserId } from '@/src/modules/map-blog-user/helpers';
+import { updatePostContentIndex } from '@/src/modules/posts/helpers';
 import {
   postContentSchema,
   createContentItems,
   updateContentItems,
   deleteContentItems,
 } from '@/src/modules/posts-contents/models';
+import type { Context } from '@/src/trpc/context';
+
+const catchErrCleanup = (ctx: Context, prefix: object) => (err: unknown) =>
+  ctx.log.error({ ...prefix, err }, 'Failed to delete content for cleanup');
 
 export const createPostContentsMutation = procedureRequiresUser
   .input(
@@ -38,7 +43,16 @@ export const createPostContentsMutation = procedureRequiresUser
 
     const contentId = ulid();
 
-    await createContentItems(blogId, postId, [{ contentId, create }]);
+    try {
+      await createContentItems(blogId, postId, [{ contentId, create }]);
+      await updatePostContentIndex(blogId, postId, (contents) => ({
+        ...contents,
+        items: Array.isArray(contents?.items) ? contents.items.push(contentId) : [contentId],
+      }));
+    } catch (err) {
+      await deleteContentItems(blogId, postId, [contentId]).catch(catchErrCleanup(ctx, { blogId, postId, contentId }));
+      throw err;
+    }
 
     return {
       data: {
@@ -109,6 +123,14 @@ export const deletePostContentsMutation = procedureRequiresUser
     });
 
     await deleteContentItems(blogId, postId, [contentId]);
+    await updatePostContentIndex(blogId, postId, (contents) => {
+      if (Array.isArray(contents?.items)) {
+        contents.items.slice(contents.items.indexOf(contentId));
+        return { ...contents };
+      } else {
+        return { items: [] };
+      }
+    });
 
     return {
       data: {

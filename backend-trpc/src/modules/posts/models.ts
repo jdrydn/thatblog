@@ -37,6 +37,10 @@ export const Post = new Entity(
         type: 'map',
         default: {},
         properties: {
+          etag: {
+            type: 'string',
+            default: undefined,
+          },
           items: {
             type: 'list',
             default: [],

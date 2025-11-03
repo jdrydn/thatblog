@@ -44,11 +44,6 @@ export type PostContentItem = z.infer<typeof postContentSchema>;
 export type PostContentItemWithId = { contentId: string } & PostContentItem;
 export type PostContentType = PostContentItem['type'];
 
-const createPostItemKey = (blogId: string, postId: string) => ({
-  pk: `BLOGS#${blogId}#POSTS`,
-  sk: postId,
-});
-
 const createPostContentItemKey = (blogId: string, postId: string, contentId: string) => ({
   pk: `BLOGS#${blogId}#POSTS#${postId}`,
   sk: contentId,
