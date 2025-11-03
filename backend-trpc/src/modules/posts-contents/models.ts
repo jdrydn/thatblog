@@ -7,14 +7,12 @@ import {
   type BatchGetCommandInput,
   type BatchGetCommandOutput,
   TransactWriteCommand,
-  type TransactWriteCommandInput,
 } from '@aws-sdk/lib-dynamodb';
 import { z } from 'zod';
 
 import { DYNAMODB_TABLE } from '@/src/config';
 import { dcdb } from '@/src/services';
 import { calculateJsonSize } from '@/src/helpers/isomorphic';
-import type { PostItem } from '@/src/modules/posts/models';
 
 import type { PostContentTypes } from './types';
 
@@ -167,41 +165,25 @@ export async function createContentItems(
 ): Promise<void> {
   assert(creates.length < 100, 'Cannot create >= 100 items on a post in one operation');
 
-  const TransactItems: TransactWriteCommandInput['TransactItems'] = [];
-
-  for (const { contentId, create } of creates) {
-    TransactItems.push({
-      Put: {
-        TableName: DYNAMODB_TABLE,
-        Item: {
-          ...createPostContentItemKey(blogId, postId, contentId),
-          ...create,
-        },
-        ConditionExpression: 'attribute_not_exists(#pk) AND attribute_not_exists(#sk)',
-        ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk' },
-      },
-    });
+  if (creates.length === 0) {
+    return;
   }
 
-  if (TransactItems.length > 0) {
-    TransactItems.push({
-      Update: {
-        TableName: DYNAMODB_TABLE,
-        Key: createPostItemKey(blogId, postId),
-        ConditionExpression: 'attribute_exists(#pk) AND attribute_exists(#sk)',
-        UpdateExpression:
-          'SET #contents.#items = list_append(if_not_exists(#contents.#items, :empty), :add), updatedAt = :updated',
-        ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk', '#contents': 'contents', '#items': 'items' },
-        ExpressionAttributeValues: {
-          ':empty': [],
-          ':add': creates.map(({ contentId }) => contentId),
-          ':updated': new Date().toISOString(),
+  await dcdb.send(
+    new TransactWriteCommand({
+      TransactItems: creates.map(({ contentId, create }) => ({
+        Put: {
+          TableName: DYNAMODB_TABLE,
+          Item: {
+            ...createPostContentItemKey(blogId, postId, contentId),
+            ...create,
+          },
+          ConditionExpression: 'attribute_not_exists(#pk) AND attribute_not_exists(#sk)',
+          ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk' },
         },
-      },
-    });
-
-    await dcdb.send(new TransactWriteCommand({ TransactItems }));
-  }
+      })),
+    }),
+  );
 }
 
 export async function updateContentItems(
@@ -211,84 +193,45 @@ export async function updateContentItems(
 ) {
   assert(updates.length < 100, 'Cannot update >= 100 items on a post in one operation');
 
-  const TransactItems: TransactWriteCommandInput['TransactItems'] = [];
-
-  for (const { contentId, update } of updates) {
-    TransactItems.push({
-      Put: {
-        TableName: DYNAMODB_TABLE,
-        Item: {
-          ...createPostContentItemKey(blogId, postId, contentId),
-          ...update,
-        },
-        ConditionExpression: 'attribute_exists(#pk) AND attribute_exists(#sk) AND #type = :type',
-        ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk', '#type': 'type' },
-        ExpressionAttributeValues: { ':type': update.type },
-      },
-    });
+  if (updates.length === 0) {
+    return;
   }
 
-  await dcdb.send(new TransactWriteCommand({ TransactItems }));
+  await dcdb.send(
+    new TransactWriteCommand({
+      TransactItems: updates.map(({ contentId, update }) => ({
+        Put: {
+          TableName: DYNAMODB_TABLE,
+          Item: {
+            ...createPostContentItemKey(blogId, postId, contentId),
+            ...update,
+          },
+          ConditionExpression: 'attribute_exists(#pk) AND attribute_exists(#sk) AND #type = :type',
+          ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk', '#type': 'type' },
+          ExpressionAttributeValues: { ':type': update.type },
+        },
+      })),
+    }),
+  );
 }
 
-const formatPostIndexSchema = z.object({
-  contents: z
-    .object({
-      items: z.array(z.string().ulid()).nonempty(),
-      excerptUntil: z.string().ulid().optional(),
-    })
-    .optional(),
-}) satisfies z.ZodType<Pick<PostItem, 'contents'>>;
-
-async function getPostContentIndex(blogId: string, postId: string): Promise<Array<string> | undefined> {
-  const params: GetCommandInput = {
-    TableName: DYNAMODB_TABLE,
-    Key: createPostItemKey(blogId, postId),
-    ProjectionExpression: '#contents',
-    ExpressionAttributeNames: { '#contents': 'contents' },
-    ConsistentRead: true,
-  };
-
-  const res = await dcdb.send(new GetCommand(params));
-  const result = res.Item ? formatPostIndexSchema.safeParse(res.Item) : undefined;
-  return result?.data?.contents?.items;
-}
-
-export async function deleteContentItems(blogId: string, postId: string, contentIds: Array<string>) {
+export async function deleteContentItems(blogId: string, postId: string, contentIds: Array<string>): Promise<void> {
   assert(contentIds.length < 100, 'Cannot delete >= 100 items from a post in one operation');
 
-  const postContentIndex = await getPostContentIndex(blogId, postId);
-  assert(postContentIndex !== undefined, 'Cannot delete as missing post content index');
-
-  const TransactItems: TransactWriteCommandInput['TransactItems'] = [];
-
-  for (const contentId of contentIds) {
-    postContentIndex.splice(postContentIndex.indexOf(contentId), 1);
-    TransactItems.push({
-      Delete: {
-        TableName: DYNAMODB_TABLE,
-        Key: createPostContentItemKey(blogId, postId, contentId),
-        ConditionExpression: 'attribute_exists(#pk) AND attribute_exists(#sk)',
-        ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk' },
-      },
-    });
+  if (contentIds.length === 0) {
+    return;
   }
 
-  if (TransactItems.length > 0) {
-    TransactItems.push({
-      Update: {
-        TableName: DYNAMODB_TABLE,
-        Key: createPostItemKey(blogId, postId),
-        ConditionExpression: 'attribute_exists(#pk) AND attribute_exists(#sk)',
-        UpdateExpression: 'SET #contents.#items = :replace, updatedAt = :updated',
-        ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk', '#contents': 'contents', '#items': 'items' },
-        ExpressionAttributeValues: {
-          ':replace': postContentIndex,
-          ':updated': new Date().toISOString(),
+  await dcdb.send(
+    new TransactWriteCommand({
+      TransactItems: contentIds.map((contentId) => ({
+        Delete: {
+          TableName: DYNAMODB_TABLE,
+          Key: createPostContentItemKey(blogId, postId, contentId),
+          ConditionExpression: 'attribute_exists(#pk) AND attribute_exists(#sk)',
+          ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk' },
         },
-      },
-    });
-
-    await dcdb.send(new TransactWriteCommand({ TransactItems }));
-  }
+      })),
+    }),
+  );
 }

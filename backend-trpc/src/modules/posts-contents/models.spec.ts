@@ -1,8 +1,8 @@
 import { describe, test, expect } from 'vitest';
 import { ulid } from 'ulid';
 
-import { useModels, getModels } from '@/test/hooks/useModels';
-import { createScenarios, createPost, createPostContents, SomeImportantPosts } from '@/test/fixtures';
+import { useModels } from '@/test/hooks/useModels';
+import { createScenarios, SomeImportantPosts } from '@/test/fixtures';
 import { getItemFromDynamoDB, putItemInDynamoDB } from '@/test/dynamodb';
 import type { PostContentItem } from '@/src/modules/posts-contents/models';
 
@@ -16,39 +16,10 @@ useModels(async ({ Application }) => {
   ]);
 });
 
-function wrapErr(err: unknown, prefix: string): never {
-  if (err instanceof Error) {
-    err.message = `${prefix}: ${err.message}`;
-    throw err;
-  } else {
-    throw new Error(`${prefix}: ${err}`);
-  }
-}
-
 const createPostContentItemKey = (blogId: string, postId: string, contentId: string) => ({
   pk: `BLOGS#${blogId}#POSTS#${postId}`,
   sk: contentId,
 });
-
-async function setupTestPost(blogId: string) {
-  const postId = ulid();
-
-  const { Application } = await getModels();
-
-  await Application.entities.Post.create(createPost({ blogId, postId }))
-    .go()
-    .catch((err) => wrapErr(err, 'Failed to create test post'));
-
-  const fetchPostDetails = async () => {
-    const post = await Application.entities.Post.get({ blogId, postId })
-      .go({ attributes: ['contents'], consistent: true })
-      .catch((err) => wrapErr(err, 'Failed to get test post contents'));
-
-    return post.data;
-  };
-
-  return { postId, fetchPostDetails };
-}
 
 describe('#getContentItem', () => {
   const { getContentItem } = postContents;
@@ -84,19 +55,64 @@ describe('#createContentItems', () => {
   };
 
   test('it should create content', async () => {
-    const { blogId } = SomeImportantPosts.Post1.Item;
-    const { postId, fetchPostDetails } = await setupTestPost(blogId);
+    const { blogId, postId } = SomeImportantPosts.Post1.Item;
     const contentId = ulid();
 
     await createContentItems(blogId, postId, [{ contentId, create }]);
-
-    const post = await fetchPostDetails();
-    expect(post).toEqual({ contents: { items: [contentId] } });
 
     const content = await getItemFromDynamoDB(createPostContentItemKey(blogId, postId, contentId));
     expect(content).toEqual({
       ...createPostContentItemKey(blogId, postId, contentId),
       ...create,
     });
+  });
+});
+
+describe('#updateContentItems', () => {
+  const { updateContentItems } = postContents;
+
+  const create: PostContentItem = {
+    type: 'MARKDOWN',
+    value: 'Hello, world!',
+  };
+  const update: PostContentItem = {
+    type: 'MARKDOWN',
+    value: 'Updated copy!',
+  };
+
+  test('it should update content', async () => {
+    const { blogId, postId } = SomeImportantPosts.Post1.Item;
+    const contentId = ulid();
+
+    await putItemInDynamoDB(createPostContentItemKey(blogId, postId, contentId), create);
+
+    await updateContentItems(blogId, postId, [{ contentId, update }]);
+
+    const content = await getItemFromDynamoDB(createPostContentItemKey(blogId, postId, contentId));
+    expect(content).toEqual({
+      ...createPostContentItemKey(blogId, postId, contentId),
+      ...update,
+    });
+  });
+});
+
+describe('#deleteContentItems', () => {
+  const { deleteContentItems } = postContents;
+
+  const create: PostContentItem = {
+    type: 'MARKDOWN',
+    value: 'Hello, world!',
+  };
+
+  test('it should update content', async () => {
+    const { blogId, postId } = SomeImportantPosts.Post1.Item;
+    const contentId = ulid();
+
+    await putItemInDynamoDB(createPostContentItemKey(blogId, postId, contentId), create);
+
+    await deleteContentItems(blogId, postId, [contentId]);
+
+    const content = await getItemFromDynamoDB(createPostContentItemKey(blogId, postId, contentId));
+    expect(content).toEqual(undefined);
   });
 });
