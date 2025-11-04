@@ -51,7 +51,7 @@ export default function createStack(app: cdk.App, stackName: string) {
   const apiLambda = new cdk.aws_lambda.Function(stack, 'ApiLambda', {
     functionName: `${stackName}-api`,
     runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
-    handler: 'api.handler',
+    handler: 'handler.handler',
     code: cdk.aws_lambda.Code.fromAsset(path.join(__dirname, '../../backend-api/dist')),
     role: lambdaRole,
     architecture: cdk.aws_lambda.Architecture.ARM_64,

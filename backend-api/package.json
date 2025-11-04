@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "build": "tsup",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
@@ -10,5 +11,6 @@
     "@thatblog/test-dynamodb": "workspace:*"
   },
   "devDependencies": {
+    "tsup": "^8.5.0"
   }
 }

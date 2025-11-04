@@ -52,6 +52,7 @@
     "rimraf": "^5.0.10",
     "tailwindcss": "^4.0.6",
     "testcontainers": "^11.5.1",
+    "tsup": "^8.5.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vite": "^7.1.4",
