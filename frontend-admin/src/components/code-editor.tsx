@@ -60,17 +60,17 @@ export default function Editor({
   const highlight = useMemo(() => {
     switch (lang) {
       case 'html':
-        return langs.html({ selfClosingTags: true });
+        return langs.html();
       case 'md':
         return langs.markdown();
       case 'js':
-        return langs.javascript({ jsx: true });
+        return langs.javascript();
       case 'php':
         return langs.php();
       case 'python':
         return langs.python();
       case 'ts':
-        return langs.javascript({ jsx: true, typescript: true });
+        return langs.javascript();
       default:
         return undefined;
     }

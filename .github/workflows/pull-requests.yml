@@ -26,3 +26,7 @@ jobs:
   unit-tests:
     needs: prepare
     uses: ./.github/workflows/_unit-tests.yml
+
+  build:
+    needs: prepare
+    uses: ./.github/workflows/_build.yml
