@@ -1,0 +1,111 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/lalcebo/json-schema/823e19d/serverless/reference.json
+service: thatblog
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'prod'}
+  runtime: nodejs24.x
+  deploymentBucket:
+    name: ${self:service}-${sls:stage}-${aws:accountId}-${aws:region}
+    maxPreviousDeploymentArtifacts: 10
+    blockPublicAccess: false
+    versioning: false
+    serverSideEncryption: AES256
+  deploymentPrefix: serverless
+  iam:
+    role:
+      name: ${self:service}-${sls:stage}-${aws:accountId}-${aws:region}
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [UsersTable, Arn]
+  environment:
+    USERS_TABLE: ${self:service}-${sls:stage}
+
+functions:
+  api:
+    name: ${self:service}-${sls:stage}
+    handler: handler.handler
+    events:
+      - httpApi: "*"
+
+build:
+  esbuild:
+    bundle: true
+    buildConcurrency: 1
+    minify: false
+    sourcemap:
+      type: linked
+      setNodeOptions: true
+
+plugins:
+  - serverless-deployment-bucket
+  # - serverless-s3-deploy
+
+custom:
+  deploymentBucket:
+    versioning: false
+    accelerate: false
+    blockPublicAccess: false
+
+resources:
+  Resources:
+    # ServerlessDeploymentBucketPublicAccessBlock:
+    #   Type: AWS::S3::BucketPublicAccessBlock
+    #   Properties:
+    #     Bucket: ${self:provider.deploymentBucket.name}
+    #     BlockPublicAcls: false
+    #     IgnorePublicAcls: false
+    #     BlockPublicPolicy: false
+    #     RestrictPublicBuckets: false
+
+    # ServerlessDeploymentBucketPolicy:
+    #   Type: AWS::S3::BucketPolicy
+    #   # DependsOn: ServerlessDeploymentBucketPublicAccessBlock
+    #   Properties:
+    #     Bucket: ${self:provider.deploymentBucket.name}
+    #     PolicyDocument:
+    #       Version: '2012-10-17'
+    #       Statement:
+    #         - Sid: DenyInsecureTransport
+    #           Effect: Deny
+    #           Principal: '*'
+    #           Action: 's3:*'
+    #           Resource:
+    #             - arn:aws:s3:::${self:provider.deploymentBucket.name}
+    #             - arn:aws:s3:::${self:provider.deploymentBucket.name}/*
+    #           Condition:
+    #             Bool:
+    #               'aws:SecureTransport': 'false'
+    #         - Sid: DenyPublicAccessToServerless
+    #           Effect: Deny
+    #           Principal: '*'
+    #           Action: 's3:GetObject'
+    #           Resource: arn:aws:s3:::${self:provider.deploymentBucket.name}/serverless/*
+    #         - Sid: AllowPublicReadAdminAndThemes
+    #           Effect: Allow
+    #           Principal: '*'
+    #           Action: 's3:GetObject'
+    #           Resource:
+    #             - arn:aws:s3:::${self:provider.deploymentBucket.name}/admin/*
+    #             - arn:aws:s3:::${self:provider.deploymentBucket.name}/themes/*
+
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
