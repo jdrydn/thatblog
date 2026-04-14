@@ -2,20 +2,29 @@
 service: thatblog
 frameworkVersion: '4'
 
+params:
+  default:
+    ephId: ${env:THATBLOG_EPH_ID, ''}
+
 provider:
   name: aws
   stage: ${opt:stage, 'prod'}
+  architecture: arm64
   runtime: nodejs24.x
+  httpApi:
+    name: ${self:service}-${sls:stage}
+    payload: '2.0'
+    disableDefaultEndpoint: false
   deploymentBucket:
     name: ${self:service}-${sls:stage}-${aws:accountId}-${aws:region}
     maxPreviousDeploymentArtifacts: 10
     blockPublicAccess: false
     versioning: false
     serverSideEncryption: AES256
-  deploymentPrefix: serverless
+  deploymentPrefix: serverless${param:ephId}
   iam:
     role:
-      name: ${self:service}-${sls:stage}-${aws:accountId}-${aws:region}
+      name: ${self:service}-${sls:stage}${param:ephId}-${aws:accountId}-${aws:region}-role
       statements:
         - Effect: Allow
           Action:
@@ -28,11 +37,13 @@ provider:
           Resource:
             - Fn::GetAtt: [UsersTable, Arn]
   environment:
-    USERS_TABLE: ${self:service}-${sls:stage}
+    USERS_TABLE: ${self:service}-${sls:stage}${param:ephId}
+  tags:
+    Environment: ${self:provider.stage}
 
 functions:
   api:
-    name: ${self:service}-${sls:stage}
+    name: ${self:service}-${sls:stage}${param:ephId}
     handler: handler.handler
     events:
       - httpApi: "*"
@@ -55,6 +66,41 @@ custom:
     versioning: false
     accelerate: false
     blockPublicAccess: false
+    policy:
+      Version: '2012-10-17'
+      Id: MixedAccessBucketPolicy
+      Statement:
+        - Sid: DenyInsecureTransport
+          Effect: Deny
+          Principal: '*'
+          Action: 's3:*'
+          Resource:
+            - arn:aws:s3:::${self:provider.deploymentBucket.name}
+            - arn:aws:s3:::${self:provider.deploymentBucket.name}/*
+          Condition:
+            Bool:
+              'aws:SecureTransport': 'false'
+
+        - Sid: DenyPublicAccess
+          Effect: Deny
+          Principal: '*'
+          Action: 's3:*'
+          Resource:
+            - arn:aws:s3:::${self:provider.deploymentBucket.name}
+            - arn:aws:s3:::${self:provider.deploymentBucket.name}/${self:provider.deploymentPrefix}/*
+          Condition:
+            StringNotEqualsIfExists:
+              aws:PrincipalAccount: ${aws:accountId}
+            Bool:
+              aws:PrincipalIsAWSService: 'false'
+
+        - Sid: AllowPublicReadAdminAndThemes
+          Effect: Allow
+          Principal: '*'
+          Action: 's3:GetObject'
+          Resource:
+            - arn:aws:s3:::${self:provider.deploymentBucket.name}/admin/*
+            - arn:aws:s3:::${self:provider.deploymentBucket.name}/themes/*
 
 resources:
   Resources:
@@ -101,7 +147,7 @@ resources:
     UsersTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:service}-${self:provider.stage}
+        TableName: ${self:service}-${self:provider.stage}${param:ephId}
         BillingMode: PAY_PER_REQUEST
         KeySchema:
           - AttributeName: id
