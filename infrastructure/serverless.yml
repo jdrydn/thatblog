@@ -40,11 +40,12 @@ provider:
     USERS_TABLE: ${self:service}-${sls:stage}${param:ephId}
   tags:
     Environment: ${self:provider.stage}
+    ProvisionedBy: serverless
 
 functions:
-  api:
+  lambda:
     name: ${self:service}-${sls:stage}${param:ephId}
-    handler: handler.handler
+    handler: ./lambda.handler
     events:
       - httpApi: "*"
 
