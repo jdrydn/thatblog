@@ -44,7 +44,7 @@ provider:
 functions:
   api:
     name: ${self:service}-${sls:stage}${param:ephId}
-    handler: handler.handler
+    handler: ../components/example-handler/handler.handler
     events:
       - httpApi: "*"
 

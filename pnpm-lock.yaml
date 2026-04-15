@@ -6,7 +6,11 @@ settings:
 
 importers:
 
-  .:
+  .: {}
+
+  components/backend-api: {}
+
+  components/example-handler:
     dependencies:
       '@aws-sdk/client-dynamodb':
         specifier: ^3.585.0
@@ -23,7 +27,9 @@ importers:
       serverless-http:
         specifier: ^3.2.0
         version: 3.2.0
-    devDependencies:
+
+  infrastructure:
+    dependencies:
       serverless:
         specifier: ^4.34.0
         version: 4.34.0
