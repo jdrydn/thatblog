@@ -1,0 +1,7 @@
+{
+  "name": "@thatblog/isomorphic",
+  "version": "0.0.0",
+  "scripts": {
+    "lint": "tsc --noEmit ."
+  }
+}
