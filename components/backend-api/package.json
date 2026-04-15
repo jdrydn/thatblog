@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {},
   "dependencies": {
-    "@middy/core": "^7.2.2"
+    "@thatblog/middy-helpers": "workspace:*",
+    "@thatblog/models": "workspace:*"
   }
 }
