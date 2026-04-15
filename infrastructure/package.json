@@ -4,6 +4,7 @@
   "description": "Serverless blog platform",
   "private": true,
   "scripts": {
+    "build": "./build.sh",
     "deploy": "serverless deploy",
     "deploy:teardown": "serverless remove",
     "dev": "serverless dev",
@@ -14,6 +15,7 @@
   "repository": "https://github.com/jdrydn/thatblog",
   "bugs": "https://github.com/jdrydn/thatblog/issues",
   "dependencies": {
+    "@thatblog/example-handler": "workspace:*",
     "serverless": "^4.34.0",
     "serverless-deployment-bucket": "^1.6.0",
     "serverless-s3-deploy": "^0.10.1"
