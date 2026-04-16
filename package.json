@@ -6,7 +6,7 @@
   "scripts": {
     "build": "pnpm run --recursive --if-present --workspace-concurrency 1 build",
     "deploy": "pnpm --dir ./infrastructure run deploy",
-    "dev": "pnpm --dir ./infrastructure run dev",
+    "dev": "cd infrastructure && pnpm run dev",
     "lint": "pnpm run --recursive --if-present --workspace-concurrency 1 lint",
     "test:unit": "pnpm run --recursive --if-present --no-bail --workspace-concurrency 1 test:unit"
   },
