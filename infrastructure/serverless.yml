@@ -45,7 +45,7 @@ provider:
 functions:
   lambda:
     name: ${self:service}-${sls:stage}${param:ephId}
-    handler: ./lambda.handler
+    handler: lambda.handler
     events:
       - httpApi: "*"
 
