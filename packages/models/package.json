@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@thatblog/formats": "workspace:*",
+    "@thatblog/isomorphic": "workspace:*",
     "bcryptjs": "^3.0.2",
     "dataloader": "^2.2.3",
     "electrodb": "^3.4.1",

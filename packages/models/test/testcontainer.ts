@@ -2,6 +2,8 @@ import assert from 'assert';
 import { GenericContainer, type StartedTestContainer } from 'testcontainers';
 import { URL } from 'url';
 
+export type { StartedTestContainer };
+
 export async function startDynamodbTestcontainer(endpoint: string): Promise<StartedTestContainer> {
   const portNum = parseInt(new URL(endpoint).port, 10);
   assert(!isNaN(portNum), 'Expected endpoint URL to include a valid port number');

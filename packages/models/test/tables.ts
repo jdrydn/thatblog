@@ -120,5 +120,5 @@ export async function recycleTable(dydb: DynamoDBClient, tableName: string) {
   }
 
   await createTable(dydb, tableName);
-  console.log('[DynamoDB] Recreated table: %s (%s) (%s)\n', tableName, endpoint);
+  console.log('[DynamoDB] Created table: %s (%s) (%s)\n', tableName, endpoint);
 }

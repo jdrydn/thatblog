@@ -1,6 +1,6 @@
-import isISO8601 from 'validator/es/lib/isISO8601';
 import { Entity, type EntityItem } from 'electrodb';
 
+import { createIdField, createDateField } from './fields';
 import { dcdb, DYNAMODB_TABLE } from './setup';
 
 export const Blog = new Entity(
@@ -11,30 +11,13 @@ export const Blog = new Entity(
       version: '1',
     },
     attributes: {
-      blogId: {
-        type: 'string',
-        required: true,
-      },
+      blogId: createIdField({ default: true, required: true }),
       siteUrl: {
         type: 'string',
         required: false,
       },
-      createdAt: {
-        type: 'string',
-        readOnly: true,
-        required: true,
-        default: () => new Date().toISOString(),
-        set: (value) => value ?? new Date().toISOString(),
-        validate: (value) => isISO8601(value),
-      },
-      updatedAt: {
-        type: 'string',
-        watch: '*',
-        required: true,
-        default: () => new Date().toISOString(),
-        set: (value) => value ?? new Date().toISOString(),
-        validate: (value) => isISO8601(value),
-      },
+      createdAt: createDateField({ default: true, required: true }),
+      updatedAt: createDateField({ default: true, required: true, watch: '*' }),
     },
     indexes: {
       /**
