@@ -35,9 +35,10 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
           Resource:
-            - Fn::GetAtt: [UsersTable, Arn]
+            - Fn::GetAtt: [DataTable, Arn]
+            - Fn::Sub: ['${DataTableArn}/index/*', { DataTableArn: { Fn::GetAtt: [DataTable, Arn] } }]
   environment:
-    USERS_TABLE: ${self:service}-${sls:stage}${param:ephId}
+    THATBLOG_DYNAMODB_TABLE: ${self:service}-${self:provider.stage}${param:ephId}
   tags:
     Environment: ${self:provider.stage}
     ProvisionedBy: serverless
@@ -104,7 +105,8 @@ custom:
             - arn:aws:s3:::${self:provider.deploymentBucket.name}/themes/*
 
 resources:
-  Resources:
+  - ${file(./resources.yml)}
+
     # ServerlessDeploymentBucketPublicAccessBlock:
     #   Type: AWS::S3::BucketPublicAccessBlock
     #   Properties:
@@ -144,15 +146,3 @@ resources:
     #           Resource:
     #             - arn:aws:s3:::${self:provider.deploymentBucket.name}/admin/*
     #             - arn:aws:s3:::${self:provider.deploymentBucket.name}/themes/*
-
-    UsersTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:service}-${self:provider.stage}${param:ephId}
-        BillingMode: PAY_PER_REQUEST
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
