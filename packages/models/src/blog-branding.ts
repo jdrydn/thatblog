@@ -1,7 +1,7 @@
 import { Entity, type EntityItem } from 'electrodb';
 
 import { createIdField, createDateField } from './fields';
-import { dcdb, DYNAMODB_TABLE } from './setup';
+import { dcdb, DYNAMODB_TABLE } from '../setup';
 
 export const BlogBranding = new Entity(
   {

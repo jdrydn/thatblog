@@ -1,6 +1,6 @@
 import { Service } from 'electrodb';
 
-import { dcdb, DYNAMODB_TABLE } from './setup';
+import { dcdb, DYNAMODB_TABLE } from '../setup';
 
 import { Blog, type BlogItem } from './blog';
 import { BlogBranding, type BlogBrandingItem } from './blog-branding';

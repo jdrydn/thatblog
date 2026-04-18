@@ -12,7 +12,7 @@ import { z } from 'zod';
 
 import { calculateJsonSize } from '@thatblog/isomorphic';
 
-import { DYNAMODB_TABLE, dcdb } from './setup';
+import { DYNAMODB_TABLE, dcdb } from '../setup';
 
 export namespace PostContentTypes {
   export interface Markdown {

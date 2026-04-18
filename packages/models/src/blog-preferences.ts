@@ -2,7 +2,7 @@ import { Entity, type EntityItem } from 'electrodb';
 import { DATE_FORMATS, TIME_FORMATS } from '@thatblog/formats';
 
 import { createIdField, createDateField } from './fields';
-import { dcdb, DYNAMODB_TABLE } from './setup';
+import { dcdb, DYNAMODB_TABLE } from '../setup';
 
 export const BlogPreferences = new Entity(
   {

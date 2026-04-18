@@ -1,7 +1,7 @@
 import { Entity, type EntityItem } from 'electrodb';
 
 import { createIdField, createDateField } from './fields';
-import { DYNAMODB_TABLE, dcdb } from './setup';
+import { DYNAMODB_TABLE, dcdb } from '../setup';
 
 export const UserSession = new Entity(
   {

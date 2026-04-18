@@ -1,6 +1,6 @@
 import { GetCommand, GetCommandInput, PutCommand, PutCommandInput, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 
-import { DYNAMODB_TABLE, dcdb } from '../src/setup';
+import { DYNAMODB_TABLE, dcdb } from '../setup';
 
 export async function getItemFromDynamoDB(
   key: { pk: string; sk: string },

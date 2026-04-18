@@ -2,7 +2,7 @@ import { Entity, type EntityItem } from 'electrodb';
 import { v7 as uuid } from 'uuid';
 
 import { createDateField } from './fields';
-import { DYNAMODB_TABLE, dcdb } from './setup';
+import { DYNAMODB_TABLE, dcdb } from '../setup';
 
 export const System = new Entity(
   {
