@@ -1,17 +1,21 @@
 # thatblog — Plan
 
-A serverless, self-hosted blogging platform on AWS. One deployment = one blog, fully isolated,
-deployed with AWS SAM. Optimised for a great editing experience across short-form (microblog) and
-long-form (essay/article) content, with an installable theme system.
+A serverless blogging platform on AWS. One deployment hosts **many blogs** in a single multi-tenant
+stack — every blog isolated logically by a `blogId` partition dimension across DynamoDB and S3, not
+by separate stacks. Deployed with AWS SAM. Optimised for a great editing experience across short-form
+(microblog) and long-form (essay/article) content, with an installable theme system. The same
+codebase serves a **self-hosted edition** (deploy your own stack, one or a handful of blogs) and a
+**hosted edition** (many paying blogs on one fleet).
 
 ---
 
 ## 1. Goals
 
-- **Self-hosted & serverless.** A user deploys the whole thing into their own AWS account with a
-  single script. No central service, no cross-account anything.
-- **One stack = one blog.** Each deployment is a self-contained SAM stack with its own DynamoDB
-  table and S3 bucket. Users who want multiple blogs deploy multiple stacks.
+- **Serverless & self-hostable.** A dev deploys the whole thing into their own AWS account with a
+  single script. No cross-account anything.
+- **One stack = many blogs (multi-tenant).** A single SAM stack hosts any number of blogs in a
+  shared DynamoDB table and S3 content bucket, isolated by a `blogId` partition dimension. Self-hosted
+  runs the same stack with one blog (or a few); the hosted edition packs many paying blogs per stack.
 - **Great editing experience** for both short-form and long-form content.
 - **Installable themes** authored in Liquid, with a local authoring kit ("theme-kit").
 - **Cheap at rest.** Serverless primitives (Lambda, DynamoDB on-demand, S3, SQS) so an idle blog
@@ -34,7 +38,7 @@ corner, but not built yet:
 
 | # | Decision |
 |---|----------|
-| 1 | A **deployment = one SAM stack** = one blog, with its own DynamoDB table + S3 bucket. Multiple blogs = multiple stacks. Dev uses many PR-environment stacks in one account. |
+| 1 | A **SAM stack is multi-tenant**: one shared DynamoDB table + one shared S3 content bucket host **many blogs**, isolated by a `blogId` partition dimension. Self-hosted = same stack, one (or few) blogs; hosted = many blogs per stack. Dev still uses PR-environment stacks. |
 | 2 | **API Gateway** with standard Lambda proxy integration is the front door. **CloudFront** is an optional add-on. |
 | 3 | Cron is **EventBridge Scheduler → SQS → worker**; the worker can enqueue further SQS jobs (fan-out cascade). |
 | 4 | **AWS SAM** for infrastructure. The stack creates & owns the content bucket. |
@@ -45,6 +49,10 @@ corner, but not built yet:
 | 9 | **`Content` is a single unified entity** with a `type` discriminator (`short \| article \| page`). |
 | 10 | Renderer = **LiquidJS** with a pluggable `fs` loader (S3 in prod, local FS in theme-kit). |
 | 11 | Unit tests: **Vitest** + **Testcontainers** (local DynamoDB), files named `<name>.spec.ts`. |
+| 12 | **`blogId` is in the `pk` of every tenant-scoped entity** (Blog, Post, Page, ContentBlock, Media, Theme, Counter). Exceptions: **`System`** (stack-wide singleton) and **`User` / `Session`** (keyed by the global user, which spans blogs — a many-to-many map needs a global user). |
+| 13 | **`User` is a global identity** within a stack (credentials, email login); a **`BlogUserMap`** join relates users ⇄ blogs with a per-blog role. Replaces the blog-local `Author`. Powers "my blogs" and "a blog's team", and decouples authN (`User`) from authZ (membership). |
+| 14 | **S3 content is blogId-prefixed:** `themes/{blogId}/{themeId}/…` and `uploads/{blogId}/YYYY/MM-DD/{mediaId}.ext`. Per-blog prefixes = logical isolation + easy per-blog lifecycle/delete. |
+| 15 | **Public routing is by `Host` → `blogId`.** The frontend resolves the incoming hostname via the **`BlogDomain`** entity (GSI `DOMAIN#{host}` → blog; one item per domain, so a blog holds a primary + custom/alias domains). Admin resolves its blog the same way, with a future central multi-blog admin. |
 
 ---
 
@@ -53,7 +61,7 @@ corner, but not built yet:
 ```
                         ┌─────────────────────────────────────────────┐
                         │                 AWS account                  │
-                        │             (one stack per blog)             │
+                        │           (one stack, many blogs)            │
                         │                                              │
    visitor ───────────▶ │  API Gateway ──┬──▶ frontend-site (Lambda)   │
                         │                │      Hono SSR + LiquidJS     │
@@ -72,9 +80,10 @@ corner, but not built yet:
    SAM-managed artifact bucket (account-shared) holds the Lambda code zips.
 ```
 
-- **DynamoDB** — one table per stack, one-table design via ElectroDB.
-- **S3 content bucket** — created & owned by the stack; holds `themes/` and `uploads/`. Deleted
-  with the stack (tenant isolation + clean lifecycle).
+- **DynamoDB** — one shared table per stack, one-table multi-tenant design via ElectroDB; every
+  tenant-scoped item carries `blogId` in its `pk`.
+- **S3 content bucket** — created & owned by the stack; holds `themes/{blogId}/` and
+  `uploads/{blogId}/`. Per-blog prefixes give logical isolation and easy per-blog delete.
 - **SAM-managed artifact bucket** — account-level, holds Lambda code zips. Handled transparently by
   `sam deploy --resolve-s3`; not something we manage.
 - **API Gateway** — single HTTP front door, Lambda proxy integration.
@@ -142,18 +151,20 @@ v1 entities:
 
 | Entity | Managed by | Notes |
 |--------|------------|-------|
-| `System` | ElectroDB | Singleton `pk=SYSTEM` / `sk=SYSTEM`. System-wide secrets — notably session signing secrets (list, for rotation). Encrypted at rest, IAM-gated |
-| `Blog` | ElectroDB | Singleton config: profile, domain + redirects, publishing, active theme, navigation order, integrations |
-| `Author` | ElectroDB | Login credentials: `email`, `passwordHash` (bcryptjs), `displayName`, `role`. Looked up by email. Distinct from `Blog.profile` |
-| `Session` | ElectroDB | `pk: USER#{userId}` / `sk: SESSION#{sessionId}`, `expiresAt` (DynamoDB TTL). Referenced by the signed session cookie |
-| `Post` / `Page` | ElectroDB | Top-level metadata: `type: short \| article \| page`, slug, status, publishedAt, tags[], pinned, plus a `content` object (`values: string[]` ordered contentIds, `excerpt?: string`) — see §8.2 |
-| `ContentBlock` | **hand-rolled** | The post/page body, as a set of discriminated-union blocks (see §8.2) |
-| `Media` | ElectroDB | key, filename, contentType, size, folder, `references[]` (drives in-use vs orphaned), dimensions |
-| `Theme` | ElectroDB | Metadata + config; template files live in S3 `themes/` |
-| `Counter` | ElectroDB | View/stat rollups (per-post + weekly "views this week"), written by the worker |
+| `System` | ElectroDB | **Stack-wide singleton** `pk=SYSTEM` / `sk=SYSTEM` (no `blogId`). Session signing secrets (list, for rotation), encrypted at rest, IAM-gated |
+| `Blog` | ElectroDB | The **tenant root**, one per blog: `pk: BLOG#{blogId}`. Config: profile, publishing, active theme, navigation order, integrations, plan/entitlements. Domains live in `BlogDomain`, not inline |
+| `BlogDomain` | ElectroDB | One item **per domain** a blog answers to: `pk: BLOG#{blogId}` / `sk: DOMAIN#{host}` (lists a blog's domains). `host`, `type` (`primary \| alias` — an alias 301s to primary), plus custom-domain state (`status: pending \| active`, `acmCertArn?`, `verifiedAt?`). GSI `DOMAIN#{host}` (**unique**) → blog is the public-routing lookup |
+| `User` | ElectroDB | **Global identity** within the stack (spans blogs, **no `blogId`**): `pk: USER#{userId}`. `email`, `passwordHash` (bcryptjs), `displayName`. Looked up by email via GSI. Credentials only — role lives on `BlogUserMap` |
+| `BlogUserMap` | ElectroDB | **User ⇄ Blog join** carrying the per-blog `role` (and optional per-blog display name/bio). Bidirectional: `pk: BLOG#{blogId}` / `sk: USER#{userId}` lists a blog's team; GSI `USER#{userId}` → `BLOG#{blogId}` lists "my blogs". Replaces `Author` |
+| `Session` | ElectroDB | `pk: USER#{userId}` / `sk: SESSION#{sessionId}` (global user, **no `blogId`** — a session spans all the user's blogs), `expiresAt` (DynamoDB TTL). Referenced by the signed session cookie |
+| `Post` / `Page` | ElectroDB | `pk: BLOG#{blogId}#…`. Top-level metadata: `type: short \| article \| page`, slug, status, publishedAt, tags[], pinned, plus a `content` object (`values: string[]` ordered contentIds, `excerpt?: string`) — see §8.2 |
+| `ContentBlock` | **hand-rolled** | The post/page body, discriminated-union blocks, partitioned under the blog (see §8.2) |
+| `Media` | ElectroDB | `pk: BLOG#{blogId}#…`. key, filename, contentType, size, folder, `references[]` (drives in-use vs orphaned), dimensions. S3 at `uploads/{blogId}/…` |
+| `Theme` | ElectroDB | `pk: BLOG#{blogId}#…`. Metadata + config; template files live in S3 `themes/{blogId}/{themeId}/` |
+| `Counter` | ElectroDB | `pk: BLOG#{blogId}#…`. View/stat rollups (per-post + weekly "views this week"), written by the worker |
 
 The table is **hybrid**: ElectroDB-managed items and hand-rolled block items coexist. ElectroDB's key
-namespacing must stay distinct from the hand-rolled `POST#…` / `PAGE#…` prefixes.
+namespacing must stay distinct from the hand-rolled `BLOG#{blogId}#POST#…` / `…#PAGE#…` block prefixes.
 
 ### 8.2 Content blocks (hand-rolled)
 
@@ -162,8 +173,8 @@ each its own DynamoDB item sharing a partition. Deliberately **not** ElectroDB: 
 keeps blocks flexible and lets new block types be added without schema changes.
 
 ```
-pk:    POST#{postId}#CONTENT       # one query on pk returns all blocks for the post, in sk order
-sk:    {contentId}                 # ordering key (see open question)
+pk:    BLOG#{blogId}#POST#{postId}#CONTENT   # one query returns all blocks for the post, in sk order
+sk:    {contentId}                           # opaque unique id (ULID/nanoid)
 type:  PLAIN_TEXT                  # discriminated union tag
 value: Hello world
 ```
@@ -186,7 +197,7 @@ value: Hello world
   the `Post` + only the blocks **up to this boundary**, never the full body — so a long post still
   lists cheaply (metadata + a small `BatchGet`). The full body loads only on the post page.
 
-**Pages reuse the same block model** via `pk: PAGE#{pageId}#CONTENT`, with their own `content` object.
+**Pages reuse the same block model** via `pk: BLOG#{blogId}#PAGE#{pageId}#CONTENT`, with their own `content` object.
 
 ### 8.1 Physical table schema
 
@@ -209,8 +220,11 @@ Rules:
 - **LSIs are fixed at table creation** and cannot be added/removed later, so the SAM template must
   define **all 5** (`ls1sk`–`ls5sk`) up front, even if unused in v1. (Tables with LSIs cap each item
   collection at 10 GB per `pk` — irrelevant at single-blog scale.)
-- **GSIs can be added later** via online backfill. v1 defines **`gs1`**; add `gs2`+ if an access
-  pattern demands it.
+- **GSIs can be added later** via online backfill. v1 defines **`gs1`**, **multiplexed** across
+  entities (distinct `gs1pk` prefixes) for the cross-partition lookups multi-tenancy needs:
+  `EMAIL#{email}` → `User` (login), `USER#{userId}` → `BlogUserMap` ("my blogs"),
+  `DOMAIN#{host}` → `BlogDomain` (public routing; the host is unique across the GSI). Add `gs2`+
+  only if a new pattern demands it.
 - **Index projection is `KEYS_ONLY`** on every LSI/GSI, to keep indexes lean (minimal storage +
   write amplification). Implications:
   - **GSI (`gs1`) queries return key fields only.** ElectroDB does not auto-hydrate — the read shape
@@ -237,11 +251,13 @@ Rules:
 
 - **backend-api** — Hono JSON API, ElectroDB models + DataLoader loaders. Powers the admin SPA and
   any dynamic site data.
-- **frontend-site** — Hono SSR rendering the active theme via `@thatblog/renderer`. Serves the public
-  blog (timeline, posts, pages, RSS).
-- **frontend-admin** — React + Vite SPA. Built to static assets, synced to the S3 content bucket,
-  served under **`/admin`** through API Gateway. `/admin/*` serves the SPA's `index.html` (client-side
-  routing); hashed assets served directly.
+- **frontend-site** — Hono SSR rendering the active theme via `@thatblog/renderer`. **Resolves the
+  blog from the incoming `Host`** (domain → `blogId` via `BlogDomain`), then serves that blog's public pages
+  (timeline, posts, pages, RSS).
+- **frontend-admin** — React + Vite SPA, a **single global build** serving every blog. Static assets
+  synced once to the content bucket, served under **`/admin`** through API Gateway; `/admin/*` serves
+  `index.html` (client-side routing), hashed assets served directly. The SPA scopes to a blog by the
+  admin domain today; a central multi-blog picker is a future add.
 - **thatblog-worker** — SQS consumer running cron jobs.
 
 ## 10.1 Authentication
@@ -250,9 +266,13 @@ Rules:
   admin SPA authenticates against it.
 - **Sessions (no JWTs).** A `Session` entity in DynamoDB keyed `USER#{userId}#SESSION#{sessionId}`,
   with an `expiresAt` **DynamoDB TTL**. A **signed cookie** (HMAC) carries `userId`/`sessionId`;
-  httpOnly, Secure, SameSite. **3-day expiry**, matched by the TTL so records self-clean. Per request:
-  verify signature → build key → look up session → check TTL. Revocable (delete the item).
-- **Cookie signing secret:** stored in the singleton **`System`** item (`pk=SYSTEM`/`sk=SYSTEM`) as a
+  httpOnly, Secure, SameSite. **3-day expiry**, matched by the TTL so records self-clean. A session
+  belongs to the **global user** and spans all their blogs. Per request: verify signature → build key
+  → look up session → check TTL → **resolve the target `blogId`** (from `Host` on the public site,
+  from route/context in admin) → **check the user's `BlogUserMap` role for that blog**. Revocable
+  (delete the item).
+- **Cookie signing secret:** stored in the singleton **`System`** item (`pk=SYSTEM`/`sk=SYSTEM`,
+  stack-wide across all blogs) as a
   **list of secrets** — sign with the newest, verify against all valid, so rotation is add-new /
   retire-old with no forced logouts. Bootstrapped with a generated secret on first deploy; encrypted
   at rest by DynamoDB, access gated by the shared Lambda IAM role. (Rotation can become a worker cron.)
@@ -284,10 +304,13 @@ bun run --cwd components/frontend-admin build
 sam build
 sam deploy --stack-name <blog> --resolve-s3
 
-# 3. Sync static assets (admin SPA + themes) to the stack-owned content bucket,
-#    whose name is read from a stack Output
+# 3. Sync global static assets to the stack-owned content bucket (name read from a stack Output):
+#    - the admin SPA (one build serves every blog)
+#    - the theme catalog (install source; copied into a blog's prefix on install)
 aws s3 sync ./dist/admin/  "s3://$(... AssetsBucket output ...)/admin/"
-aws s3 sync ./themes/      "s3://$(... AssetsBucket output ...)/themes/"
+aws s3 sync ./themes/      "s3://$(... AssetsBucket output ...)/themes/_catalog/"
+# Per-blog theme files (themes/{blogId}/…) and uploads/{blogId}/… are written at runtime — blog
+# creation seeds a default theme, theme install copies from _catalog — never at deploy.
 ```
 
 - The SAM template defines the **content bucket** and **exports its name as an Output**; the deploy
@@ -311,11 +334,18 @@ subscribe + RSS, timeline, pinned posts, hashtags, per-post read-time/type badge
 **Admin** — Dashboard (stats: posts / drafts / scheduled / views-this-week; inline short composer,
 300-char limit), Posts, Pages (slug, status, drag-to-reorder nav), Media (quota, in-use/orphaned
 filters, folders, upload), Themes (installable, activate / configure / upload), Settings (Profile,
-Blog, Domain incl. redirects, Publishing, Integrations).
+Blog, **Domains**, Publishing, Integrations). The **Domains** screen manages the blog's `BlogDomain`
+items: add a custom domain (shows DNS/ACM verification `status`), set which host is `primary` vs an
+`alias` (aliases 301 to primary), and remove a domain.
 
 ## 15. Future milestones (post-v1)
 
-- **Custom domains** via API Gateway custom domain + **ACM**.
+- **Hosted edition** — signup, Stripe billing, and plan entitlements pushed onto the `Blog` item,
+  plus a central multi-blog admin (picker + SSO). Blog creation is already an **in-stack runtime op**
+  (write `Blog` + owner `BlogUserMap` + seed a default theme from `themes/_catalog/`), so hosting adds
+  billing and a picker — **not** per-blog infrastructure provisioning.
+- **Custom domains** via API Gateway custom domain + **ACM**, tracked per host on **`BlogDomain`**
+  (verification `status` + `acmCertArn`); the `DOMAIN#{host}` GSI already resolves them at request time.
 - **Replies / comments**, hosted alongside an **ActivityPub** integration.
 - **Newsletter** / subscribers.
 - **Social logins** via a centralised auth service (v1 is email/password only).
@@ -330,3 +360,7 @@ Blog, Domain incl. redirects, Publishing, Integrations).
 - [ ] Wire Testcontainers + local DynamoDB for unit tests (with James).
 - [ ] Detail the SAM template resources (table, bucket, queue, scheduler, functions, API, outputs).
 - [ ] Confirm the `/admin` SPA serving strategy against API Gateway (proxy S3 vs. Lambda passthrough).
+- [ ] Decide the **blog-creation / signup flow** (in-stack runtime: write `Blog` + owner `BlogUserMap`
+      + seed a default theme from `themes/_catalog/`) and the first-ever-user bootstrap.
+- [ ] Decide **admin scoping**: per-blog domain now vs. a central multi-blog picker.
+- [ ] Confirm `User`/`Session` stay global (no `blogId`) — required for the many-to-many `BlogUserMap`.
