@@ -30,6 +30,8 @@ yet:
   No `Reply` entity in v1.
 - **Custom SSL via Let's Encrypt / ACME** — when we add custom domains we'll use **ACM** (free, auto-renewing, no worker
   cert logic). The "Let's Encrypt" label in the designs is flavour text.
+- **Tags / hashtags** — no `tags` on `Post` and no tag browse/filter in v1. Addressed later; it needs its own index
+  (tag → posts) we haven't designed. See section 15.
 
 ## Roadmap (versions & milestones)
 
@@ -58,10 +60,10 @@ blogs until late `0.1.x`.
 | 0.1.1   | Long-form              | `article` type + richer block palette (headings, blockquote, hero); rich post detail                                                    |
 | 0.1.2   | Media                  | `Media` entity, S3 uploads (`uploads/{blogId}/…`), media library (upload, folders, quota), `MEDIA` block, orphan tracking               |
 | 0.1.3   | Pages                  | `Page` entity + admin Pages (slug, status), drag-to-reorder nav, public page rendering                                                  |
-| 0.1.4   | Worker + cron          | worker Lambda + SQS + DLQ + EventBridge Scheduler; scheduled publishing; RSS gen/caching                                                |
+| 0.1.4   | Worker + cron          | worker Lambda + SQS + DLQ + EventBridge Scheduler; RSS gen/caching + cache regen at publish time (scheduling itself is query-time, #21)                                                |
 | 0.1.5   | Stats                  | `Counter` + view rollups (per-post + weekly); dashboard stats; orphaned-media sweep                                                     |
 | 0.1.6   | Themes system          | `Theme` entity; install/activate/configure/upload; `themes/_catalog/` → per-blog; Settings › Themes                                     |
-| 0.1.7   | Settings + polish      | full Settings (Profile, Blog, Domains, Publishing, Integrations); pinned, hashtags, read-time badges; subscribe/RSS on site             |
+| 0.1.7   | Settings + polish      | full Settings (Profile, Blog, Domains, Publishing, Integrations); pinned, read-time badges; subscribe/RSS on site             |
 | 0.1.8   | theme-kit + multi-blog | publish `packages/renderer` theme-kit (fixtures + dev harness); exercise many blogs/stack + `POST /blogs`; Playwright integration tests |
 | **1.0** | **First release**      | section 14 feature surface complete; self-hosted edition shippable                                                                      |
 
@@ -87,8 +89,11 @@ blogs until late `0.1.x`.
 | 14  | **S3 content is blogId-prefixed:** `themes/{blogId}/{themeId}/…` and `uploads/{blogId}/YYYY/MM-DD/{mediaId}.ext`. Per-blog prefixes = logical isolation + easy per-blog lifecycle/delete.                                                                                                                                |
 | 15  | **Public routing is by `Host` → `blogId`.** The frontend resolves the incoming hostname via the **`BlogDomain`** entity (GSI `DOMAINS#{host}` → blog; one item per domain, so a blog holds a primary + custom/alias domains). Admin resolves its blog the same way, with a future central multi-blog admin.              |
 | 16  | **ID formats:** `blogId` is a **`b`-prefixed nanoid** (e.g. `bV1StGXR8Z`); `postId` / `pageId` are **ULIDs** (lexicographically sortable by creation time); `contentId` (block `sk`) is an opaque unique id.                                                                                                             |
-| 17  | **Static/admin serving.** Front door is an **HTTP API** (not REST). App routes use Lambda proxy integration; `/admin/*` uses an **HTTP-proxy integration straight to S3** (no Lambda in the asset path). CloudFront (future) can front both.                                                                             |
+| 17  | **Static/admin serving.** Front door is an **HTTP API** (not REST). App routes use Lambda proxy integration; `/admin/*` uses an **HTTP-proxy integration straight to S3** (no Lambda in the asset path). The content bucket is **public** (this is open-source; no secrets ship in assets), served via its **S3 static-website endpoint** — so the `HTTP_PROXY` needs no SigV4 signing, and `index.html` as the website **error document** gives the client-side-routing fallback for `/admin/*` for free. CloudFront (future) can front both.                                                                             |
 | 18  | **First-run setup key.** The `System` item holds a generated **`setupKey`**; first-run setup runs at **`/admin/setup/{setupKey}`** (create the first `User` + `Blog` + primary `BlogDomain` + seed the default theme), after which the key is **cleared**, permanently disabling the route. No open registration window. |
+| 19  | **Explicit key `template`s.** Every ElectroDB entity declares an explicit `template` for its `pk`/`sk` (and index keys) so the composed key strings are visible in the model and provably distinct from the hand-rolled `BLOGS#{blogId}#…#CONTENTS` block prefixes. No reliance on ElectroDB's implicit namespacing.                                                                                                                                                              |
+| 20  | **Block + parent writes are atomic.** Adding/removing/reordering a `ContentBlock` touches both the block item and the parent's `content.values[]` array; these go in a single **`TransactWriteItems`** so the ordered list can never drift from the blocks it points at.                                                                                                                                                                                                                            |
+| 21  | **Scheduling = a future `publishedAt`.** The **stored** `status` is `draft \| published` (no `scheduledAt` field). "Scheduled" is a **derived display state**: a `published` post whose `publishedAt > now`. The admin shows the scheduled badge/filter by comparing `publishedAt` to now; the public timeline hides it by querying the publish-date LSI for `ls3sk <= now`. Visibility is query-time, not a cron status-flip.                                                                          |
 
 ---
 
@@ -194,7 +199,7 @@ v1 entities:
 | `User`          | ElectroDB       | **Global identity** within the stack (spans blogs, **no `blogId`**): `pk: USERS#{userId}`. `email`, `passwordHash` (bcryptjs), `displayName`. Looked up by email via GSI. Credentials only — role lives on `MapBlogUser`                                                                                                                                                 |
 | `MapBlogUser`   | ElectroDB       | **User ⇄ Blog join** carrying the per-blog `role` (and optional per-blog display name/bio). Bidirectional: `pk: BLOGS#{blogId}` / `sk: USERS#{userId}` lists a blog's team; GSI `USERS#{userId}` → `BLOGS#{blogId}` lists "my blogs". Replaces `Author`                                                                                                                  |
 | `UserSession`   | ElectroDB       | `pk: USERS#{userId}` / `sk: SESSIONS#{sessionId}` (global user, **no `blogId`** — a session spans all the user's blogs), `expiresAt` (DynamoDB TTL). Referenced by the signed session cookie                                                                                                                                                                             |
-| `Post` / `Page` | ElectroDB       | `pk: BLOGS#{blogId}#…`. Top-level metadata: `type: short \| article` (`Page` has none — it's nav-attached), slug, status (`draft \| scheduled \| published`), publishedAt, `scheduledAt?` (set when `status: scheduled`; drives the publish cron), tags[], pinned, plus a `content` object (`values: string[]` ordered contentIds, `excerpt?: string`) — see section 8.2 |
+| `Post` / `Page` | ElectroDB       | `pk: BLOGS#{blogId}` / `sk: POSTS#{postId}` (`PAGES#{pageId}`) — shared blog partition so the LSIs sort a blog's posts. Metadata: `type: short \| article` (`Page` has none — it's nav-attached), slug, `status: draft \| published` (a `published` post with `publishedAt > now` displays as **scheduled**, see #21), `publishedAt`, pinned, plus a `content` object (`values: string[]` ordered contentIds, `excerpt?: string`) — see section 8.2. Sorted via LSIs: `ls1sk`=createdAt, `ls2sk`=updatedAt, `ls3sk`=publishedAt (see 8.1) |
 | `ContentBlock`  | **hand-rolled** | The post/page body, discriminated-union blocks, partitioned under the blog (see section 8.2)                                                                                                                                                                                                                                                                             |
 | `Media`         | ElectroDB       | `pk: BLOGS#{blogId}#…`. key, filename, contentType, size, folder, `references[]` (drives in-use vs orphaned), dimensions. S3 at `uploads/{blogId}/…`                                                                                                                                                                                                                     |
 | `Theme`         | ElectroDB       | `pk: BLOGS#{blogId}#…`. Metadata + config; template files live in S3 `themes/{blogId}/{themeId}/`                                                                                                                                                                                                                                                                        |
@@ -236,6 +241,24 @@ Rules:
   - **LSI queries** can still request non-projected attributes; DynamoDB auto-fetches them from the base table at extra
     RCU (no second round-trip). So LSIs cost RCU where GSIs cost a hydration call.
 
+**Access patterns → index map.** The reads each index serves (all LSIs share `pk: BLOGS#{blogId}`; sparse — only items
+carrying that `ls*sk` appear):
+
+| Access pattern                                          | Index  | Key                                                                     |
+| ------------------------------------------------------- | ------ | ----------------------------------------------------------------------- |
+| Public timeline — published posts, newest-first         | `ls3`  | `pk: BLOGS#{blogId}`, `ls3sk = publishedAt`, query `<= now` descending  |
+| Scheduled posts (future `publishedAt`) hidden until due | `ls3`  | same query — a future `publishedAt` naturally falls outside `<= now`    |
+| Admin — posts by created date                           | `ls1`  | `ls1sk = createdAt`                                                      |
+| Admin — posts by last-updated                           | `ls2`  | `ls2sk = updatedAt`                                                      |
+| Login by email                                          | `gs1`  | `gs1pk = EMAILS#{email}` → `User`                                        |
+| "My blogs" for a user                                   | `gs1`  | `gs1pk = USERS#{userId}` → `MapBlogUser`                                 |
+| Public routing, host → blog                             | `gs1`  | `gs1pk = DOMAINS#{host}` (unique) → `BlogDomain`                         |
+
+- `ls4`/`ls5` are **reserved unused** in v1 (LSIs are fixed at table creation; better to define spares now — see 8.1).
+- Because `status: scheduled` and `scheduledAt` are gone (#21), **publishing no longer needs a cron status-flip** — the
+  `ls3sk <= now` filter hides future posts automatically. The worker's scheduled-publish job reduces to firing
+  cache/RSS regeneration *at* the publish moment (or drops entirely if RSS is generated on read). See section 11.
+
 ### 8.2 Content blocks (hand-rolled)
 
 A post/page body is **not** a single item — it's a set of individually-addressable **content blocks**, each its own
@@ -264,7 +287,10 @@ value: Hello world
   (ULID/nanoid).
 - `excerpt?: string` — a contentId marking where the excerpt ends. List/timeline endpoints hydrate the `Post` + only the
   blocks **up to this boundary**, never the full body — so a long post still lists cheaply (metadata + a small
-  `BatchGet`). The full body loads only on the post page.
+  `BatchGet`). The full body loads only on the post page. When `excerpt` is unset, list endpoints hydrate the whole
+  (small, short-post) body.
+- **Atomicity (#20):** adding, removing or reordering a block writes the block item **and** the parent's `content.values[]`
+  in a single **`TransactWriteItems`**, so the ordered list and the blocks it points at can never drift.
 
 **Pages reuse the same block model** via `pk: BLOGS#{blogId}#PAGES#{pageId}#CONTENTS`, with their own `content` object.
 
@@ -280,7 +306,7 @@ value: Hello world
 - **theme-kit** = `packages/renderer` + sample blog-data fixtures + local dev harness, published as a kit for people
   building themes (they can use the samples or their own data).
 - **First theme:** a Twitter-like microblog theme (profile header + cover, timeline, pinned posts, short + essay post
-  types, hashtags, post detail with hero image / headings / blockquotes).
+  types, post detail with hero image / headings / blockquotes).
 
 ## 10. Compute detail
 
@@ -319,7 +345,9 @@ value: Hello world
 Driven by **EventBridge Scheduler → SQS → worker**, with the worker able to enqueue follow-on SQS jobs (fan-out
 cascade). v1 jobs:
 
-- Publish **scheduled** `Post` / `Page` at its `scheduledAt`.
+- **(No status-flip publish job.)** Scheduling is a future `publishedAt` (#21) and the public timeline filters
+  `ls3sk <= now`, so a scheduled post appears on its own with no cron writing it live. Any remaining scheduled work is
+  just firing **cache / RSS regeneration** at the publish moment.
 - Roll up **view counters** (per-post + weekly).
 - Sweep **orphaned media** (media with no `references[]`).
 - Regenerate / cache the **RSS feed**.
@@ -364,7 +392,7 @@ aws s3 sync ./themes/      "s3://$(... AssetsBucket output ...)/themes/_catalog/
 ## 14. Feature surface (from designs)
 
 **Public site** — author profile (avatar, cover, bio, location, website, joined, post count), subscribe + RSS, timeline,
-pinned posts, hashtags, per-post read-time/type badges, rich post detail.
+pinned posts, per-post read-time/type badges, rich post detail.
 
 **Admin** — Dashboard (stats: posts / drafts / scheduled / views-this-week; inline short composer, 300-char limit),
 Posts, Pages (slug, status, drag-to-reorder nav), Media (quota, in-use/orphaned filters, folders, upload), Themes
@@ -384,6 +412,7 @@ which host is `primary` vs an `alias` (aliases 301 to primary), and remove a dom
 - **Newsletter** / subscribers.
 - **Social logins** via a centralised auth service (v1 is email/password only).
 - **API support** — a programmatic API (tokens) for third-party/automation access.
+- **Tags / hashtags** — `tags` on `Post` plus tag browse/filter, backed by a dedicated tag→posts index.
 - **CloudFront** as an optional caching/CDN layer in front of API Gateway.
 
 ---
