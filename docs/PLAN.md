@@ -31,6 +31,40 @@ yet:
 - **Custom SSL via Let's Encrypt / ACME** — when we add custom domains we'll use **ACM** (free, auto-renewing, no worker
   cert logic). The "Let's Encrypt" label in the designs is flavour text.
 
+## Roadmap (versions & milestones)
+
+Two tracks. **`0.0.x`** MVP increments build to **`0.1`** (the spine works end-to-end); **`0.1.x`** feature increments
+build to **`1.0`** (the feature-complete self-hosted release). Anything past `1.0` lives in section 15. "v1" elsewhere
+in this doc means `1.0`. Each increment leaves the codebase in a working, deployable state. Multi-tenant plumbing
+(`blogId` in keys, `BlogDomain`, `MapBlogUser`) lands from `0.0.x` — it's structural — but isn't exercised with many
+blogs until late `0.1.x`.
+
+**MVP — `0.0.x` → `0.1`** (deploy → setup → write a short post → see it live)
+
+| Ver     | Increment        | Working state                                                                                                                                       |
+| ------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.0.1   | Foundation       | Bun-workspace monorepo + SAM (table w/ full key/index topology, content bucket, HTTP API, health Lambda) + deploy script → `sam deploy`, health 200 |
+| 0.0.2   | Models + harness | ElectroDB `System`/`Blog`/`BlogDomain`/`User`/`MapBlogUser`/`UserSession` + Vitest/Testcontainers → green unit tests                                |
+| 0.0.3   | Setup + auth     | Setup-key first-run (`/admin/setup/{key}` → first `User`+`Blog`+`BlogDomain`), email/password login, signed-cookie sessions → log in via API        |
+| 0.0.4   | Posts (backend)  | `Post` + `ContentBlock` + `backend-api` authoring (short post create/edit/publish) → create a post via API                                          |
+| 0.0.5   | Public site      | `frontend-site`: `Host`→blog, timeline + post detail via one shipped theme (renderer + S3 loader) → visit blog, see post                            |
+| 0.0.6   | Admin SPA        | Minimal React SPA under `/admin` (HTTP-proxy→S3): login + short composer + publish → write from the browser                                         |
+| **0.1** | **MVP**          | Full loop works: deploy → setup → log in → compose a short post → see it live on the themed public site                                             |
+
+**First release — `0.1.x` → `1.0`** (fill out the section 14 feature surface)
+
+| Ver     | Increment              | Adds                                                                                                                                    |
+| ------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.1.1   | Long-form              | `article` type + richer block palette (headings, blockquote, hero); rich post detail                                                    |
+| 0.1.2   | Media                  | `Media` entity, S3 uploads (`uploads/{blogId}/…`), media library (upload, folders, quota), `MEDIA` block, orphan tracking               |
+| 0.1.3   | Pages                  | `Page` entity + admin Pages (slug, status), drag-to-reorder nav, public page rendering                                                  |
+| 0.1.4   | Worker + cron          | worker Lambda + SQS + DLQ + EventBridge Scheduler; scheduled publishing; RSS gen/caching                                                |
+| 0.1.5   | Stats                  | `Counter` + view rollups (per-post + weekly); dashboard stats; orphaned-media sweep                                                     |
+| 0.1.6   | Themes system          | `Theme` entity; install/activate/configure/upload; `themes/_catalog/` → per-blog; Settings › Themes                                     |
+| 0.1.7   | Settings + polish      | full Settings (Profile, Blog, Domains, Publishing, Integrations); pinned, hashtags, read-time badges; subscribe/RSS on site             |
+| 0.1.8   | theme-kit + multi-blog | publish `packages/renderer` theme-kit (fixtures + dev harness); exercise many blogs/stack + `POST /blogs`; Playwright integration tests |
+| **1.0** | **First release**      | section 14 feature surface complete; self-hosted edition shippable                                                                      |
+
 ---
 
 ## 3. Decisions log
