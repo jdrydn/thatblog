@@ -45,7 +45,7 @@ yet:
 | 6   | Monorepo via **Bun workspaces** across `components/`, `packages/`, `themes/`.                                                                                                                                                                                                                                      |
 | 7   | **Two buckets:** a SAM-managed artifact bucket (Lambda zips, account-shared, invisible) + a per-stack content bucket (`themes/` `uploads/`, owned by the stack, deleted with it).                                                                                                                                  |
 | 8   | Components are **private `@thatblog/*` packages** that cross-import freely (all Lambdas share one IAM permission set).                                                                                                                                                                                             |
-| 9   | **`Content` is a single unified entity** with a `type` discriminator (`short \| article \| page`).                                                                                                                                                                                                                 |
+| 9   | **`Post` and `Page` are the two top-level entities**, sharing one hand-rolled block model (`ContentBlock`). A `Post` carries `type` (`short \| article`); a `Page` is a standalone, nav-attached document (no `type`). "Content" names the body (blocks + the `content` object), never a top-level entity.         |
 | 10  | Renderer = **LiquidJS** with a pluggable `fs` loader (S3 in prod, local FS in theme-kit).                                                                                                                                                                                                                          |
 | 11  | Unit tests: **Vitest** + **Testcontainers** (local DynamoDB), files named `<name>.spec.ts`.                                                                                                                                                                                                                        |
 | 12  | **`blogId` is in the `pk` of every tenant-scoped entity** (Blog, BlogDomain, MapBlogUser, Post, Page, ContentBlock, Media, Theme, Counter). Exceptions: **`System`** (stack-wide singleton) and **`User` / `UserSession`** (keyed by the global user, which spans blogs — a many-to-many map needs a global user). |
@@ -124,8 +124,8 @@ Bun workspaces span `components/`, `packages/`, and `themes/`.
 
 - Every component is a **private `@thatblog/*` package**, never published.
 - Components **cross-import directly**, e.g. `frontend-site` may
-  `import { Content } from '@thatblog/backend-api/models/content'`. This is deliberate: all Lambdas run with the **same
-  IAM permission set**, so there's no security boundary between them to respect — sharing code is free.
+  `import { Post } from '@thatblog/backend-api/models/post'`. This is deliberate: all Lambdas run with the **same IAM
+  permission set**, so there's no security boundary between them to respect — sharing code is free.
 - `packages/renderer` is the one piece intended to be genuinely standalone (it's the core of the theme-kit), so keep its
   dependencies minimal and its interface clean.
 
@@ -156,7 +156,7 @@ v1 entities:
 | `User`          | ElectroDB       | **Global identity** within the stack (spans blogs, **no `blogId`**): `pk: USERS#{userId}`. `email`, `passwordHash` (bcryptjs), `displayName`. Looked up by email via GSI. Credentials only — role lives on `MapBlogUser`                                                                                                                     |
 | `MapBlogUser`   | ElectroDB       | **User ⇄ Blog join** carrying the per-blog `role` (and optional per-blog display name/bio). Bidirectional: `pk: BLOGS#{blogId}` / `sk: USERS#{userId}` lists a blog's team; GSI `USERS#{userId}` → `BLOGS#{blogId}` lists "my blogs". Replaces `Author`                                                                                      |
 | `UserSession`   | ElectroDB       | `pk: USERS#{userId}` / `sk: SESSIONS#{sessionId}` (global user, **no `blogId`** — a session spans all the user's blogs), `expiresAt` (DynamoDB TTL). Referenced by the signed session cookie                                                                                                                                                 |
-| `Post` / `Page` | ElectroDB       | `pk: BLOGS#{blogId}#…`. Top-level metadata: `type: short \| article \| page`, slug, status, publishedAt, tags[], pinned, plus a `content` object (`values: string[]` ordered contentIds, `excerpt?: string`) — see section 8.2                                                                                                               |
+| `Post` / `Page` | ElectroDB       | `pk: BLOGS#{blogId}#…`. Top-level metadata: `type: short \| article` (`Page` has none — it's nav-attached), slug, status, publishedAt, tags[], pinned, plus a `content` object (`values: string[]` ordered contentIds, `excerpt?: string`) — see section 8.2                                                                                 |
 | `ContentBlock`  | **hand-rolled** | The post/page body, discriminated-union blocks, partitioned under the blog (see section 8.2)                                                                                                                                                                                                                                                 |
 | `Media`         | ElectroDB       | `pk: BLOGS#{blogId}#…`. key, filename, contentType, size, folder, `references[]` (drives in-use vs orphaned), dimensions. S3 at `uploads/{blogId}/…`                                                                                                                                                                                         |
 | `Theme`         | ElectroDB       | `pk: BLOGS#{blogId}#…`. Metadata + config; template files live in S3 `themes/{blogId}/{themeId}/`                                                                                                                                                                                                                                            |
@@ -278,7 +278,7 @@ value: Hello world
 Driven by **EventBridge Scheduler → SQS → worker**, with the worker able to enqueue follow-on SQS jobs (fan-out
 cascade). v1 jobs:
 
-- Publish **scheduled** `Content` at its `scheduledAt`.
+- Publish **scheduled** `Post` / `Page` at its `scheduledAt`.
 - Roll up **view counters** (per-post + weekly).
 - Sweep **orphaned media** (media with no `references[]`).
 - Regenerate / cache the **RSS feed**.
@@ -349,7 +349,7 @@ which host is `primary` vs an `alias` (aliases 301 to primary), and remove a dom
 
 ## Open actions
 
-- [ ] **Get the `Content` DynamoDB schema from James** before building the `Content` entity (section 8).
+- [ ] **Get the `Post` / `Page` DynamoDB schema from James** before building the `Post` / `Page` entities (section 8).
 - [ ] Wire Testcontainers + local DynamoDB for unit tests (with James).
 - [ ] Detail the SAM template resources (table, bucket, queue, scheduler, functions, API, outputs).
 - [ ] Confirm the `/admin` SPA serving strategy against API Gateway (proxy S3 vs. Lambda passthrough).
