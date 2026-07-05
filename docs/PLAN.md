@@ -117,7 +117,9 @@ integration-tests/        (later)
   backend/                Vitest
   frontend/               Playwright + Vitest
 infra/                    SAM template(s) + deploy script
-PLAN.md
+docs/
+  PLAN.md
+  architecture.png
 ```
 
 Bun workspaces span `components/`, `packages/`, and `themes/`.
