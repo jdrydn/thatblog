@@ -35,24 +35,26 @@ yet:
 
 ## 3. Decisions log
 
-| #   | Decision                                                                                                                                                                                                                                                                                                           |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | A **SAM stack is multi-tenant**: one shared DynamoDB table + one shared S3 content bucket host **many blogs**, isolated by a `blogId` partition dimension. Self-hosted = same stack, one (or few) blogs; hosted = many blogs per stack. Dev still uses PR-environment stacks.                                      |
-| 2   | **API Gateway** with standard Lambda proxy integration is the front door. **CloudFront** is an optional add-on.                                                                                                                                                                                                    |
-| 3   | Cron is **EventBridge Scheduler → SQS → worker**; the worker can enqueue further SQS jobs (fan-out cascade).                                                                                                                                                                                                       |
-| 4   | **AWS SAM** for infrastructure. The stack creates & owns the content bucket.                                                                                                                                                                                                                                       |
-| 5   | Build with **Bun**, transpile to JS targeting the **`nodejs24.x`** Lambda runtime.                                                                                                                                                                                                                                 |
-| 6   | Monorepo via **Bun workspaces** across `components/`, `packages/`, `themes/`.                                                                                                                                                                                                                                      |
-| 7   | **Two buckets:** a SAM-managed artifact bucket (Lambda zips, account-shared, invisible) + a per-stack content bucket (`themes/` `uploads/`, owned by the stack, deleted with it).                                                                                                                                  |
-| 8   | Components are **private `@thatblog/*` packages** that cross-import freely (all Lambdas share one IAM permission set).                                                                                                                                                                                             |
-| 9   | **`Post` and `Page` are the two top-level entities**, sharing one hand-rolled block model (`ContentBlock`). A `Post` carries `type` (`short \| article`); a `Page` is a standalone, nav-attached document (no `type`). "Content" names the body (blocks + the `content` object), never a top-level entity.         |
-| 10  | Renderer = **LiquidJS** with a pluggable `fs` loader (S3 in prod, local FS in theme-kit).                                                                                                                                                                                                                          |
-| 11  | Unit tests: **Vitest** + **Testcontainers** (local DynamoDB), files named `<name>.spec.ts`.                                                                                                                                                                                                                        |
-| 12  | **`blogId` is in the `pk` of every tenant-scoped entity** (Blog, BlogDomain, MapBlogUser, Post, Page, ContentBlock, Media, Theme, Counter). Exceptions: **`System`** (stack-wide singleton) and **`User` / `UserSession`** (keyed by the global user, which spans blogs — a many-to-many map needs a global user). |
-| 13  | **`User` is a global identity** within a stack (credentials, email login); a **`MapBlogUser`** join relates users ⇄ blogs with a per-blog role. Replaces the blog-local `Author`. Powers "my blogs" and "a blog's team", and decouples authN (`User`) from authZ (membership).                                     |
-| 14  | **S3 content is blogId-prefixed:** `themes/{blogId}/{themeId}/…` and `uploads/{blogId}/YYYY/MM-DD/{mediaId}.ext`. Per-blog prefixes = logical isolation + easy per-blog lifecycle/delete.                                                                                                                          |
-| 15  | **Public routing is by `Host` → `blogId`.** The frontend resolves the incoming hostname via the **`BlogDomain`** entity (GSI `DOMAINS#{host}` → blog; one item per domain, so a blog holds a primary + custom/alias domains). Admin resolves its blog the same way, with a future central multi-blog admin.        |
-| 16  | **ID formats:** `blogId` is a **`b`-prefixed nanoid** (e.g. `bV1StGXR8Z`); `postId` / `pageId` are **ULIDs** (lexicographically sortable by creation time); `contentId` (block `sk`) is an opaque unique id.                                                                                                       |
+| #   | Decision                                                                                                                                                                                                                                                                                                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | A **SAM stack is multi-tenant**: one shared DynamoDB table + one shared S3 content bucket host **many blogs**, isolated by a `blogId` partition dimension. Self-hosted = same stack, one (or few) blogs; hosted = many blogs per stack. Dev still uses PR-environment stacks.                                            |
+| 2   | The front door is an **HTTP API** (API Gateway): app routes via Lambda proxy, `/admin/*` static assets via an S3 proxy (see #17). **CloudFront** is an optional add-on.                                                                                                                                                  |
+| 3   | Cron is **EventBridge Scheduler → SQS → worker**; the worker can enqueue further SQS jobs (fan-out cascade).                                                                                                                                                                                                             |
+| 4   | **AWS SAM** for infrastructure. The stack creates & owns the content bucket.                                                                                                                                                                                                                                             |
+| 5   | Build with **Bun**, transpile to JS targeting the **`nodejs24.x`** Lambda runtime.                                                                                                                                                                                                                                       |
+| 6   | Monorepo via **Bun workspaces** across `components/`, `packages/`, `themes/`.                                                                                                                                                                                                                                            |
+| 7   | **Two buckets:** a SAM-managed artifact bucket (Lambda zips, account-shared, invisible) + a per-stack content bucket (`themes/` `uploads/`, owned by the stack, deleted with it).                                                                                                                                        |
+| 8   | Components are **private `@thatblog/*` packages** that cross-import freely (all Lambdas share one IAM permission set).                                                                                                                                                                                                   |
+| 9   | **`Post` and `Page` are the two top-level entities**, sharing one hand-rolled block model (`ContentBlock`). A `Post` carries `type` (`short \| article`); a `Page` is a standalone, nav-attached document (no `type`). "Content" names the body (blocks + the `content` object), never a top-level entity.               |
+| 10  | Renderer = **LiquidJS** with a pluggable `fs` loader (S3 in prod, local FS in theme-kit).                                                                                                                                                                                                                                |
+| 11  | Unit tests: **Vitest** + **Testcontainers** (local DynamoDB), files named `<name>.spec.ts`.                                                                                                                                                                                                                              |
+| 12  | **`blogId` is in the `pk` of every tenant-scoped entity** (Blog, BlogDomain, MapBlogUser, Post, Page, ContentBlock, Media, Theme, Counter). Exceptions: **`System`** (stack-wide singleton) and **`User` / `UserSession`** (keyed by the global user, which spans blogs — a many-to-many map needs a global user).       |
+| 13  | **`User` is a global identity** within a stack (credentials, email login); a **`MapBlogUser`** join relates users ⇄ blogs with a per-blog role. Replaces the blog-local `Author`. Powers "my blogs" and "a blog's team", and decouples authN (`User`) from authZ (membership).                                           |
+| 14  | **S3 content is blogId-prefixed:** `themes/{blogId}/{themeId}/…` and `uploads/{blogId}/YYYY/MM-DD/{mediaId}.ext`. Per-blog prefixes = logical isolation + easy per-blog lifecycle/delete.                                                                                                                                |
+| 15  | **Public routing is by `Host` → `blogId`.** The frontend resolves the incoming hostname via the **`BlogDomain`** entity (GSI `DOMAINS#{host}` → blog; one item per domain, so a blog holds a primary + custom/alias domains). Admin resolves its blog the same way, with a future central multi-blog admin.              |
+| 16  | **ID formats:** `blogId` is a **`b`-prefixed nanoid** (e.g. `bV1StGXR8Z`); `postId` / `pageId` are **ULIDs** (lexicographically sortable by creation time); `contentId` (block `sk`) is an opaque unique id.                                                                                                             |
+| 17  | **Static/admin serving.** Front door is an **HTTP API** (not REST). App routes use Lambda proxy integration; `/admin/*` uses an **HTTP-proxy integration straight to S3** (no Lambda in the asset path). CloudFront (future) can front both.                                                                             |
+| 18  | **First-run setup key.** The `System` item holds a generated **`setupKey`**; first-run setup runs at **`/admin/setup/{setupKey}`** (create the first `User` + `Blog` + primary `BlogDomain` + seed the default theme), after which the key is **cleared**, permanently disabling the route. No open registration window. |
 
 ---
 
@@ -150,7 +152,7 @@ v1 entities:
 
 | Entity          | Managed by      | Notes                                                                                                                                                                                                                                                                                                                                                                    |
 | --------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `System`        | ElectroDB       | **Stack-wide singleton** `pk=SYSTEM` / `sk=SYSTEM` (no `blogId`). Session signing secrets (list, for rotation), encrypted at rest, IAM-gated                                                                                                                                                                                                                             |
+| `System`        | ElectroDB       | **Stack-wide singleton** `pk=SYSTEM` / `sk=SYSTEM` (no `blogId`). Session signing secrets (list, for rotation) + a one-time **`setupKey`** (see #18); encrypted at rest, IAM-gated                                                                                                                                                                                       |
 | `Blog`          | ElectroDB       | The **tenant root**, one per blog: `pk: BLOGS#{blogId}`. Config: profile, publishing, active theme, navigation order, integrations, plan/entitlements. Domains live in `BlogDomain`, not inline                                                                                                                                                                          |
 | `BlogDomain`    | ElectroDB       | One item **per domain** a blog answers to: `pk: BLOGS#{blogId}` / `sk: DOMAINS#{host}` (lists a blog's domains). `host`, `type` (`primary \| alias` — an alias 301s to primary), plus custom-domain state (`status: pending \| active`, `acmCertArn?`, `verifiedAt?`). GSI `DOMAINS#{host}` (**unique**) → blog is the public-routing lookup                             |
 | `User`          | ElectroDB       | **Global identity** within the stack (spans blogs, **no `blogId`**): `pk: USERS#{userId}`. `email`, `passwordHash` (bcryptjs), `displayName`. Looked up by email via GSI. Credentials only — role lives on `MapBlogUser`                                                                                                                                                 |
@@ -252,9 +254,9 @@ value: Hello world
   incoming `Host`** (domain → `blogId` via `BlogDomain`), then serves that blog's public pages (timeline, posts, pages,
   RSS).
 - **frontend-admin** — React + Vite SPA, a **single global build** serving every blog. Static assets synced once to the
-  content bucket, served under **`/admin`** through API Gateway; `/admin/*` serves `index.html` (client-side routing),
-  hashed assets served directly. The SPA scopes to a blog by the admin domain today; a central multi-blog picker is a
-  future add.
+  content bucket and served under **`/admin`** via an **HTTP-API HTTP-proxy integration straight to S3** (no Lambda in
+  the asset path); `/admin/*` returns `index.html` (client-side routing), hashed assets served directly. The SPA scopes
+  to a blog by the admin domain today; a central multi-blog picker is a future add.
 - **thatblog-worker** — SQS consumer running cron jobs.
 
 ## 10.1 Authentication
@@ -271,6 +273,9 @@ value: Hello world
   blogs) as a **list of secrets** — sign with the newest, verify against all valid, so rotation is add-new / retire-old
   with no forced logouts. Bootstrapped with a generated secret on first deploy; encrypted at rest by DynamoDB, access
   gated by the shared Lambda IAM role. (Rotation can become a worker cron.)
+- **First-run setup.** On first deploy the `System` item is seeded with a generated **`setupKey`**. Setup completes at
+  **`/admin/setup/{setupKey}`** — creating the first `User` (owner), first `Blog`, its primary `BlogDomain`, and a
+  default theme — after which the key is **cleared**, permanently disabling the route. No open registration window.
 - **Future:** social logins via a centralised auth service, and a programmatic API — see section 15.
 
 ## 11. Cron / worker jobs
@@ -335,8 +340,8 @@ which host is `primary` vs an `alias` (aliases 301 to primary), and remove a dom
 
 - **Hosted edition** — signup, Stripe billing, and plan entitlements pushed onto the `Blog` item, plus a central
   multi-blog admin (picker + SSO). Blog creation is already an **in-stack runtime op** (write `Blog` + owner
-  `MapBlogUser` + seed a default theme from `themes/_catalog/`), so hosting adds billing and a picker — **not** per-blog
-  infrastructure provisioning.
+  `MapBlogUser` + primary `BlogDomain` + seed a default theme from `themes/_catalog/`), so hosting adds billing and a
+  picker — **not** per-blog infrastructure provisioning.
 - **Custom domains** via API Gateway custom domain + **ACM**, tracked per host on **`BlogDomain`** (verification
   `status` + `acmCertArn`); the `DOMAINS#{host}` GSI already resolves them at request time.
 - **Replies / comments**, hosted alongside an **ActivityPub** integration.
@@ -349,11 +354,6 @@ which host is `primary` vs an `alias` (aliases 301 to primary), and remove a dom
 
 ## Open actions
 
-- [ ] **Get the `Post` / `Page` DynamoDB schema from James** before building the `Post` / `Page` entities (section 8).
 - [ ] Wire Testcontainers + local DynamoDB for unit tests (with James).
-- [ ] Detail the SAM template resources (table, bucket, queue, scheduler, functions, API, outputs).
-- [ ] Confirm the `/admin` SPA serving strategy against API Gateway (proxy S3 vs. Lambda passthrough).
-- [ ] Decide the **blog-creation / signup flow** (in-stack runtime: write `Blog` + owner `MapBlogUser` + seed a default
-      theme from `themes/_catalog/`) and the first-ever-user bootstrap.
-- [ ] Decide **admin scoping**: per-blog domain now vs. a central multi-blog picker.
-- [ ] Confirm `User`/`UserSession` stay global (no `blogId`) — required for the many-to-many `MapBlogUser`.
+- [ ] Detail the SAM template resources (single table + all 5 LSIs + `gs1`, content bucket, SQS + DLQ, EventBridge
+      Scheduler, Lambda functions, the HTTP API with Lambda-proxy routes + the `/admin/*` S3 proxy, stack outputs).
