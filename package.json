@@ -1,0 +1,18 @@
+{
+  "name": "thatblog",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "workspaces": ["components/*", "packages/*", "themes/*"],
+  "scripts": {
+    "build:api": "bun build ./components/backend-api/lambda.ts --target=node --format=cjs --outdir=infra/dist/backend-api --sourcemap=linked",
+    "build": "bun run build:api",
+    "typecheck": "tsc --noEmit",
+    "deploy": "infra/deploy.sh"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "prettier": "^3.3.0",
+    "typescript": "^5.6.0"
+  }
+}

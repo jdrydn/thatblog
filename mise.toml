@@ -1,0 +1,15 @@
+# Toolchain for thatblog. Run `mise install` to provision everything.
+[tools]
+# Node 24 matches the nodejs24.x Lambda runtime (plan decision #5).
+node = "24"
+bun = "latest"
+awscli = "latest"
+aws-sam-cli = "latest"
+
+[env]
+# Local secrets (AWS credentials, etc.) — gitignored, populated per-machine.
+_.file = ".env"
+
+[tasks.deploy]
+description = "Build the Lambdas, deploy the SAM stack, then health-check the API"
+run = "infra/deploy.sh"
