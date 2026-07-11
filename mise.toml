@@ -13,3 +13,7 @@ _.file = ".env"
 [tasks.deploy]
 description = "Build the Lambdas, deploy the SAM stack, then health-check the API"
 run = "infra/deploy.sh"
+
+[tasks.teardown]
+description = "Empty the content bucket and delete the SAM stack"
+run = "infra/teardown.sh"
