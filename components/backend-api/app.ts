@@ -6,7 +6,7 @@ app.get('/health', (c) =>
   c.json({
     status: 'ok',
     service: 'backend-api',
-    version: '0.0.1',
+    version: '0.0.2',
   }),
 );
 
