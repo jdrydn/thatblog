@@ -81,7 +81,7 @@ Resources:
   ContentBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub '${AWS::StackName}-content-${AWS::AccountId}'
+      BucketName: !Sub '${AWS::StackName}-${AWS::Region}-${AWS::AccountId}'
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
