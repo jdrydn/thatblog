@@ -1,0 +1,152 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: thatblog - multi-tenant serverless blog platform (0.0.1 foundation)
+
+Globals:
+  Function:
+    Runtime: nodejs24.x
+    Architectures:
+      - arm64
+    MemorySize: 256
+    Timeout: 10
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref Table
+        CONTENT_BUCKET: !Ref ContentBucket
+
+Resources:
+  # Single multi-tenant table. Fixed key/index topology (plan section 8.1):
+  # pk/sk + 5 LSIs (ls1sk..ls5sk, fixed at creation) + gs1 (gs1pk/gs1sk).
+  # Every index projects KEYS_ONLY to keep it lean. ls4/ls5 are reserved-unused in v1.
+  Table:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${AWS::StackName}-table'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+        - { AttributeName: ls1sk, AttributeType: S }
+        - { AttributeName: ls2sk, AttributeType: S }
+        - { AttributeName: ls3sk, AttributeType: S }
+        - { AttributeName: ls4sk, AttributeType: S }
+        - { AttributeName: ls5sk, AttributeType: S }
+        - { AttributeName: gs1pk, AttributeType: S }
+        - { AttributeName: gs1sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      LocalSecondaryIndexes:
+        - IndexName: ls1
+          KeySchema:
+            - { AttributeName: pk, KeyType: HASH }
+            - { AttributeName: ls1sk, KeyType: RANGE }
+          Projection: { ProjectionType: KEYS_ONLY }
+        - IndexName: ls2
+          KeySchema:
+            - { AttributeName: pk, KeyType: HASH }
+            - { AttributeName: ls2sk, KeyType: RANGE }
+          Projection: { ProjectionType: KEYS_ONLY }
+        - IndexName: ls3
+          KeySchema:
+            - { AttributeName: pk, KeyType: HASH }
+            - { AttributeName: ls3sk, KeyType: RANGE }
+          Projection: { ProjectionType: KEYS_ONLY }
+        - IndexName: ls4
+          KeySchema:
+            - { AttributeName: pk, KeyType: HASH }
+            - { AttributeName: ls4sk, KeyType: RANGE }
+          Projection: { ProjectionType: KEYS_ONLY }
+        - IndexName: ls5
+          KeySchema:
+            - { AttributeName: pk, KeyType: HASH }
+            - { AttributeName: ls5sk, KeyType: RANGE }
+          Projection: { ProjectionType: KEYS_ONLY }
+      GlobalSecondaryIndexes:
+        - IndexName: gs1
+          KeySchema:
+            - { AttributeName: gs1pk, KeyType: HASH }
+            - { AttributeName: gs1sk, KeyType: RANGE }
+          Projection: { ProjectionType: KEYS_ONLY }
+      # UserSession TTL (plan 10.1); harmless before the entity exists.
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+  # Per-stack content bucket: themes/{blogId}/ + uploads/{blogId}/ + admin/ (plan #7, #14, #17).
+  # Public static-website endpoint so the /admin S3 proxy needs no SigV4, and index.html as the
+  # error document gives client-side-routing fallback for free.
+  ContentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${AWS::StackName}-${AWS::Region}-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+
+  ContentBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ContentBucket
+      PolicyDocument:
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: '*'
+            Action: s3:GetObject
+            Resource: !Sub '${ContentBucket.Arn}/*'
+
+  # Single HTTP API front door (plan #2). $default stage = no stage suffix on the URL.
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+
+  BackendApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-backend-api'
+      CodeUri: dist/backend-api
+      Handler: lambda.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Table
+        - S3CrudPolicy:
+            BucketName: !Ref ContentBucket
+      Events:
+        Root:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /
+            Method: ANY
+        Proxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  ApiUrl:
+    Description: HTTP API base URL
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+  TableName:
+    Description: DynamoDB table name
+    Value: !Ref Table
+  ContentBucketName:
+    Description: Content bucket name (deploy script syncs assets here)
+    Value: !Ref ContentBucket
+  ContentBucketWebsiteUrl:
+    Description: Content bucket static-website endpoint
+    Value: !GetAtt ContentBucket.WebsiteURL
