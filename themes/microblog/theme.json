@@ -1,0 +1,6 @@
+{
+  "name": "Microblog",
+  "version": "1.0.0",
+  "engine": "liquid",
+  "description": "A Twitter-like microblog theme: profile header, timeline, and post detail."
+}

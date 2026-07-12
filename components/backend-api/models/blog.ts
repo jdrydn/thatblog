@@ -1,5 +1,5 @@
 import type { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { Entity } from 'electrodb';
+import { Entity, type EntityItem } from 'electrodb';
 import { client, TABLE_NAME } from './client';
 import { timestamps } from './_shared';
 
@@ -39,3 +39,4 @@ export const makeBlog = (c: DynamoDBClient, table: string) => new Entity(blogSch
 
 export const Blog = makeBlog(client, TABLE_NAME);
 export type BlogEntity = ReturnType<typeof makeBlog>;
+export type BlogItem = EntityItem<BlogEntity>;

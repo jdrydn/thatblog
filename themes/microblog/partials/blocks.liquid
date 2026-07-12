@@ -1,0 +1,10 @@
+{%- comment -%}
+  Render a post body: one output per content block, switching on the discriminated-union `type`
+  (PLAN.md 8.2). v0.0.4 ships PLAIN_TEXT only; new block types (MEDIA, LINK, …) add a `when` branch
+  here as the union grows. Unknown types are skipped rather than rendered as garbage.
+{%- endcomment -%}
+{%- for block in blocks -%}
+  {%- case block.type -%}
+    {%- when 'PLAIN_TEXT' -%}<p>{{ block.value | escape | newline_to_br }}</p>
+  {%- endcase -%}
+{%- endfor -%}

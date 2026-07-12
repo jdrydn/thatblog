@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ pageTitle | default: blog.name | escape }}</title>
+    <style>
+      :root { --fg: #0f1419; --muted: #536471; --accent: #1d9bf0; --line: #eff3f4; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--fg); }
+      .container { max-width: 600px; margin: 0 auto; border-left: 1px solid var(--line); border-right: 1px solid var(--line); min-height: 100vh; }
+      .cover { height: 200px; background: var(--line) center / cover no-repeat; }
+      .profile { padding: 16px; border-bottom: 1px solid var(--line); }
+      .profile .avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-top: -56px; border: 4px solid #fff; background: var(--line); display: block; }
+      .profile h1 { margin: 12px 0 2px; font-size: 20px; }
+      .profile .bio { margin: 8px 0; }
+      .profile .meta { color: var(--muted); font-size: 15px; }
+      .profile .meta a { color: var(--accent); text-decoration: none; }
+      a.permalink { color: inherit; text-decoration: none; }
+      .post { padding: 16px; border-bottom: 1px solid var(--line); display: block; }
+      .post:hover { background: #f7f9f9; }
+      .post .badges { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+      .post .body { margin: 6px 0; }
+      .post time { color: var(--muted); font-size: 14px; }
+      .empty { padding: 40px 16px; color: var(--muted); text-align: center; }
+      footer { padding: 24px 16px; color: var(--muted); font-size: 13px; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="cover" {% if blog.cover %}style="background-image: url('{{ blog.cover | escape }}')"{% endif %}></div>
+      <header class="profile">
+        {% if blog.avatar %}<img class="avatar" src="{{ blog.avatar | escape }}" alt="{{ blog.name | escape }}" />{% else %}<span class="avatar"></span>{% endif %}
+        <h1><a class="permalink" href="/">{{ blog.name | escape }}</a></h1>
+        {% if blog.bio %}<p class="bio">{{ blog.bio | escape | newline_to_br }}</p>{% endif %}
+        <p class="meta">
+          {% if blog.location %}<span>{{ blog.location | escape }}</span>{% endif %}
+          {% if blog.website %}<a href="{{ blog.website | escape }}" rel="me">{{ blog.website | escape }}</a>{% endif %}
+        </p>
+      </header>
+      {% block content %}{% endblock %}
+      <footer>Powered by thatblog</footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+{% layout 'layout' %}
+{% block content %}
+  {% if posts.size > 0 %}
+    {% for post in posts %}{% render 'partials/post-card', post: post %}{% endfor %}
+  {% else %}
+    <p class="empty">No posts yet.</p>
+  {% endif %}
+{% endblock %}

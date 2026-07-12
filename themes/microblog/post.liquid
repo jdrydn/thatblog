@@ -1,0 +1,11 @@
+{% layout 'layout' %}
+{% block content %}
+  <article class="post">
+    <div class="badges">
+      {%- if post.pinned %}Pinned · {% endif -%}
+      {{ post.type }}
+    </div>
+    <div class="body">{% render 'partials/blocks', blocks: post.blocks %}</div>
+    <time datetime="{{ post.publishedAt }}">{{ post.publishedAt | date: '%b %-d, %Y' }}</time>
+  </article>
+{% endblock %}
