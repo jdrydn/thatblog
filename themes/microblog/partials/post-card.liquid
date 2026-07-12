@@ -1,0 +1,9 @@
+{%- comment -%} A single post as it appears in the timeline: badges, body, and a permalink to its page. {%- endcomment -%}
+<a class="post permalink" href="{{ post.url }}">
+  <div class="badges">
+    {%- if post.pinned %}Pinned · {% endif -%}
+    {{ post.type }}
+  </div>
+  <div class="body">{% render 'partials/blocks', blocks: post.blocks %}</div>
+  <time datetime="{{ post.publishedAt }}">{{ post.publishedAt | date: '%b %-d, %Y' }}</time>
+</a>

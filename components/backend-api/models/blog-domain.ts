@@ -32,8 +32,17 @@ export const blogDomainSchema = {
   },
 } as const;
 
-export const makeBlogDomain = (c: DynamoDBClient, table: string) =>
-  new Entity(blogDomainSchema, { client: c, table });
+export const makeBlogDomain = (c: DynamoDBClient, table: string) => new Entity(blogDomainSchema, { client: c, table });
 
 export const BlogDomain = makeBlogDomain(client, TABLE_NAME);
 export type BlogDomainEntity = ReturnType<typeof makeBlogDomain>;
+
+// Public routing (PLAN.md 8.1): host → blogId via the unique gs1. KEYS_ONLY projects nothing but the
+// keys, so query with includeKeys+ignoreOwnership ([[electrodb-keys-only-gsi]]) and read blogId back
+// out of gs1sk (BLOGS#{blogId}) — no follow-on fetch needed, the id is right there in the key. The
+// caller lowercases host first (keys are casing:'none', so the model does not normalise).
+export async function resolveHostToBlogId(entity: BlogDomainEntity, host: string): Promise<string | undefined> {
+  const { data } = await entity.query.byHost({ host }).go({ ignoreOwnership: true, data: 'includeKeys' });
+  const key = data[0] as unknown as { gs1sk?: string } | undefined;
+  return key?.gs1sk?.slice('BLOGS#'.length);
+}

@@ -18,8 +18,8 @@ echo "==> Region: $REGION"
 echo "==> Installing dependencies"
 (cd "$ROOT" && bun install)
 
-echo "==> Building backend-api"
-(cd "$ROOT" && bun run build:api)
+echo "==> Building Lambdas (backend-api + frontend-site)"
+(cd "$ROOT" && bun run build)
 
 echo "==> Deploying stack: $STACK_NAME"
 sam deploy \
@@ -31,11 +31,23 @@ sam deploy \
   --no-fail-on-empty-changeset
 
 echo "==> Reading stack outputs"
-API_URL="$(aws cloudformation describe-stacks \
-  --stack-name "$STACK_NAME" \
+outputs() {
+  aws cloudformation describe-stacks \
+    --stack-name "$STACK_NAME" \
+    --region "$REGION" \
+    --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" \
+    --output text
+}
+API_URL="$(outputs ApiUrl)"
+CONTENT_BUCKET="$(outputs ContentBucketName)"
+
+# Sync the shipped themes to the catalog prefix the site renders from (PLAN.md section 12). Per-blog
+# theme copies (themes/{blogId}/) are a runtime op (0.1.6); v0.0.5 renders straight from _catalog.
+echo "==> Syncing themes to s3://${CONTENT_BUCKET}/themes/_catalog/"
+aws s3 sync "$ROOT/themes/" "s3://${CONTENT_BUCKET}/themes/_catalog/" \
   --region "$REGION" \
-  --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
-  --output text)"
+  --delete \
+  --exclude '*/node_modules/*'
 
 echo "==> Health check: ${API_URL}/health"
 curl -fsS "${API_URL}/health"

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: thatblog - multi-tenant serverless blog platform (0.0.1 foundation)
+Description: thatblog - multi-tenant serverless blog platform (0.0.5 public site)
 
 Globals:
   Function:
@@ -112,6 +112,9 @@ Resources:
     Properties:
       StageName: $default
 
+  # backend-api owns the JSON API surfaces: /health, /auth/*, /admin/* (setup, authoring; later the
+  # admin SPA). It no longer sits on the catch-all — the public site does. HTTP API routes the most
+  # specific match, so /admin/{proxy+} beats the site's /{proxy+} and /health beats it as an exact key.
   BackendApiFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -122,6 +125,40 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref Table
         - S3CrudPolicy:
+            BucketName: !Ref ContentBucket
+      Events:
+        Health:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /health
+            Method: ANY
+        Auth:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /auth/{proxy+}
+            Method: ANY
+        Admin:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /admin/{proxy+}
+            Method: ANY
+
+  # frontend-site: Hono SSR of the active theme (via @thatblog/renderer + the S3 theme loader). Resolves
+  # the blog from the incoming Host (PLAN.md section 10) and serves the public pages, so it takes the
+  # root + catch-all. Read-only on the table; reads theme templates from the content bucket.
+  FrontendSiteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-frontend-site'
+      CodeUri: dist/frontend-site
+      Handler: lambda.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref Table
+        - S3ReadPolicy:
             BucketName: !Ref ContentBucket
       Events:
         Root:

@@ -22,7 +22,7 @@ export function createApp(models: Models) {
     c.json({
       status: 'ok',
       service: 'backend-api',
-      version: '0.0.4',
+      version: '0.0.5',
     }),
   );
 
