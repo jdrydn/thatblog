@@ -4,6 +4,7 @@ import { makeLoaders } from './loaders';
 import type { AppEnv } from './context';
 import { setupRoutes } from './routes/setup';
 import { authRoutes } from './routes/auth';
+import { postsRoutes } from './routes/posts';
 
 // createApp takes the model set so tests can point the whole app at a Testcontainers table (mirrors
 // makeModels); the default export binds the env-driven singletons for the Lambda.
@@ -21,12 +22,13 @@ export function createApp(models: Models) {
     c.json({
       status: 'ok',
       service: 'backend-api',
-      version: '0.0.3',
+      version: '0.0.4',
     }),
   );
 
   app.route('/', setupRoutes);
   app.route('/', authRoutes);
+  app.route('/', postsRoutes);
 
   return app;
 }

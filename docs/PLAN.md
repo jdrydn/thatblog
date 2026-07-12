@@ -235,11 +235,15 @@ Rules:
   across the GSI). Add `gs2`+ only if a new pattern demands it.
 - **Index projection is `KEYS_ONLY`** on every LSI/GSI, to keep indexes lean (minimal storage + write amplification).
   Implications:
-  - **GSI (`gs1`) queries return key fields only.** ElectroDB does not auto-hydrate — the read shape is **query `gs1` →
-    collect keys → `BatchGetItem` the base table**. Route this hydration through a **DataLoader** so N index hits
-    collapse into one batched round-trip.
-  - **LSI queries** can still request non-projected attributes; DynamoDB auto-fetches them from the base table at extra
-    RCU (no second round-trip). So LSIs cost RCU where GSIs cost a hydration call.
+  - **Both GSI and LSI queries return key fields only** — `KEYS_ONLY` is `KEYS_ONLY`. A plain read drops rows on the
+    missing ownership stamp; DynamoDB does **not** auto-fetch non-projected attributes for an LSI either (verified against
+    DynamoDB Local + ElectroDB 3.9 in v0.0.4). The read is always **query index → fetch full items from the base table**.
+  - **ElectroDB does the follow-on fetch for you** with `.go({ hydrate: true })`, returning full items in index order —
+    this is what `models/post.ts` `listPosts` uses for the timestamp LSIs. Under the hood you can also do it by hand
+    (`{ ignoreOwnership: true, data: 'includeKeys' }` → BatchGet), which is what the gs1 **DataLoader** does so that N
+    index hits collapse into a single batched `BatchGetItem` (hydrate would issue one fetch per query).
+  - (An LSI *could* be given an `ALL`/`INCLUDE` projection to read attributes directly at extra RCU, but v1 keeps every
+    index `KEYS_ONLY` for lean writes and hydrates on read.)
 
 **Access patterns → index map.** The reads each index serves (all LSIs share `pk: BLOGS#{blogId}`; sparse — only items
 carrying that `ls*sk` appear):

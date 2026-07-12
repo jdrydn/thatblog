@@ -5,10 +5,15 @@ import { makeBlogDomain } from './blog-domain';
 import { makeUser } from './user';
 import { makeMapBlogUser } from './map-blog-user';
 import { makeUserSession } from './user-session';
+import { makePost } from './post';
+import { makePostSlug } from './post-slug';
+import { makeContentStore } from '../content/store';
 
 // The env-driven singletons (System, Blog, …) are the default import for Lambda code. makeModels
 // rebuilds the same entities against an arbitrary client/table — used by unit tests to point every
-// model at a Testcontainers DynamoDB without touching import-time env.
+// model at a Testcontainers DynamoDB without touching import-time env. `content` is the hand-rolled
+// block store (PLAN.md 8.2) — not an ElectroDB entity, but built from the same client/table so it
+// travels with the models it sits beside in the partition.
 export const makeModels = (client: DynamoDBClient, table: string) => ({
   System: makeSystem(client, table),
   Blog: makeBlog(client, table),
@@ -16,6 +21,9 @@ export const makeModels = (client: DynamoDBClient, table: string) => ({
   User: makeUser(client, table),
   MapBlogUser: makeMapBlogUser(client, table),
   UserSession: makeUserSession(client, table),
+  Post: makePost(client, table),
+  PostSlug: makePostSlug(client, table),
+  content: makeContentStore(client, table),
 });
 
 export type Models = ReturnType<typeof makeModels>;
@@ -28,3 +36,5 @@ export * from './blog-domain';
 export * from './user';
 export * from './map-blog-user';
 export * from './user-session';
+export * from './post';
+export * from './post-slug';
