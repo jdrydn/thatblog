@@ -4,6 +4,7 @@ import { makeLoaders } from './loaders';
 import type { AppEnv } from './context';
 import { setupRoutes } from './routes/setup';
 import { authRoutes } from './routes/auth';
+import { blogsRoutes } from './routes/blogs';
 import { postsRoutes } from './routes/posts';
 
 // createApp takes the model set so tests can point the whole app at a Testcontainers table (mirrors
@@ -22,12 +23,13 @@ export function createApp(models: Models) {
     c.json({
       status: 'ok',
       service: 'backend-api',
-      version: '0.0.5',
+      version: '0.0.6',
     }),
   );
 
   app.route('/', setupRoutes);
   app.route('/', authRoutes);
+  app.route('/', blogsRoutes);
   app.route('/', postsRoutes);
 
   return app;

@@ -19,7 +19,7 @@ export async function ensureSystem(models: Models): Promise<SystemItem> {
   const setupKey = newSetupKey();
   try {
     const { data } = await models.System.create({ sessionSecrets: [newSecret()], setupKey }).go();
-    console.log(`[thatblog] first-run setup required — POST /admin/setup/${setupKey}`);
+    console.log(`[thatblog] first-run setup required — POST /api/setup/${setupKey}`);
     return data;
   } catch (err) {
     // Lost a create race with a concurrent cold start; the winner's row is now present.

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: thatblog - multi-tenant serverless blog platform (0.0.5 public site)
+Description: thatblog - multi-tenant serverless blog platform (0.0.6 admin SPA)
 
 Globals:
   Function:
@@ -112,9 +112,10 @@ Resources:
     Properties:
       StageName: $default
 
-  # backend-api owns the JSON API surfaces: /health, /auth/*, /admin/* (setup, authoring; later the
-  # admin SPA). It no longer sits on the catch-all — the public site does. HTTP API routes the most
-  # specific match, so /admin/{proxy+} beats the site's /{proxy+} and /health beats it as an exact key.
+  # backend-api owns the JSON API surface: /health + everything under /api/* (setup, auth, authoring,
+  # blog discovery). The admin SPA is served from S3 under /admin/* (below), so the API sits on /api/*
+  # to stay clear of it. It's off the catch-all — the public site owns /{proxy+}. HTTP API routes the
+  # most specific match, so /api/{proxy+} and the exact /health both beat the site's /{proxy+}.
   BackendApiFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -133,17 +134,11 @@ Resources:
             ApiId: !Ref HttpApi
             Path: /health
             Method: ANY
-        Auth:
+        Api:
           Type: HttpApi
           Properties:
             ApiId: !Ref HttpApi
-            Path: /auth/{proxy+}
-            Method: ANY
-        Admin:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref HttpApi
-            Path: /admin/{proxy+}
+            Path: /api/{proxy+}
             Method: ANY
 
   # frontend-site: Hono SSR of the active theme (via @thatblog/renderer + the S3 theme loader). Resolves
@@ -174,10 +169,49 @@ Resources:
             Path: /{proxy+}
             Method: ANY
 
+  # The admin SPA is static assets, so /admin/* is an HTTP-proxy integration straight to the content
+  # bucket's public static-website endpoint — no Lambda in the asset path (plan #17). Two integrations
+  # because their target URIs differ: the greedy route forwards the captured {proxy} path, while bare
+  # /admin has no path var so it points straight at admin/index.html (the SPA entrypoint).
+  AdminAssetsIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: GET
+      IntegrationUri: !Sub 'http://${ContentBucket}.s3-website-${AWS::Region}.amazonaws.com/admin/${!request.path.proxy}'
+      PayloadFormatVersion: '1.0'
+
+  AdminRootIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: GET
+      IntegrationUri: !Sub 'http://${ContentBucket}.s3-website-${AWS::Region}.amazonaws.com/admin/index.html'
+      PayloadFormatVersion: '1.0'
+
+  AdminAssetsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /admin/{proxy+}'
+      Target: !Sub 'integrations/${AdminAssetsIntegration}'
+
+  AdminRootRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /admin'
+      Target: !Sub 'integrations/${AdminRootIntegration}'
+
 Outputs:
   ApiUrl:
     Description: HTTP API base URL
     Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+  AdminUrl:
+    Description: Admin SPA URL
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/admin'
   TableName:
     Description: DynamoDB table name
     Value: !Ref Table
