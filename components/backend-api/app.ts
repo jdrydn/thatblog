@@ -19,7 +19,7 @@ export function createApp(models: Models) {
     await next();
   });
 
-  app.get('/health', (c) =>
+  app.get('/api/health', (c) =>
     c.json({
       status: 'ok',
       service: 'backend-api',

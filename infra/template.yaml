@@ -21,7 +21,7 @@ Resources:
   Table:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub '${AWS::StackName}-table'
+      TableName: thatblog
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - { AttributeName: pk, AttributeType: S }
@@ -112,10 +112,10 @@ Resources:
     Properties:
       StageName: $default
 
-  # backend-api owns the JSON API surface: /health + everything under /api/* (setup, auth, authoring,
+  # backend-api owns the JSON API surface: everything under /api/* (health, setup, auth, authoring,
   # blog discovery). The admin SPA is served from S3 under /admin/* (below), so the API sits on /api/*
   # to stay clear of it. It's off the catch-all — the public site owns /{proxy+}. HTTP API routes the
-  # most specific match, so /api/{proxy+} and the exact /health both beat the site's /{proxy+}.
+  # most specific match, so /api/{proxy+} beats the site's /{proxy+}.
   BackendApiFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -128,12 +128,6 @@ Resources:
         - S3CrudPolicy:
             BucketName: !Ref ContentBucket
       Events:
-        Health:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref HttpApi
-            Path: /health
-            Method: ANY
         Api:
           Type: HttpApi
           Properties:
@@ -207,9 +201,12 @@ Resources:
       Target: !Sub 'integrations/${AdminRootIntegration}'
 
 Outputs:
-  ApiUrl:
-    Description: HTTP API base URL
+  Url:
+    Description: API Gateway base URL
     Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+  ApiUrl:
+    Description: JSON API base URL (the /api surface)
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/api'
   AdminUrl:
     Description: Admin SPA URL
     Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/admin'

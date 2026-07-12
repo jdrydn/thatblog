@@ -38,7 +38,7 @@ outputs() {
     --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" \
     --output text
 }
-API_URL="$(outputs ApiUrl)"
+BASE_URL="$(outputs Url)"
 CONTENT_BUCKET="$(outputs ContentBucketName)"
 
 # Sync the shipped themes to the catalog prefix the site renders from (PLAN.md section 12). Per-blog
@@ -56,7 +56,7 @@ aws s3 sync "$ROOT/components/frontend-admin/dist/" "s3://${CONTENT_BUCKET}/admi
   --region "$REGION" \
   --delete
 
-echo "==> Health check: ${API_URL}/health"
-curl -fsS "${API_URL}/health"
+echo "==> Health check: ${BASE_URL}/api/health"
+curl -fsS "${BASE_URL}/api/health"
 echo
-echo "==> Deployed. API: ${API_URL}"
+echo "==> Deployed. Site: ${BASE_URL}  API: ${BASE_URL}/api  Admin: ${BASE_URL}/admin"
