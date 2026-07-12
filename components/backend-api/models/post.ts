@@ -65,12 +65,9 @@ export type PostEntity = ReturnType<typeof makePost>;
 export type PostItem = EntityItem<PostEntity>;
 
 // List a blog's posts via one of the timestamp LSIs. The table projects every index KEYS_ONLY
-// ([[electrodb-keys-only-gsi]]), and — contrary to the "LSIs auto-fetch" note in PLAN.md 8.1 —
-// DynamoDB returns keys only here too, so this follows the same shape as the gs1 loaders: query the
-// index for ordered keys, read each postId out of the sk, then BatchGet the full posts. BatchGet is
-// unordered, so we restore the index order from the id list. byPublished is sparse (drafts have no
-// publishedAt → no ls3sk), so it naturally returns only published posts.
-const POSTS_PREFIX = 'POSTS#';
+// ([[electrodb-keys-only-gsi]]), so a plain read returns keys only — but ElectroDB's `hydrate: true`
+// does the follow-on fetch to the base table for us, returning full items in index order. byPublished
+// is sparse (drafts have no publishedAt → no ls3sk), so it naturally returns only published posts.
 export async function listPosts(
   entity: PostEntity,
   index: 'byCreated' | 'byUpdated' | 'byPublished',
@@ -78,21 +75,11 @@ export async function listPosts(
   opts: { order?: 'asc' | 'desc' } = {},
 ): Promise<PostItem[]> {
   // The three timestamp LSIs share the { blogId } composite; index into them dynamically. ElectroDB
-  // types each query method distinctly (and doesn't type includeKeys' raw sk), so narrow to the shape
-  // this helper uses.
-  type KeyQuery = (composite: { blogId: string }) => {
-    go: (opts: {
-      ignoreOwnership: true;
-      data: 'includeKeys';
-      order?: 'asc' | 'desc';
-    }) => Promise<{ data: { sk: string }[] }>;
+  // types each query method distinctly, so narrow to the shape this helper uses.
+  type IndexQuery = (composite: { blogId: string }) => {
+    go: (opts: { hydrate: true; order?: 'asc' | 'desc' }) => Promise<{ data: PostItem[] }>;
   };
-  const run = entity.query[index] as unknown as KeyQuery;
-  const { data: keys } = await run({ blogId }).go({ ignoreOwnership: true, data: 'includeKeys', order: opts.order });
-  const ids = keys.map((k) => k.sk.slice(POSTS_PREFIX.length));
-  if (!ids.length) return [];
-
-  const { data: posts } = await entity.get(ids.map((postId) => ({ blogId, postId }))).go();
-  const byId = new Map(posts.map((post) => [post.postId, post]));
-  return ids.map((id) => byId.get(id)).filter((post): post is PostItem => Boolean(post));
+  const run = entity.query[index] as unknown as IndexQuery;
+  const { data } = await run({ blogId }).go({ hydrate: true, order: opts.order });
+  return data;
 }
