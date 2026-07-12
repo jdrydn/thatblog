@@ -13,6 +13,13 @@ import { postById, postBySlug } from './pages/post';
 export function createApp(deps: { models: Models; renderer: Renderer }) {
   const app = new Hono<SiteEnv>();
 
+  // The admin SPA is served from S3 under /admin/* (HTTP API S3 proxy, PLAN.md #17). A bare /admin has
+  // no path segment for that route's {proxy+} to catch, so it falls through to this catch-all site app;
+  // send it on to the SPA entrypoint. It's /admin/index.html, not /admin/ — HTTP API normalises a
+  // trailing slash back to /admin, which would loop straight back here. This sits ahead of the
+  // host-resolution middleware because the admin build is global, not blog-scoped.
+  app.get('/admin', (c) => c.redirect('/admin/index.html', 302));
+
   app.use('*', async (c, next) => {
     c.set('models', deps.models);
     c.set('renderer', deps.renderer);

@@ -78,6 +78,13 @@ describe('frontend-site public routing', () => {
     expect(html).not.toContain('still a draft');
     expect(html).not.toContain('from the future');
   });
+
+  it('redirects a bare /admin to the SPA entrypoint without needing a resolved host', async () => {
+    // No Host header → host resolution would 404, so this proves the redirect runs ahead of it.
+    const res = await app.request('/admin');
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe('/admin/index.html');
+  });
 });
 
 describe('frontend-site post detail', () => {
