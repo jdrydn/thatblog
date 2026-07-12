@@ -10,15 +10,15 @@ import { postById, postBySlug } from './pages/post';
 // local-disk theme (mirrors backend-api's createApp); lambda.ts binds the env-driven singletons + the
 // S3 theme loader. The wiring lives there, not here, so importing this module never eagerly builds the
 // S3 renderer (which needs CONTENT_BUCKET) — the tests import createApp with their own deps.
-export function createApp(deps: { models: Models; renderer: Renderer }) {
+export function createApp(deps: { models: Models; renderer: Renderer; adminIndex: () => Promise<string> }) {
   const app = new Hono<SiteEnv>();
 
-  // The admin SPA is served from S3 under /admin/* (HTTP API S3 proxy, PLAN.md #17). A bare /admin has
-  // no path segment for that route's {proxy+} to catch, so it falls through to this catch-all site app;
-  // send it on to the SPA entrypoint. It's /admin/index.html, not /admin/ — HTTP API normalises a
-  // trailing slash back to /admin, which would loop straight back here. This sits ahead of the
-  // host-resolution middleware because the admin build is global, not blog-scoped.
-  app.get('/admin', (c) => c.redirect('/admin/index.html', 302));
+  // The admin SPA's hashed assets are served from S3 under /admin/* (HTTP API S3 proxy, PLAN.md #17),
+  // but a bare /admin has no path segment for that route's {proxy+} to catch, so it falls through to
+  // this catch-all site app. Serve the SPA's entry HTML (admin/index.html, read from the content
+  // bucket) inline, so /admin stays a clean URL and its absolute /admin/assets/… then load from S3.
+  // This sits ahead of the host-resolution middleware because the admin build is global, not blog-scoped.
+  app.get('/admin', async (c) => c.html(await deps.adminIndex()));
 
   app.use('*', async (c, next) => {
     c.set('models', deps.models);

@@ -167,8 +167,8 @@ Resources:
   # bucket's public static-website endpoint — no Lambda in the asset path (plan #17). The greedy route
   # forwards the captured path via the {proxy} URI path variable (bare braces, matched by name to the
   # route's {proxy+} — HTTP API syntax, not ${request.path.proxy}). A bare /admin has no path segment
-  # for {proxy+} to catch, so it falls through to /{proxy+} → frontend-site, which redirects it to the
-  # SPA entrypoint (see components/frontend-site/app.ts).
+  # for {proxy+} to catch, so it falls through to /{proxy+} → frontend-site, which serves the SPA's
+  # admin/index.html (read from this bucket) inline (see components/frontend-site/app.ts).
   AdminAssetsIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
