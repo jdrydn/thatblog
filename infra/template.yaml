@@ -175,7 +175,7 @@ Resources:
       ApiId: !Ref HttpApi
       IntegrationType: HTTP_PROXY
       IntegrationMethod: GET
-      IntegrationUri: !Sub 'http://${ContentBucket}.s3-website-${AWS::Region}.amazonaws.com/admin/{proxy}'
+      IntegrationUri: !Sub '${ContentBucket.WebsiteURL}/admin/{proxy}'
       PayloadFormatVersion: '1.0'
 
   AdminAssetsRoute:
