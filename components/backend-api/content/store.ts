@@ -65,3 +65,8 @@ export function makeContentStore(client: DynamoDBClient, table: string) {
 
 export type ContentStore = ReturnType<typeof makeContentStore>;
 export type { TransactItem };
+
+// A TransactWrite is cancelled atomically when any item's condition fails (e.g. a slug-claim's
+// attribute_not_exists), surfacing as TransactionCanceledException. Callers translate that to a 409.
+export const isWriteConflict = (err: unknown): boolean =>
+  typeof err === 'object' && err !== null && (err as { name?: string }).name === 'TransactionCanceledException';

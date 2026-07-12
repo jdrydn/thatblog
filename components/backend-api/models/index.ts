@@ -6,6 +6,7 @@ import { makeUser } from './user';
 import { makeMapBlogUser } from './map-blog-user';
 import { makeUserSession } from './user-session';
 import { makePost } from './post';
+import { makePostSlug } from './post-slug';
 import { makeContentStore } from '../content/store';
 
 // The env-driven singletons (System, Blog, …) are the default import for Lambda code. makeModels
@@ -21,6 +22,7 @@ export const makeModels = (client: DynamoDBClient, table: string) => ({
   MapBlogUser: makeMapBlogUser(client, table),
   UserSession: makeUserSession(client, table),
   Post: makePost(client, table),
+  PostSlug: makePostSlug(client, table),
   content: makeContentStore(client, table),
 });
 
@@ -35,3 +37,4 @@ export * from './user';
 export * from './map-blog-user';
 export * from './user-session';
 export * from './post';
+export * from './post-slug';
