@@ -171,15 +171,16 @@ Resources:
 
   # The admin SPA is static assets, so /admin/* is an HTTP-proxy integration straight to the content
   # bucket's public static-website endpoint — no Lambda in the asset path (plan #17). Two integrations
-  # because their target URIs differ: the greedy route forwards the captured {proxy} path, while bare
-  # /admin has no path var so it points straight at admin/index.html (the SPA entrypoint).
+  # because their target URIs differ: the greedy route forwards the captured path via the {proxy}
+  # URI path variable (bare braces, matched by name to the route's {proxy+} — HTTP API syntax, not
+  # ${request.path.proxy}); bare /admin has no path var so it points straight at admin/index.html.
   AdminAssetsIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApi
       IntegrationType: HTTP_PROXY
       IntegrationMethod: GET
-      IntegrationUri: !Sub 'http://${ContentBucket}.s3-website-${AWS::Region}.amazonaws.com/admin/${!request.path.proxy}'
+      IntegrationUri: !Sub 'http://${ContentBucket}.s3-website-${AWS::Region}.amazonaws.com/admin/{proxy}'
       PayloadFormatVersion: '1.0'
 
   AdminRootIntegration:
