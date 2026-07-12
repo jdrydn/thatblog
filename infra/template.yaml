@@ -106,11 +106,30 @@ Resources:
             Action: s3:GetObject
             Resource: !Sub '${ContentBucket.Arn}/*'
 
-  # Single HTTP API front door (plan #2). $default stage = no stage suffix on the URL.
+  # Single HTTP API front door (plan #2). Defined raw (not AWS::Serverless::HttpApi) with NO OpenAPI
+  # Body: a Body-defined API owns its whole route set, which silently drops standalone
+  # AWS::ApiGatewayV2::Route resources (the reason the /admin S3 route wouldn't deploy). With no Body,
+  # every route below is a standalone resource and the AutoDeploy stage serves them all.
   HttpApi:
-    Type: AWS::Serverless::HttpApi
+    Type: AWS::ApiGatewayV2::Api
     Properties:
+      Name: !Ref AWS::StackName
+      ProtocolType: HTTP
+
+  # $default stage = no stage suffix on the URL. AutoDeploy redeploys on any route/integration change.
+  # DependsOn the routes so they exist before the stage — otherwise the first auto-deployment can race
+  # ahead of them and ship an empty route set on initial create.
+  HttpApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    DependsOn:
+      - BackendApiRoute
+      - FrontendSiteRootRoute
+      - FrontendSiteProxyRoute
+      - AdminAssetsRoute
+    Properties:
+      ApiId: !Ref HttpApi
       StageName: $default
+      AutoDeploy: true
 
   # backend-api owns the JSON API surface: everything under /api/* (health, setup, auth, authoring,
   # blog discovery). The admin SPA is served from S3 under /admin/* (below), so the API sits on /api/*
@@ -127,13 +146,30 @@ Resources:
             TableName: !Ref Table
         - S3CrudPolicy:
             BucketName: !Ref ContentBucket
-      Events:
-        Api:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref HttpApi
-            Path: /api/{proxy+}
-            Method: ANY
+
+  BackendApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt BackendApiFunction.Arn
+      IntegrationMethod: POST
+      PayloadFormatVersion: '2.0'
+
+  BackendApiRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /api/{proxy+}'
+      Target: !Sub 'integrations/${BackendApiIntegration}'
+
+  BackendApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref BackendApiFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*'
 
   # frontend-site: Hono SSR of the active theme (via @thatblog/renderer + the S3 theme loader). Resolves
   # the blog from the incoming Host (PLAN.md section 10) and serves the public pages, so it takes the
@@ -149,19 +185,40 @@ Resources:
             TableName: !Ref Table
         - S3ReadPolicy:
             BucketName: !Ref ContentBucket
-      Events:
-        Root:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref HttpApi
-            Path: /
-            Method: ANY
-        Proxy:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref HttpApi
-            Path: /{proxy+}
-            Method: ANY
+
+  FrontendSiteIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt FrontendSiteFunction.Arn
+      IntegrationMethod: POST
+      PayloadFormatVersion: '2.0'
+
+  # Root + catch-all: the public site owns everything not matched by the more-specific /api and /admin
+  # routes (HTTP API picks the most specific match). Bare /admin lands here too — no segment for the
+  # /admin/{proxy+} S3 route's greedy var — and frontend-site serves the SPA's index.html inline.
+  FrontendSiteRootRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /'
+      Target: !Sub 'integrations/${FrontendSiteIntegration}'
+
+  FrontendSiteProxyRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /{proxy+}'
+      Target: !Sub 'integrations/${FrontendSiteIntegration}'
+
+  FrontendSitePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref FrontendSiteFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*'
 
   # The admin SPA is static assets, so /admin/* is an HTTP-proxy integration straight to the content
   # bucket's public static-website endpoint — no Lambda in the asset path (plan #17). The greedy route
