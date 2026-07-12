@@ -2,9 +2,9 @@ node_modules/
 infra/dist/
 components/frontend-admin/dist/
 .aws-sam/
+.claude/
 *.log
 .DS_Store
 .env
 .env.*
 .envrc
-
