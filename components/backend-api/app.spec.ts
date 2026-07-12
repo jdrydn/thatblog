@@ -18,7 +18,7 @@ const json = (body: unknown) => ({
 // The one cookie in Set-Cookie, as a `name=value` pair ready to send back as a Cookie header.
 const cookieFrom = (res: Response): string => (res.headers.get('set-cookie') ?? '').split(';')[0] ?? '';
 
-const login = (email: string, password: string) => app.request('/auth/login', json({ email, password }));
+const login = (email: string, password: string) => app.request('/api/auth/login', json({ email, password }));
 
 // Captured by setup and reused by the posts flow below (setup is one-shot, so these describes share
 // the one owner + blog the run creates).
@@ -37,7 +37,7 @@ describe('backend-api auth flow', () => {
     const system = await ensureSystem(models);
     expect(system.setupKey).toBeTruthy();
 
-    const res = await app.request(`/admin/setup/${system.setupKey}`, json(creds));
+    const res = await app.request(`/api/setup/${system.setupKey}`, json(creds));
     expect(res.status).toBe(201);
 
     const body = (await res.json()) as { user: { email: string }; blog: { blogId: string } };
@@ -50,14 +50,14 @@ describe('backend-api auth flow', () => {
   });
 
   it('serves the authenticated user from the setup auto-login cookie', async () => {
-    const res = await app.request('/auth/me', { headers: { cookie: setupCookie } });
+    const res = await app.request('/api/auth/me', { headers: { cookie: setupCookie } });
     expect(res.status).toBe(200);
     expect(((await res.json()) as { user: { email: string } }).user.email).toBe('owner@example.com');
   });
 
   it('rejects a wrong setup key with 404, then 410 once the key is cleared', async () => {
     // Key is already cleared by the successful setup above, so every call is now 410.
-    const res = await app.request('/admin/setup/whatever', json({}));
+    const res = await app.request('/api/setup/whatever', json({}));
     expect(res.status).toBe(410);
   });
 
@@ -66,27 +66,38 @@ describe('backend-api auth flow', () => {
     expect(res.status).toBe(401);
   });
 
-  it('logs in case-insensitively and round-trips /auth/me', async () => {
+  it('logs in case-insensitively and round-trips /api/auth/me', async () => {
     const res = await login('OWNER@EXAMPLE.COM', creds.password);
     expect(res.status).toBe(200);
 
-    const me = await app.request('/auth/me', { headers: { cookie: cookieFrom(res) } });
+    const me = await app.request('/api/auth/me', { headers: { cookie: cookieFrom(res) } });
     expect(me.status).toBe(200);
   });
 
-  it('rejects /auth/me without a cookie', async () => {
-    const res = await app.request('/auth/me');
+  it('rejects /api/auth/me without a cookie', async () => {
+    const res = await app.request('/api/auth/me');
     expect(res.status).toBe(401);
   });
 
   it('revokes the session on logout', async () => {
     const cookie = cookieFrom(await login(creds.email, creds.password));
 
-    const out = await app.request('/auth/logout', { method: 'POST', headers: { cookie } });
+    const out = await app.request('/api/auth/logout', { method: 'POST', headers: { cookie } });
     expect(out.status).toBe(200);
 
-    const me = await app.request('/auth/me', { headers: { cookie } });
+    const me = await app.request('/api/auth/me', { headers: { cookie } });
     expect(me.status).toBe(401); // session record deleted
+  });
+
+  it("lists the user's blogs for the admin SPA", async () => {
+    const res = await app.request('/api/blogs', { headers: { cookie: setupCookie } });
+    expect(res.status).toBe(200);
+    const { blogs } = (await res.json()) as { blogs: { blogId: string; name: string; role: string }[] };
+    expect(blogs).toEqual([{ blogId, name: 'My Blog', role: 'owner' }]);
+  });
+
+  it('rejects /api/blogs without a cookie', async () => {
+    expect((await app.request('/api/blogs')).status).toBe(401);
   });
 });
 
@@ -113,21 +124,21 @@ describe('backend-api posts flow', () => {
 
   it('rejects authoring without a session', async () => {
     const res = await app.request(
-      `/admin/blogs/${blogId}/posts`,
+      `/api/blogs/${blogId}/posts`,
       json({ blocks: [{ type: 'PLAIN_TEXT', value: 'hi' }] }),
     );
     expect(res.status).toBe(401);
   });
 
   it('rejects authoring on a blog the user is not a member of', async () => {
-    const res = await authedJson('/admin/blogs/bNOTMINE/posts', 'POST', {
+    const res = await authedJson('/api/blogs/bNOTMINE/posts', 'POST', {
       blocks: [{ type: 'PLAIN_TEXT', value: 'hi' }],
     });
     expect(res.status).toBe(403);
   });
 
   it('creates a draft short post with its block', async () => {
-    const res = await authedJson(`/admin/blogs/${blogId}/posts`, 'POST', {
+    const res = await authedJson(`/api/blogs/${blogId}/posts`, 'POST', {
       blocks: [{ type: 'PLAIN_TEXT', value: 'my first post' }],
     });
     expect(res.status).toBe(201);
@@ -141,21 +152,21 @@ describe('backend-api posts flow', () => {
   });
 
   it('reads the post back with its body in order', async () => {
-    const res = await app.request(`/admin/blogs/${blogId}/posts/${postId}`, { headers: { cookie: setupCookie } });
+    const res = await app.request(`/api/blogs/${blogId}/posts/${postId}`, { headers: { cookie: setupCookie } });
     expect(res.status).toBe(200);
     const { post } = (await res.json()) as PostBody;
     expect(post.blocks[0]?.value).toBe('my first post');
   });
 
   it("lists the blog's posts", async () => {
-    const res = await app.request(`/admin/blogs/${blogId}/posts`, { headers: { cookie: setupCookie } });
+    const res = await app.request(`/api/blogs/${blogId}/posts`, { headers: { cookie: setupCookie } });
     expect(res.status).toBe(200);
     const { posts } = (await res.json()) as { posts: { postId: string }[] };
     expect(posts.map((p) => p.postId)).toContain(postId);
   });
 
   it('replaces the whole body on edit, leaving no stale blocks', async () => {
-    const res = await authedJson(`/admin/blogs/${blogId}/posts/${postId}`, 'PATCH', {
+    const res = await authedJson(`/api/blogs/${blogId}/posts/${postId}`, 'PATCH', {
       blocks: [{ type: 'PLAIN_TEXT', value: 'edited' }],
     });
     expect(res.status).toBe(200);
@@ -170,7 +181,7 @@ describe('backend-api posts flow', () => {
   });
 
   it('publishes the post, stamping publishedAt', async () => {
-    const res = await authedJson(`/admin/blogs/${blogId}/posts/${postId}/publish`, 'POST', {});
+    const res = await authedJson(`/api/blogs/${blogId}/posts/${postId}/publish`, 'POST', {});
     expect(res.status).toBe(200);
     const { post } = (await res.json()) as PostBody;
     expect(post.status).toBe('published');
@@ -182,7 +193,7 @@ describe('backend-api posts flow', () => {
   });
 
   it('unpublishes back to draft, clearing publishedAt and leaving the public timeline', async () => {
-    const res = await authedJson(`/admin/blogs/${blogId}/posts/${postId}/unpublish`, 'POST', {});
+    const res = await authedJson(`/api/blogs/${blogId}/posts/${postId}/unpublish`, 'POST', {});
     expect(res.status).toBe(200);
     const { post } = (await res.json()) as PostBody;
     expect(post.status).toBe('draft');
@@ -194,14 +205,14 @@ describe('backend-api posts flow', () => {
   });
 
   it('enforces per-blog slug uniqueness with a 409', async () => {
-    const first = await authedJson(`/admin/blogs/${blogId}/posts`, 'POST', {
+    const first = await authedJson(`/api/blogs/${blogId}/posts`, 'POST', {
       slug: 'hello-world',
       blocks: [{ type: 'PLAIN_TEXT', value: 'has a slug' }],
     });
     expect(first.status).toBe(201);
     expect(((await first.json()) as PostBody).post.slug).toBe('hello-world');
 
-    const clash = await authedJson(`/admin/blogs/${blogId}/posts`, 'POST', {
+    const clash = await authedJson(`/api/blogs/${blogId}/posts`, 'POST', {
       slug: 'hello-world',
       blocks: [{ type: 'PLAIN_TEXT', value: 'wants the same slug' }],
     });
@@ -209,22 +220,22 @@ describe('backend-api posts flow', () => {
   });
 
   it('deletes a post with its blocks and frees the slug', async () => {
-    const created = await authedJson(`/admin/blogs/${blogId}/posts`, 'POST', {
+    const created = await authedJson(`/api/blogs/${blogId}/posts`, 'POST', {
       slug: 'delete-me',
       blocks: [{ type: 'PLAIN_TEXT', value: 'temporary' }],
     });
     const { post } = (await created.json()) as PostBody;
 
-    const del = await authedJson(`/admin/blogs/${blogId}/posts/${post.postId}`, 'DELETE', {});
+    const del = await authedJson(`/api/blogs/${blogId}/posts/${post.postId}`, 'DELETE', {});
     expect(del.status).toBe(204);
 
     // Gone: the post 404s and its blocks are swept.
-    const get = await app.request(`/admin/blogs/${blogId}/posts/${post.postId}`, { headers: { cookie: setupCookie } });
+    const get = await app.request(`/api/blogs/${blogId}/posts/${post.postId}`, { headers: { cookie: setupCookie } });
     expect(get.status).toBe(404);
     expect(await models.content.listBlocks(blogId, post.postId)).toHaveLength(0);
 
     // The slug claim was released, so it can be reused.
-    const reuse = await authedJson(`/admin/blogs/${blogId}/posts`, 'POST', {
+    const reuse = await authedJson(`/api/blogs/${blogId}/posts`, 'POST', {
       slug: 'delete-me',
       blocks: [{ type: 'PLAIN_TEXT', value: 'reused slug' }],
     });

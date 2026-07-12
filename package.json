@@ -1,13 +1,14 @@
 {
   "name": "thatblog",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "private": true,
   "type": "module",
   "workspaces": ["components/*", "packages/*", "themes/*"],
   "scripts": {
-    "build": "bun run build:api && bun run build:site",
+    "build": "bun run build:api && bun run build:site && bun run build:admin",
     "build:api": "bun build ./components/backend-api/lambda.ts --target=node --format=cjs --outdir=infra/dist/backend-api --sourcemap=linked",
     "build:site": "bun build ./components/frontend-site/lambda.ts --target=node --format=cjs --outdir=infra/dist/frontend-site --sourcemap=linked",
+    "build:admin": "bun run --cwd components/frontend-admin build",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "typecheck": "tsc --noEmit"

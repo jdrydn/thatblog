@@ -18,7 +18,7 @@ echo "==> Region: $REGION"
 echo "==> Installing dependencies"
 (cd "$ROOT" && bun install)
 
-echo "==> Building Lambdas (backend-api + frontend-site)"
+echo "==> Building Lambdas (backend-api + frontend-site) + admin SPA"
 (cd "$ROOT" && bun run build)
 
 echo "==> Deploying stack: $STACK_NAME"
@@ -38,7 +38,7 @@ outputs() {
     --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" \
     --output text
 }
-API_URL="$(outputs ApiUrl)"
+BASE_URL="$(outputs Url)"
 CONTENT_BUCKET="$(outputs ContentBucketName)"
 
 # Sync the shipped themes to the catalog prefix the site renders from (PLAN.md section 12). Per-blog
@@ -49,7 +49,14 @@ aws s3 sync "$ROOT/themes/" "s3://${CONTENT_BUCKET}/themes/_catalog/" \
   --delete \
   --exclude '*/node_modules/*'
 
-echo "==> Health check: ${API_URL}/health"
-curl -fsS "${API_URL}/health"
+# Sync the admin SPA (one global build serves every blog) to the /admin prefix the HTTP API's S3
+# proxy serves from (PLAN.md #17, section 12). --delete clears stale hashed assets from prior builds.
+echo "==> Syncing admin SPA to s3://${CONTENT_BUCKET}/admin/"
+aws s3 sync "$ROOT/components/frontend-admin/dist/" "s3://${CONTENT_BUCKET}/admin/" \
+  --region "$REGION" \
+  --delete
+
+echo "==> Health check: ${BASE_URL}/api/health"
+curl -fsS "${BASE_URL}/api/health"
 echo
-echo "==> Deployed. API: ${API_URL}"
+echo "==> Deployed. Site: ${BASE_URL}  API: ${BASE_URL}/api  Admin: ${BASE_URL}/admin"

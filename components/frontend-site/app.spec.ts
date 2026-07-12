@@ -11,7 +11,12 @@ import { createApp } from './app';
 // its own randomly-keyed blog, so the shared table stays conflict-free).
 const models = testModels();
 const themeRoot = fileURLToPath(new URL('../../themes/microblog', import.meta.url));
-const app = createApp({ models, renderer: createRenderer(fsLoader(themeRoot)) });
+const ADMIN_INDEX = '<!doctype html><title>thatblog admin</title>';
+const app = createApp({
+  models,
+  renderer: createRenderer(fsLoader(themeRoot)),
+  adminIndex: async () => ADMIN_INDEX,
+});
 
 const host = 'sitetest.example.com';
 const blogId = newBlogId();
@@ -77,6 +82,14 @@ describe('frontend-site public routing', () => {
     const html = await (await visit('/')).text();
     expect(html).not.toContain('still a draft');
     expect(html).not.toContain('from the future');
+  });
+
+  it('serves the admin SPA index at a bare /admin without needing a resolved host', async () => {
+    // No Host header → host resolution would 404, so this proves /admin runs ahead of it.
+    const res = await app.request('/admin');
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('text/html');
+    expect(await res.text()).toBe(ADMIN_INDEX);
   });
 });
 

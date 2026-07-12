@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: thatblog - multi-tenant serverless blog platform (0.0.5 public site)
+Description: thatblog - multi-tenant serverless blog platform (0.0.6 admin SPA)
 
 Globals:
   Function:
@@ -21,7 +21,7 @@ Resources:
   Table:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub '${AWS::StackName}-table'
+      TableName: !Ref AWS::StackName
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - { AttributeName: pk, AttributeType: S }
@@ -106,19 +106,39 @@ Resources:
             Action: s3:GetObject
             Resource: !Sub '${ContentBucket.Arn}/*'
 
-  # Single HTTP API front door (plan #2). $default stage = no stage suffix on the URL.
+  # Single HTTP API front door (plan #2). Defined raw (not AWS::Serverless::HttpApi) with NO OpenAPI
+  # Body: a Body-defined API owns its whole route set, which silently drops standalone
+  # AWS::ApiGatewayV2::Route resources (the reason the /admin S3 route wouldn't deploy). With no Body,
+  # every route below is a standalone resource and the AutoDeploy stage serves them all.
   HttpApi:
-    Type: AWS::Serverless::HttpApi
+    Type: AWS::ApiGatewayV2::Api
     Properties:
-      StageName: $default
+      Name: !Ref AWS::StackName
+      ProtocolType: HTTP
 
-  # backend-api owns the JSON API surfaces: /health, /auth/*, /admin/* (setup, authoring; later the
-  # admin SPA). It no longer sits on the catch-all — the public site does. HTTP API routes the most
-  # specific match, so /admin/{proxy+} beats the site's /{proxy+} and /health beats it as an exact key.
+  # $default stage = no stage suffix on the URL. AutoDeploy redeploys on any route/integration change.
+  # DependsOn the routes so they exist before the stage — otherwise the first auto-deployment can race
+  # ahead of them and ship an empty route set on initial create.
+  HttpApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    DependsOn:
+      - BackendApiRoute
+      - FrontendSiteRootRoute
+      - FrontendSiteProxyRoute
+      - AdminAssetsRoute
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: $default
+      AutoDeploy: true
+
+  # backend-api owns the JSON API surface: everything under /api/* (health, setup, auth, authoring,
+  # blog discovery). The admin SPA is served from S3 under /admin/* (below), so the API sits on /api/*
+  # to stay clear of it. It's off the catch-all — the public site owns /{proxy+}. HTTP API routes the
+  # most specific match, so /api/{proxy+} beats the site's /{proxy+}.
   BackendApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${AWS::StackName}-backend-api'
+      FunctionName: !Sub '${AWS::StackName}-api'
       CodeUri: dist/backend-api
       Handler: lambda.handler
       Policies:
@@ -126,25 +146,30 @@ Resources:
             TableName: !Ref Table
         - S3CrudPolicy:
             BucketName: !Ref ContentBucket
-      Events:
-        Health:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref HttpApi
-            Path: /health
-            Method: ANY
-        Auth:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref HttpApi
-            Path: /auth/{proxy+}
-            Method: ANY
-        Admin:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref HttpApi
-            Path: /admin/{proxy+}
-            Method: ANY
+
+  BackendApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt BackendApiFunction.Arn
+      IntegrationMethod: POST
+      PayloadFormatVersion: '2.0'
+
+  BackendApiRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /api/{proxy+}'
+      Target: !Sub 'integrations/${BackendApiIntegration}'
+
+  BackendApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref BackendApiFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*'
 
   # frontend-site: Hono SSR of the active theme (via @thatblog/renderer + the S3 theme loader). Resolves
   # the blog from the incoming Host (PLAN.md section 10) and serves the public pages, so it takes the
@@ -152,7 +177,7 @@ Resources:
   FrontendSiteFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${AWS::StackName}-frontend-site'
+      FunctionName: !Sub '${AWS::StackName}-site'
       CodeUri: dist/frontend-site
       Handler: lambda.handler
       Policies:
@@ -160,30 +185,79 @@ Resources:
             TableName: !Ref Table
         - S3ReadPolicy:
             BucketName: !Ref ContentBucket
-      Events:
-        Root:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref HttpApi
-            Path: /
-            Method: ANY
-        Proxy:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref HttpApi
-            Path: /{proxy+}
-            Method: ANY
+
+  FrontendSiteIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt FrontendSiteFunction.Arn
+      IntegrationMethod: POST
+      PayloadFormatVersion: '2.0'
+
+  # Root + catch-all: the public site owns everything not matched by the more-specific /api and /admin
+  # routes (HTTP API picks the most specific match). Bare /admin lands here too — no segment for the
+  # /admin/{proxy+} S3 route's greedy var — and frontend-site serves the SPA's index.html inline.
+  FrontendSiteRootRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /'
+      Target: !Sub 'integrations/${FrontendSiteIntegration}'
+
+  FrontendSiteProxyRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /{proxy+}'
+      Target: !Sub 'integrations/${FrontendSiteIntegration}'
+
+  FrontendSitePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref FrontendSiteFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*'
+
+  # The admin SPA is static assets, so /admin/* is an HTTP-proxy integration straight to the content
+  # bucket's public static-website endpoint — no Lambda in the asset path (plan #17). The greedy route
+  # forwards the captured path via the {proxy} URI path variable (bare braces, matched by name to the
+  # route's {proxy+} — HTTP API syntax, not ${request.path.proxy}). A bare /admin has no path segment
+  # for {proxy+} to catch, so it falls through to /{proxy+} → frontend-site, which serves the SPA's
+  # admin/index.html (read from this bucket) inline (see components/frontend-site/app.ts).
+  AdminAssetsIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: GET
+      IntegrationUri: !Sub '${ContentBucket.WebsiteURL}/admin/{proxy}'
+      PayloadFormatVersion: '1.0'
+
+  AdminAssetsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /admin/{proxy+}'
+      Target: !Sub 'integrations/${AdminAssetsIntegration}'
 
 Outputs:
-  ApiUrl:
-    Description: HTTP API base URL
+  Url:
+    Description: API Gateway base URL
     Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com'
-  TableName:
-    Description: DynamoDB table name
-    Value: !Ref Table
+  ApiUrl:
+    Description: JSON API base URL (the /api surface)
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/api'
+  AdminUrl:
+    Description: Admin SPA URL
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/admin'
   ContentBucketName:
     Description: Content bucket name (deploy script syncs assets here)
     Value: !Ref ContentBucket
   ContentBucketWebsiteUrl:
     Description: Content bucket static-website endpoint
     Value: !GetAtt ContentBucket.WebsiteURL
+  DynamoTableName:
+    Description: DynamoDB table name
+    Value: !Ref Table

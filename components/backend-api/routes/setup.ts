@@ -22,7 +22,7 @@ const setupSchema = z.object({
 
 export const setupRoutes = new Hono<AppEnv>();
 
-setupRoutes.post('/admin/setup/:key', async (c) => {
+setupRoutes.post('/api/setup/:key', async (c) => {
   const models = c.var.models;
   const system = await ensureSystem(models);
 

@@ -221,4 +221,4 @@ posts.delete('/:postId', async (c) => {
 });
 
 export const postsRoutes = new Hono<AppEnv>();
-postsRoutes.route('/admin/blogs/:blogId/posts', posts);
+postsRoutes.route('/api/blogs/:blogId/posts', posts);
