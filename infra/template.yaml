@@ -21,7 +21,7 @@ Resources:
   Table:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: thatblog
+      TableName: !Ref AWS::StackName
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - { AttributeName: pk, AttributeType: S }
@@ -119,7 +119,7 @@ Resources:
   BackendApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${AWS::StackName}-backend-api'
+      FunctionName: !Sub '${AWS::StackName}-api'
       CodeUri: dist/backend-api
       Handler: lambda.handler
       Policies:
@@ -141,7 +141,7 @@ Resources:
   FrontendSiteFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${AWS::StackName}-frontend-site'
+      FunctionName: !Sub '${AWS::StackName}-site'
       CodeUri: dist/frontend-site
       Handler: lambda.handler
       Policies:
@@ -210,12 +210,12 @@ Outputs:
   AdminUrl:
     Description: Admin SPA URL
     Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/admin'
-  TableName:
-    Description: DynamoDB table name
-    Value: !Ref Table
   ContentBucketName:
     Description: Content bucket name (deploy script syncs assets here)
     Value: !Ref ContentBucket
   ContentBucketWebsiteUrl:
     Description: Content bucket static-website endpoint
     Value: !GetAtt ContentBucket.WebsiteURL
+  DynamoTableName:
+    Description: DynamoDB table name
+    Value: !Ref Table
